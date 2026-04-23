@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
- 
+
     <style>
         :root { --slep-blue: #1e40af; --slep-light: #f8fafc; }
         body { background-color: var(--slep-light); font-family: 'Inter', system-ui, sans-serif; }
@@ -18,7 +18,7 @@
         .ts-control { border-radius: 8px !important; padding: 10px !important; }
         .loader { border-top-color: #3498db; animation: spinner 1.5s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
- 
+
         .section-label {
             font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
             text-transform: uppercase; color: #94a3b8;
@@ -40,12 +40,12 @@
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-slate-800">
- 
+
     <div id="loading-overlay" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
         <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
         <p class="text-slate-600 font-medium">Procesando base de datos institucional...</p>
     </div>
- 
+
     <!-- SIDEBAR -->
     <aside class="sidebar flex flex-col shrink-0 overflow-y-auto">
         <div class="p-6 bg-blue-800 text-white">
@@ -81,10 +81,10 @@
             </button>
         </div>
     </aside>
- 
+
     <!-- MAIN -->
     <main class="flex-1 overflow-y-auto p-8 space-y-8">
- 
+
         <!-- KPIs -->
         <div class="grid grid-cols-2 gap-6">
             <div class="card p-6 border-l-4 border-blue-600">
@@ -98,7 +98,7 @@
                 <p class="text-xs text-slate-400 mt-1" id="kpi-len-n"></p>
             </div>
         </div>
- 
+
         <!-- SECCION 1: Evolucion por etapa -->
         <div>
             <p class="section-label">Evolucion por etapa &mdash; Comparativo 2025 / 2026</p>
@@ -123,7 +123,7 @@
                 </div>
             </div>
         </div>
- 
+
         <!-- SECCION 2: Evolucion por indicador -->
         <div>
             <p class="section-label">Evolucion por indicador &mdash; Comparativo 2025 / 2026</p>
@@ -142,7 +142,7 @@
                 </div>
             </div>
         </div>
- 
+
         <!-- SECCION 3: Por colegio/curso -->
         <div>
             <p class="section-label">Evolucion por colegio y curso</p>
@@ -165,9 +165,9 @@
                 <div class="h-80" id="g3-chart-wrap" style="display:none;"><canvas id="chart-colegio"></canvas></div>
             </div>
         </div>
- 
+
     </main>
- 
+
     <script>
         var rawData = [];
         var maps = {};
@@ -178,23 +178,23 @@
         var periodMap = {};
         var ETAPAS = ['Diagnostico', 'Intermedio', 'Cierre'];
         var ETAPAS_KEYS = ['Diagn\u00f3stico', 'Intermedio', 'Cierre'];
- 
+
         var PALETTE = [
             '#1e40af','#0f766e','#b45309','#7c3aed','#be123c',
             '#0369a1','#065f46','#9333ea','#c2410c','#4d7c0f',
             '#a21caf','#0e7490','#92400e','#166534','#1d4ed8'
         ];
- 
+
         var activePills = { mat: null, len: null };
- 
+
         async function init() {
             try {
                 var response = await fetch('datos.json');
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 var json = await response.json();
- 
+
                 maps = json.maps;
- 
+
                 rawData = json.data.map(function(row) {
                     return {
                         periodo:    maps['Periodo_evaluaci\u00f3n'][row[0]],
@@ -206,13 +206,13 @@
                         nivel:      maps['Nivel_fixed'][row[6]]
                     };
                 });
- 
+
                 buildPeriodMap();
                 setupGlobalFilters();
                 setupChart3Filters();
                 initCharts();
                 updateDashboard();
- 
+
                 document.getElementById('loading-overlay').style.display = 'none';
             } catch(e) {
                 console.error('Error:', e);
@@ -220,7 +220,7 @@
                 el.innerHTML = '<p style="color:red;padding:20px;text-align:center;">Error al cargar datos.json<br><small>' + e.message + '</small></p>';
             }
         }
- 
+
         function buildPeriodMap() {
             periodMap = {};
             var allPeriods = [];
@@ -238,17 +238,17 @@
                 periodMap[year][etapa] = p;
             });
         }
- 
+
         function getYears() {
             return Object.keys(periodMap).sort();
         }
- 
+
         function avgPct(arr) {
             if (!arr.length) return null;
             var sum = arr.reduce(function(s, d) { return s + d.puntaje; }, 0);
             return (sum / arr.length) * 100;
         }
- 
+
         function dataByEtapa(subset, year) {
             return ETAPAS_KEYS.map(function(etapa) {
                 var key = periodMap[year] && periodMap[year][etapa];
@@ -257,7 +257,7 @@
                 return avgPct(rows);
             });
         }
- 
+
         function setupGlobalFilters() {
             function makeSelect(id, key) {
                 var seen = {};
@@ -273,26 +273,26 @@
                 });
                 return new TomSelect(el, { plugins: ['remove_button'], onChange: updateDashboard });
             }
- 
+
             controls.rbd   = makeSelect('f-rbd',   'rbd');
             controls.nivel = makeSelect('f-nivel',  'nivel');
             controls.curso = makeSelect('f-curso',  'curso');
             controls.asig  = makeSelect('f-asig',   'asignatura');
             controls.eje   = makeSelect('f-eje',    'eje');
- 
+
             document.getElementById('btn-reset').onclick = function() {
                 Object.values(controls).forEach(function(c) { c.clear(); });
                 updateDashboard();
             };
         }
- 
+
         function setupChart3Filters() {
             var asigEl = document.getElementById('g3-asig');
             ['Matem\u00e1tica', 'Lenguaje'].forEach(function(v) {
                 var o = document.createElement('option'); o.value = v; o.text = v; asigEl.appendChild(o);
             });
             g3controls.asig = new TomSelect(asigEl, { onChange: updateChart3 });
- 
+
             var rbdEl = document.getElementById('g3-rbd');
             var seen = {}; var rbds = [];
             rawData.forEach(function(d) { if (!seen[d.rbd]) { seen[d.rbd] = true; rbds.push(d.rbd); } });
@@ -300,7 +300,7 @@
                 var o = document.createElement('option'); o.value = v; o.text = v; rbdEl.appendChild(o);
             });
             g3controls.rbd = new TomSelect(rbdEl, { plugins: ['remove_button'], onChange: updateChart3 });
- 
+
             var cursoEl = document.getElementById('g3-curso');
             var seen2 = {}; var cursos = [];
             rawData.forEach(function(d) { if (!seen2[d.curso]) { seen2[d.curso] = true; cursos.push(d.curso); } });
@@ -309,7 +309,7 @@
             });
             g3controls.curso = new TomSelect(cursoEl, { plugins: ['remove_button'], onChange: updateChart3 });
         }
- 
+
         function updateDashboard() {
             var f = {
                 rbd:   controls.rbd.getValue(),
@@ -318,7 +318,7 @@
                 asig:  controls.asig.getValue(),
                 eje:   controls.eje.getValue()
             };
- 
+
             filteredData = rawData.filter(function(d) {
                 return (f.rbd.length   === 0 || f.rbd.indexOf(d.rbd) >= 0)        &&
                        (f.nivel.length === 0 || f.nivel.indexOf(d.nivel) >= 0)     &&
@@ -326,13 +326,13 @@
                        (f.asig.length  === 0 || f.asig.indexOf(d.asignatura) >= 0) &&
                        (f.eje.length   === 0 || f.eje.indexOf(d.eje) >= 0);
             });
- 
+
             renderKPIs();
             renderEvolCharts();
             renderEjesCharts();
             updateChart3();
         }
- 
+
         function renderKPIs() {
             function calc(asig) {
                 var sub = filteredData.filter(function(d) { return d.asignatura === asig; });
@@ -347,7 +347,7 @@
             document.getElementById('kpi-len').innerText = len.v;
             document.getElementById('kpi-len-n').innerText = len.n;
         }
- 
+
         function initCharts() {
             function makeOpts(withLegend) {
                 return {
@@ -372,14 +372,14 @@
                     }
                 };
             }
- 
+
             charts.evolMat = new Chart(document.getElementById('chart-evol-mat'), { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(true) });
             charts.evolLen = new Chart(document.getElementById('chart-evol-len'), { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(true) });
             charts.ejesMat = new Chart(document.getElementById('chart-ejes-mat'), { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(false) });
             charts.ejesLen = new Chart(document.getElementById('chart-ejes-len'), { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(false) });
             charts.colegio = new Chart(document.getElementById('chart-colegio'),  { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(true) });
         }
- 
+
         function makeLineDataset(label, data, color, isDashed) {
             return {
                 label: label,
@@ -394,19 +394,19 @@
                 fill: false
             };
         }
- 
+
         function renderEvolCharts() {
             var years = getYears();
             var matColors = { '2025': '#1e40af', '2026': '#60a5fa' };
             var lenColors = { '2025': '#0f766e', '2026': '#2dd4bf' };
- 
+
             var matDs = years.map(function(year) {
                 var sub = filteredData.filter(function(d) { return d.asignatura === 'Matem\u00e1tica'; });
                 return makeLineDataset(year, dataByEtapa(sub, year), matColors[year] || '#888', year !== '2025');
             });
             charts.evolMat.data.datasets = matDs;
             charts.evolMat.update();
- 
+
             var lenDs = years.map(function(year) {
                 var sub = filteredData.filter(function(d) { return d.asignatura === 'Lenguaje'; });
                 return makeLineDataset(year, dataByEtapa(sub, year), lenColors[year] || '#888', year !== '2025');
@@ -414,27 +414,27 @@
             charts.evolLen.data.datasets = lenDs;
             charts.evolLen.update();
         }
- 
+
         function renderEjesCharts() {
             renderEjesForAsig('Matem\u00e1tica', charts.ejesMat, 'pills-mat', 'mat');
             renderEjesForAsig('Lenguaje',        charts.ejesLen,  'pills-len',  'len');
         }
- 
+
         function renderEjesForAsig(asig, chart, pillsId, key) {
             var sub = filteredData.filter(function(d) { return d.asignatura === asig; });
             var ejesSet = {};
             sub.forEach(function(d) { ejesSet[d.eje] = true; });
             var ejes = Object.keys(ejesSet).sort();
- 
+
             if (activePills[key] === null) {
                 activePills[key] = {};
                 ejes.forEach(function(e) { activePills[key][e] = true; });
             }
- 
+
             var pillsEl = document.getElementById(pillsId);
             var existingKeys = Array.prototype.slice.call(pillsEl.querySelectorAll('[data-eje]')).map(function(el) { return el.dataset.eje; });
             var changed = ejes.length !== existingKeys.length || ejes.some(function(e) { return existingKeys.indexOf(e) < 0; });
- 
+
             if (changed) {
                 pillsEl.innerHTML = '';
                 ejes.forEach(function(eje, i) {
@@ -456,10 +456,10 @@
                     pillsEl.appendChild(pill);
                 });
             }
- 
+
             buildEjesDatasets(asig, chart, key);
         }
- 
+
         function buildEjesDatasets(asig, chart, key) {
             var sub = filteredData.filter(function(d) { return d.asignatura === asig; });
             var ejesSet = {};
@@ -467,7 +467,7 @@
             var ejes = Object.keys(ejesSet).sort();
             var years = getYears();
             var datasets = [];
- 
+
             ejes.forEach(function(eje, i) {
                 if (!activePills[key] || activePills[key][eje] === false) return;
                 var color = PALETTE[i % PALETTE.length];
@@ -476,41 +476,41 @@
                     datasets.push(makeLineDataset(eje + ' (' + year + ')', dataByEtapa(ejeSub, year), color, year !== '2025'));
                 });
             });
- 
+
             chart.data.datasets = datasets;
             chart.update();
         }
- 
+
         function updateChart3() {
             var asig  = g3controls.asig.getValue() || 'Matem\u00e1tica';
             var rbds  = g3controls.rbd.getValue();
             var cursos = g3controls.curso.getValue();
- 
+
             var hint = document.getElementById('g3-hint');
             var wrap = document.getElementById('g3-chart-wrap');
- 
+
             if (!rbds || rbds.length === 0) {
                 hint.style.display = 'block';
                 wrap.style.display = 'none';
                 return;
             }
- 
+
             hint.style.display = 'none';
             wrap.style.display = 'block';
- 
+
             var base = filteredData.filter(function(d) {
                 return d.asignatura === asig && rbds.indexOf(d.rbd) >= 0;
             });
             if (cursos && cursos.length) {
                 base = base.filter(function(d) { return cursos.indexOf(d.curso) >= 0; });
             }
- 
+
             var gruposSet = {};
             base.forEach(function(d) { gruposSet[d.curso] = true; });
             var grupos = Object.keys(gruposSet).sort();
             var years = getYears();
             var datasets = [];
- 
+
             grupos.forEach(function(curso, i) {
                 var color = PALETTE[i % PALETTE.length];
                 var cursoDat = base.filter(function(d) { return d.curso === curso; });
@@ -518,11 +518,11 @@
                     datasets.push(makeLineDataset(curso + ' (' + year + ')', dataByEtapa(cursoDat, year), color, year !== '2025'));
                 });
             });
- 
+
             charts.colegio.data.datasets = datasets;
             charts.colegio.update();
         }
- 
+
         init();
     </script>
 </body>
