@@ -13,30 +13,11 @@
     <style>
         :root { --slep-blue: #1e40af; --slep-light: #f8fafc; }
         body { background-color: var(--slep-light); font-family: 'Inter', system-ui, sans-serif; }
-        .sidebar { width: 300px; min-width: 300px; background: white; border-right: 1px solid #e2e8f0; }
+        .sidebar { width: 320px; background: white; border-right: 1px solid #e2e8f0; }
         .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; }
         .ts-control { border-radius: 8px !important; padding: 10px !important; }
         .loader { border-top-color: #3498db; animation: spinner 1.5s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .section-label {
-            font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
-            text-transform: uppercase; color: #94a3b8;
-            padding-bottom: 8px; border-bottom: 1px solid #f1f5f9;
-            margin-bottom: 16px;
-        }
-        .inner-filter-label {
-            font-size: 11px; font-weight: 700; color: #64748b;
-            text-transform: uppercase; margin-bottom: 4px; display: block;
-        }
-        .indicator-pill {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600;
-            cursor: pointer; border: 1.5px solid transparent; transition: opacity 0.15s;
-            user-select: none;
-        }
-        .indicator-pill .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-        .indicator-pill.off { opacity: 0.3; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-slate-800">
@@ -46,14 +27,13 @@
         <p class="text-slate-600 font-medium">Procesando base de datos institucional...</p>
     </div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar flex flex-col shrink-0 overflow-y-auto">
+    <aside class="sidebar flex flex-col shrink-0">
         <div class="p-6 bg-blue-800 text-white">
             <h1 class="text-xl font-bold tracking-tight">Monitor DIA</h1>
             <p class="text-xs opacity-75 font-medium uppercase mt-1">SLEP Del Pino</p>
-            <p class="text-xs opacity-40 mt-1">Filtros globales</p>
         </div>
-        <div class="p-5 flex-1 space-y-4">
+        
+        <div class="p-6 flex-1 overflow-y-auto space-y-5">
             <div>
                 <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Establecimiento</label>
                 <select id="f-rbd" multiple placeholder="Todos los colegios..."></select>
@@ -75,452 +55,210 @@
                 <select id="f-eje" multiple placeholder="Todos los ejes..."></select>
             </div>
         </div>
-        <div class="p-5 border-t border-slate-100">
-            <button id="btn-reset" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all text-sm">
+
+        <div class="p-6 border-t border-slate-100">
+            <button id="btn-reset" class="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all text-sm">
                 Limpiar Filtros
             </button>
         </div>
     </aside>
 
-    <!-- MAIN -->
     <main class="flex-1 overflow-y-auto p-8 space-y-8">
-
-        <!-- KPIs -->
-        <div class="grid grid-cols-2 gap-6">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="card p-6 border-l-4 border-blue-600">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wide">Promedio Logro Matematica</h3>
+                <h3 class="text-sm font-semibold text-slate-500 uppercase">Promedio Logro Matemática</h3>
                 <p class="text-4xl font-black text-slate-800 mt-1" id="kpi-mat">0%</p>
-                <p class="text-xs text-slate-400 mt-1" id="kpi-mat-n"></p>
             </div>
             <div class="card p-6 border-l-4 border-teal-500">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wide">Promedio Logro Lenguaje</h3>
+                <h3 class="text-sm font-semibold text-slate-500 uppercase">Promedio Logro Lenguaje</h3>
                 <p class="text-4xl font-black text-slate-800 mt-1" id="kpi-len">0%</p>
-                <p class="text-xs text-slate-400 mt-1" id="kpi-len-n"></p>
             </div>
         </div>
 
-        <!-- SECCION 1: Evolucion por etapa -->
-        <div>
-            <p class="section-label">Evolucion por etapa &mdash; Comparativo 2025 / 2026</p>
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="card p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h2 class="text-base font-bold text-slate-800">Matematica</h2>
-                            <p class="text-xs text-slate-400">Promedio por etapa &mdash; solido=2025, punteado=2026</p>
-                        </div>
-                    </div>
-                    <div class="h-64"><canvas id="chart-evol-mat"></canvas></div>
-                </div>
-                <div class="card p-6">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h2 class="text-base font-bold text-slate-800">Lenguaje</h2>
-                            <p class="text-xs text-slate-400">Promedio por etapa &mdash; solido=2025, punteado=2026</p>
-                        </div>
-                    </div>
-                    <div class="h-64"><canvas id="chart-evol-len"></canvas></div>
-                </div>
+        <div class="card p-8">
+            <div class="mb-6">
+                <h2 class="text-lg font-bold text-slate-800">Evolución de Aprendizajes (2025 - 2026)</h2>
+                <p class="text-sm text-slate-400">Progreso consolidado por etapa de evaluación</p>
+            </div>
+            <div class="h-80 w-full">
+                <canvas id="chart-lineas"></canvas>
             </div>
         </div>
 
-        <!-- SECCION 2: Evolucion por indicador -->
-        <div>
-            <p class="section-label">Evolucion por indicador &mdash; Comparativo 2025 / 2026</p>
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <div class="card p-6">
-                    <h2 class="text-base font-bold text-slate-800 mb-1">Matematica &mdash; por indicador</h2>
-                    <p class="text-xs text-slate-400 mb-3">Solido = 2025 &nbsp;&#183;&nbsp; Punteado = 2026. Haz clic en un indicador para mostrarlo u ocultarlo.</p>
-                    <div id="pills-mat" class="flex flex-wrap gap-2 mb-4"></div>
-                    <div class="h-72"><canvas id="chart-ejes-mat"></canvas></div>
-                </div>
-                <div class="card p-6">
-                    <h2 class="text-base font-bold text-slate-800 mb-1">Lenguaje &mdash; por indicador</h2>
-                    <p class="text-xs text-slate-400 mb-3">Solido = 2025 &nbsp;&#183;&nbsp; Punteado = 2026. Haz clic en un indicador para mostrarlo u ocultarlo.</p>
-                    <div id="pills-len" class="flex flex-wrap gap-2 mb-4"></div>
-                    <div class="h-72"><canvas id="chart-ejes-len"></canvas></div>
-                </div>
+        <div class="card p-8">
+            <div class="mb-6">
+                <h2 class="text-lg font-bold text-slate-800">Rendimiento Detallado por Eje</h2>
+                <p class="text-sm text-slate-400">Desglose de indicadores según asignatura seleccionada</p>
+            </div>
+            <div class="h-96 w-full">
+                <canvas id="chart-barras"></canvas>
             </div>
         </div>
-
-        <!-- SECCION 3: Por colegio/curso -->
-        <div>
-            <p class="section-label">Evolucion por colegio y curso</p>
-            <div class="card p-6">
-                <div class="grid grid-cols-3 gap-4 mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <div>
-                        <span class="inner-filter-label">Asignatura</span>
-                        <select id="g3-asig"></select>
-                    </div>
-                    <div>
-                        <span class="inner-filter-label">Establecimiento (RBD)</span>
-                        <select id="g3-rbd" multiple placeholder="Buscar establecimiento..."></select>
-                    </div>
-                    <div>
-                        <span class="inner-filter-label">Curso(s)</span>
-                        <select id="g3-curso" multiple placeholder="Todos los cursos..."></select>
-                    </div>
-                </div>
-                <p id="g3-hint" class="text-sm text-slate-400 text-center py-8">Selecciona al menos un establecimiento para ver la evolucion por curso.</p>
-                <div class="h-80" id="g3-chart-wrap" style="display:none;"><canvas id="chart-colegio"></canvas></div>
-            </div>
-        </div>
-
     </main>
 
     <script>
-        var rawData = [];
-        var maps = {};
-        var filteredData = [];
-        var controls = {};
-        var charts = {};
-        var g3controls = {};
-        var periodMap = {};
-        var ETAPAS = ['Diagnostico', 'Intermedio', 'Cierre'];
-        var ETAPAS_KEYS = ['Diagn\u00f3stico', 'Intermedio', 'Cierre'];
+        let rawData = [];
+        let maps = {};
+        let filteredData = [];
+        let controls = {};
+        let charts = {};
 
-        var PALETTE = [
-            '#1e40af','#0f766e','#b45309','#7c3aed','#be123c',
-            '#0369a1','#065f46','#9333ea','#c2410c','#4d7c0f',
-            '#a21caf','#0e7490','#92400e','#166534','#1d4ed8'
-        ];
-
-        var activePills = { mat: null, len: null };
+        // Configuración de Colores Institucionales
+        const colors = {
+            mat: { stroke: '#1e40af', bg: 'rgba(30, 64, 175, 0.1)' },
+            len: { stroke: '#14b8a6', bg: 'rgba(20, 184, 166, 0.1)' }
+        };
 
         async function init() {
             try {
-                var response = await fetch('datos.json');
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-                var json = await response.json();
-
+                // LLAMADA AL ARCHIVO: La forma más eficiente es fetch directo. 
+                // Si está en GitHub, usa la URL 'raw.githubusercontent.com...'
+                const response = await fetch('datos.json'); 
+                const json = await response.json();
+                
                 maps = json.maps;
+                
+                // Desempaquetado eficiente (Hydration)
+                // Convertimos los índices en texto legible una sola vez para ganar fluidez en filtros
+                rawData = json.data.map(row => ({
+                    periodo: maps.Periodo_evaluación[row[0]],
+                    rbd: maps.RBD_Establecimiento[row[1]],
+                    curso: maps.Curso[row[2]],
+                    asignatura: maps.Asignatura[row[3]],
+                    eje: maps.Indicador_fixed[row[4]],
+                    puntaje: row[5],
+                    nivel: maps.Nivel_fixed[row[6]]
+                }));
 
-                rawData = json.data.map(function(row) {
-                    return {
-                        periodo:    maps['Periodo_evaluaci\u00f3n'][row[0]],
-                        rbd:        maps['RBD_Establecimiento'][row[1]],
-                        curso:      maps['Curso'][row[2]],
-                        asignatura: maps['Asignatura'][row[3]],
-                        eje:        maps['Indicador_fixed'][row[4]],
-                        puntaje:    row[5],
-                        nivel:      maps['Nivel_fixed'][row[6]]
-                    };
-                });
-
-                buildPeriodMap();
-                setupGlobalFilters();
-                setupChart3Filters();
+                setupFilters();
                 initCharts();
                 updateDashboard();
-
+                
                 document.getElementById('loading-overlay').style.display = 'none';
-            } catch(e) {
-                console.error('Error:', e);
-                var el = document.getElementById('loading-overlay');
-                el.innerHTML = '<p style="color:red;padding:20px;text-align:center;">Error al cargar datos.json<br><small>' + e.message + '</small></p>';
+            } catch (e) {
+                console.error("Error cargando datos:", e);
+                alert("No se pudo cargar la base de datos de GitHub.");
             }
         }
 
-        function buildPeriodMap() {
-            periodMap = {};
-            var allPeriods = [];
-            rawData.forEach(function(d) {
-                if (allPeriods.indexOf(d.periodo) < 0) allPeriods.push(d.periodo);
-            });
-            allPeriods.forEach(function(p) {
-                // Formato: "2025_1_Diagnostico" => año=2025, etapa=Diagnostico
-                var firstUs = p.indexOf('_');
-                var secondUs = p.indexOf('_', firstUs + 1);
-                if (firstUs < 0 || secondUs < 0) return;
-                var year  = p.substring(0, firstUs);
-                var etapa = p.substring(secondUs + 1);
-                if (!periodMap[year]) periodMap[year] = {};
-                periodMap[year][etapa] = p;
-            });
-        }
-
-        function getYears() {
-            return Object.keys(periodMap).sort();
-        }
-
-        function avgPct(arr) {
-            if (!arr.length) return null;
-            var sum = arr.reduce(function(s, d) { return s + d.puntaje; }, 0);
-            return (sum / arr.length) * 100;
-        }
-
-        function dataByEtapa(subset, year) {
-            return ETAPAS_KEYS.map(function(etapa) {
-                var key = periodMap[year] && periodMap[year][etapa];
-                if (!key) return null;
-                var rows = subset.filter(function(d) { return d.periodo === key; });
-                return avgPct(rows);
-            });
-        }
-
-        function setupGlobalFilters() {
-            function makeSelect(id, key) {
-                var seen = {};
-                var vals = [];
-                rawData.forEach(function(d) {
-                    if (!seen[d[key]]) { seen[d[key]] = true; vals.push(d[key]); }
-                });
-                vals.sort();
-                var el = document.getElementById(id);
-                vals.forEach(function(v) {
-                    var o = document.createElement('option');
-                    o.value = v; o.text = v; el.appendChild(o);
+        function setupFilters() {
+            const createFilter = (id, key) => {
+                const uniqueValues = [...new Set(rawData.map(d => d[key]))].sort();
+                const el = document.getElementById(id);
+                uniqueValues.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v; opt.text = v; el.appendChild(opt);
                 });
                 return new TomSelect(el, { plugins: ['remove_button'], onChange: updateDashboard });
-            }
+            };
 
-            controls.rbd   = makeSelect('f-rbd',   'rbd');
-            controls.nivel = makeSelect('f-nivel',  'nivel');
-            controls.curso = makeSelect('f-curso',  'curso');
-            controls.asig  = makeSelect('f-asig',   'asignatura');
-            controls.eje   = makeSelect('f-eje',    'eje');
+            controls.rbd = createFilter('f-rbd', 'rbd');
+            controls.nivel = createFilter('f-nivel', 'nivel');
+            controls.curso = createFilter('f-curso', 'curso');
+            controls.asig = createFilter('f-asig', 'asignatura');
+            controls.eje = createFilter('f-eje', 'eje');
 
-            document.getElementById('btn-reset').onclick = function() {
-                Object.values(controls).forEach(function(c) { c.clear(); });
+            document.getElementById('btn-reset').onclick = () => {
+                Object.values(controls).forEach(c => c.clear());
                 updateDashboard();
             };
-        }
-
-        function setupChart3Filters() {
-            var asigEl = document.getElementById('g3-asig');
-            ['Matem\u00e1tica', 'Lenguaje'].forEach(function(v) {
-                var o = document.createElement('option'); o.value = v; o.text = v; asigEl.appendChild(o);
-            });
-            g3controls.asig = new TomSelect(asigEl, { onChange: updateChart3 });
-
-            var rbdEl = document.getElementById('g3-rbd');
-            var seen = {}; var rbds = [];
-            rawData.forEach(function(d) { if (!seen[d.rbd]) { seen[d.rbd] = true; rbds.push(d.rbd); } });
-            rbds.sort().forEach(function(v) {
-                var o = document.createElement('option'); o.value = v; o.text = v; rbdEl.appendChild(o);
-            });
-            g3controls.rbd = new TomSelect(rbdEl, { plugins: ['remove_button'], onChange: updateChart3 });
-
-            var cursoEl = document.getElementById('g3-curso');
-            var seen2 = {}; var cursos = [];
-            rawData.forEach(function(d) { if (!seen2[d.curso]) { seen2[d.curso] = true; cursos.push(d.curso); } });
-            cursos.sort().forEach(function(v) {
-                var o = document.createElement('option'); o.value = v; o.text = v; cursoEl.appendChild(o);
-            });
-            g3controls.curso = new TomSelect(cursoEl, { plugins: ['remove_button'], onChange: updateChart3 });
         }
 
         function updateDashboard() {
-            var f = {
-                rbd:   controls.rbd.getValue(),
+            // Lógica de Filtrado (Similar a Slicers de Excel)
+            const f = {
+                rbd: controls.rbd.getValue(),
                 nivel: controls.nivel.getValue(),
                 curso: controls.curso.getValue(),
-                asig:  controls.asig.getValue(),
-                eje:   controls.eje.getValue()
+                asig: controls.asig.getValue(),
+                eje: controls.eje.getValue()
             };
 
-            filteredData = rawData.filter(function(d) {
-                return (f.rbd.length   === 0 || f.rbd.indexOf(d.rbd) >= 0)        &&
-                       (f.nivel.length === 0 || f.nivel.indexOf(d.nivel) >= 0)     &&
-                       (f.curso.length === 0 || f.curso.indexOf(d.curso) >= 0)     &&
-                       (f.asig.length  === 0 || f.asig.indexOf(d.asignatura) >= 0) &&
-                       (f.eje.length   === 0 || f.eje.indexOf(d.eje) >= 0);
+            filteredData = rawData.filter(d => {
+                return (f.rbd.length === 0 || f.rbd.includes(d.rbd)) &&
+                       (f.nivel.length === 0 || f.nivel.includes(d.nivel)) &&
+                       (f.curso.length === 0 || f.curso.includes(d.curso)) &&
+                       (f.asig.length === 0 || f.asig.includes(d.asignatura)) &&
+                       (f.eje.length === 0 || f.eje.includes(d.eje));
             });
 
             renderKPIs();
-            renderEvolCharts();
-            renderEjesCharts();
-            updateChart3();
+            renderLineChart();
+            renderBarChart();
         }
 
         function renderKPIs() {
-            function calc(asig) {
-                var sub = filteredData.filter(function(d) { return d.asignatura === asig; });
-                if (!sub.length) return { v: '0%', n: '' };
-                var a = sub.reduce(function(s, d) { return s + d.puntaje; }, 0) / sub.length;
-                return { v: (a * 100).toFixed(1) + '%', n: sub.length.toLocaleString('es-CL') + ' registros' };
-            }
-            var mat = calc('Matem\u00e1tica');
-            var len = calc('Lenguaje');
-            document.getElementById('kpi-mat').innerText = mat.v;
-            document.getElementById('kpi-mat-n').innerText = mat.n;
-            document.getElementById('kpi-len').innerText = len.v;
-            document.getElementById('kpi-len-n').innerText = len.n;
+            const calc = (asig) => {
+                const sub = filteredData.filter(d => d.asignatura === asig);
+                if (sub.length === 0) return "0%";
+                const avg = sub.reduce((a, b) => a + b.puntaje, 0) / sub.length;
+                return (avg * 100).toFixed(1) + "%";
+            };
+            document.getElementById('kpi-mat').innerText = calc('Matemática');
+            document.getElementById('kpi-len').innerText = calc('Lenguaje');
         }
 
         function initCharts() {
-            function makeOpts(withLegend) {
-                return {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    spanGaps: false,
-                    scales: {
-                        y: { min: 0, max: 100,
-                             ticks: { callback: function(v) { return v + '%'; }, font: { size: 11 } },
-                             grid: { color: '#f1f5f9' } },
-                        x: { ticks: { font: { size: 12, weight: '600' } }, grid: { display: false } }
-                    },
-                    plugins: {
-                        legend: withLegend
-                            ? { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 20, padding: 10 } }
-                            : { display: false },
-                        tooltip: { callbacks: {
-                            label: function(ctx) {
-                                return ctx.dataset.label + ': ' + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(1) + '%' : 'Sin datos');
-                            }
-                        }}
-                    }
-                };
-            }
+            // Gráfico 1: Líneas (Progreso etapas)
+            charts.line = new Chart(document.getElementById('chart-lineas'), {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
 
-            charts.evolMat = new Chart(document.getElementById('chart-evol-mat'), { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(true) });
-            charts.evolLen = new Chart(document.getElementById('chart-evol-len'), { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(true) });
-            charts.ejesMat = new Chart(document.getElementById('chart-ejes-mat'), { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(false) });
-            charts.ejesLen = new Chart(document.getElementById('chart-ejes-len'), { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(false) });
-            charts.colegio = new Chart(document.getElementById('chart-colegio'),  { type: 'line', data: { labels: ETAPAS, datasets: [] }, options: makeOpts(true) });
+            // Gráfico 2: Barras (Ejes)
+            charts.bar = new Chart(document.getElementById('chart-barras'), {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
         }
 
-        function makeLineDataset(label, data, color, isDashed) {
-            return {
-                label: label,
+        function renderLineChart() {
+            const periodos = maps.Periodo_evaluación;
+            const dataset = (asig, color) => ({
+                label: asig,
+                data: periodos.map(p => {
+                    const sub = filteredData.filter(d => d.periodo === p && d.asignatura === asig);
+                    return sub.length ? (sub.reduce((a, b) => a + b.puntaje, 0) / sub.length) * 100 : null;
+                }),
+                borderColor: color.stroke,
+                backgroundColor: color.bg,
+                tension: 0.3, fill: true, borderWeight: 4
+            });
+
+            charts.line.data.labels = periodos.map(p => p.replace(/_/g, ' '));
+            charts.line.data.datasets = [dataset('Matemática', colors.mat), dataset('Lenguaje', colors.len)];
+            charts.line.update();
+        }
+
+        function renderBarChart() {
+            const ejes = [...new Set(filteredData.map(d => d.eje))].sort();
+            const data = ejes.map(e => {
+                const sub = filteredData.filter(d => d.eje === e);
+                return (sub.reduce((a, b) => a + b.puntaje, 0) / sub.length) * 100;
+            });
+
+            charts.bar.data.labels = ejes;
+            charts.bar.data.datasets = [{
                 data: data,
-                borderColor: color,
-                backgroundColor: 'transparent',
-                borderWidth: 2.5,
-                borderDash: isDashed ? [6, 4] : [],
-                pointRadius: 5,
-                pointHoverRadius: 7,
-                tension: 0.3,
-                fill: false
-            };
-        }
-
-        function renderEvolCharts() {
-            var years = getYears();
-            var matColors = { '2025': '#1e40af', '2026': '#60a5fa' };
-            var lenColors = { '2025': '#0f766e', '2026': '#2dd4bf' };
-
-            var matDs = years.map(function(year) {
-                var sub = filteredData.filter(function(d) { return d.asignatura === 'Matem\u00e1tica'; });
-                return makeLineDataset(year, dataByEtapa(sub, year), matColors[year] || '#888', year !== '2025');
-            });
-            charts.evolMat.data.datasets = matDs;
-            charts.evolMat.update();
-
-            var lenDs = years.map(function(year) {
-                var sub = filteredData.filter(function(d) { return d.asignatura === 'Lenguaje'; });
-                return makeLineDataset(year, dataByEtapa(sub, year), lenColors[year] || '#888', year !== '2025');
-            });
-            charts.evolLen.data.datasets = lenDs;
-            charts.evolLen.update();
-        }
-
-        function renderEjesCharts() {
-            renderEjesForAsig('Matem\u00e1tica', charts.ejesMat, 'pills-mat', 'mat');
-            renderEjesForAsig('Lenguaje',        charts.ejesLen,  'pills-len',  'len');
-        }
-
-        function renderEjesForAsig(asig, chart, pillsId, key) {
-            var sub = filteredData.filter(function(d) { return d.asignatura === asig; });
-            var ejesSet = {};
-            sub.forEach(function(d) { ejesSet[d.eje] = true; });
-            var ejes = Object.keys(ejesSet).sort();
-
-            if (activePills[key] === null) {
-                activePills[key] = {};
-                ejes.forEach(function(e) { activePills[key][e] = true; });
-            }
-
-            var pillsEl = document.getElementById(pillsId);
-            var existingKeys = Array.prototype.slice.call(pillsEl.querySelectorAll('[data-eje]')).map(function(el) { return el.dataset.eje; });
-            var changed = ejes.length !== existingKeys.length || ejes.some(function(e) { return existingKeys.indexOf(e) < 0; });
-
-            if (changed) {
-                pillsEl.innerHTML = '';
-                ejes.forEach(function(eje, i) {
-                    var color = PALETTE[i % PALETTE.length];
-                    var pill = document.createElement('span');
-                    var isActive = activePills[key][eje] !== false;
-                    pill.className = 'indicator-pill' + (isActive ? '' : ' off');
-                    pill.dataset.eje = eje;
-                    pill.style.borderColor = color;
-                    pill.style.backgroundColor = color + '18';
-                    pill.innerHTML = '<span class="dot" style="background:' + color + '"></span>' + eje;
-                    pill.onclick = (function(e, p, k) {
-                        return function() {
-                            activePills[k][e] = !activePills[k][e];
-                            p.classList.toggle('off', !activePills[k][e]);
-                            buildEjesDatasets(asig, chart, k);
-                        };
-                    })(eje, pill, key);
-                    pillsEl.appendChild(pill);
-                });
-            }
-
-            buildEjesDatasets(asig, chart, key);
-        }
-
-        function buildEjesDatasets(asig, chart, key) {
-            var sub = filteredData.filter(function(d) { return d.asignatura === asig; });
-            var ejesSet = {};
-            sub.forEach(function(d) { ejesSet[d.eje] = true; });
-            var ejes = Object.keys(ejesSet).sort();
-            var years = getYears();
-            var datasets = [];
-
-            ejes.forEach(function(eje, i) {
-                if (!activePills[key] || activePills[key][eje] === false) return;
-                var color = PALETTE[i % PALETTE.length];
-                var ejeSub = sub.filter(function(d) { return d.eje === eje; });
-                years.forEach(function(year) {
-                    datasets.push(makeLineDataset(eje + ' (' + year + ')', dataByEtapa(ejeSub, year), color, year !== '2025'));
-                });
-            });
-
-            chart.data.datasets = datasets;
-            chart.update();
-        }
-
-        function updateChart3() {
-            var asig  = g3controls.asig.getValue() || 'Matem\u00e1tica';
-            var rbds  = g3controls.rbd.getValue();
-            var cursos = g3controls.curso.getValue();
-
-            var hint = document.getElementById('g3-hint');
-            var wrap = document.getElementById('g3-chart-wrap');
-
-            if (!rbds || rbds.length === 0) {
-                hint.style.display = 'block';
-                wrap.style.display = 'none';
-                return;
-            }
-
-            hint.style.display = 'none';
-            wrap.style.display = 'block';
-
-            var base = filteredData.filter(function(d) {
-                return d.asignatura === asig && rbds.indexOf(d.rbd) >= 0;
-            });
-            if (cursos && cursos.length) {
-                base = base.filter(function(d) { return cursos.indexOf(d.curso) >= 0; });
-            }
-
-            var gruposSet = {};
-            base.forEach(function(d) { gruposSet[d.curso] = true; });
-            var grupos = Object.keys(gruposSet).sort();
-            var years = getYears();
-            var datasets = [];
-
-            grupos.forEach(function(curso, i) {
-                var color = PALETTE[i % PALETTE.length];
-                var cursoDat = base.filter(function(d) { return d.curso === curso; });
-                years.forEach(function(year) {
-                    datasets.push(makeLineDataset(curso + ' (' + year + ')', dataByEtapa(cursoDat, year), color, year !== '2025'));
-                });
-            });
-
-            charts.colegio.data.datasets = datasets;
-            charts.colegio.update();
+                backgroundColor: ejes.map(e => {
+                    const first = filteredData.find(d => d.eje === e);
+                    return first && first.asignatura === 'Matemática' ? colors.mat.stroke : colors.len.stroke;
+                }),
+                borderRadius: 6
+            }];
+            charts.bar.update();
         }
 
         init();
