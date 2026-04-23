@@ -1,730 +1,676 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard DIA · Resultados</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    :root {
-      --bg:         #0d1117;
-      --surface:    #161b22;
-      --surface-2:  #21262d;
-      --border:     #30363d;
-      --border-2:   #3d444d;
-      --text:       #e6edf3;
-      --text-muted: #7d8590;
-      --text-dim:   #484f58;
-      --leng:       #38bdf8;
-      --leng-bg:    rgba(56,189,248,.12);
-      --mate:       #fb923c;
-      --mate-bg:    rgba(251,146,60,.12);
-      --total:      #34d399;
-      --total-bg:   rgba(52,211,153,.12);
-      --purple:     #a78bfa;
-      --purple-bg:  rgba(167,139,250,.12);
-      --r:          10px;
-      --font:       'Archivo', sans-serif;
-      --mono:       'JetBrains Mono', monospace;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor DIA - SLEP Del Pino</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      min-height: 100vh;
-    }
+    <style>
+        :root {
+            --slep-blue: #1e40af;
+            --slep-light: #f8fafc;
+            --mat-2025: #1e40af;
+            --mat-2026: #60a5fa;
+            --len-2025: #0f766e;
+            --len-2026: #2dd4bf;
+        }
+        body { background-color: var(--slep-light); font-family: 'Inter', system-ui, sans-serif; }
+        .sidebar { width: 300px; min-width: 300px; background: white; border-right: 1px solid #e2e8f0; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; }
+        .loader { border-top-color: #3498db; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* ── Loading ── */
-    #loading {
-      position: fixed; inset: 0;
-      background: var(--bg);
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
-      z-index: 200;
-    }
-    .loader {
-      width: 44px; height: 44px;
-      border: 3px solid var(--border);
-      border-top-color: var(--leng);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #loading p { font-size: .82rem; color: var(--text-muted); letter-spacing: .04em; }
+        /* TomSelect custom */
+        .ts-wrapper { margin-top: 4px; }
+        .ts-control { border-radius: 8px !important; border-color: #e2e8f0 !important; font-size: 13px !important; }
+        .ts-dropdown { border-color: #e2e8f0 !important; border-radius: 8px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }
 
-    /* ── Header ── */
-    .header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 2rem;
-      display: flex; align-items: center; gap: 1rem;
-    }
-    .header-icon {
-      width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0;
-      background: linear-gradient(135deg, var(--leng) 0%, var(--mate) 100%);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 19px;
-    }
-    .header-title { font-size: 1rem; font-weight: 800; letter-spacing: -.025em; }
-    .header-sub { font-size: .75rem; color: var(--text-muted); margin-top: .1rem; }
-    .header-badge {
-      margin-left: auto;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: .25rem .75rem;
-      font-family: var(--mono);
-      font-size: .7rem;
-      color: var(--text-muted);
-    }
+        /* Toggle de indicadores */
+        .indicator-toggle {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+            cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
+            user-select: none;
+        }
+        .indicator-toggle.active { opacity: 1; }
+        .indicator-toggle.inactive { opacity: 0.35; }
+        .indicator-toggle .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-    /* ── Main layout ── */
-    .main {
-      max-width: 1460px;
-      margin: 0 auto;
-      padding: 1.5rem 2rem 3rem;
-      display: flex; flex-direction: column; gap: 1.25rem;
-    }
+        /* Sección separadora */
+        .section-title {
+            font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: #94a3b8; margin-bottom: 16px;
+            padding-bottom: 8px; border-bottom: 1px solid #f1f5f9;
+        }
 
-    /* ── Filter bar ── */
-    .filter-bar {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 1rem 1.25rem;
-      display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end;
-    }
-    .filter-group { display: flex; flex-direction: column; gap: .3rem; }
-    .filter-label {
-      font-size: .68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .07em;
-      color: var(--text-muted);
-    }
-    select {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-family: var(--font); font-size: .84rem;
-      padding: .42rem .7rem;
-      cursor: pointer; outline: none;
-      transition: border-color .15s;
-    }
-    select:hover, select:focus { border-color: var(--border-2); }
-    #f-rbd { min-width: 260px; }
-    #f-nivel, #f-periodo { min-width: 160px; }
+        /* Filtros internos del gráfico 3 */
+        .inner-filter-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: block; }
 
-    .btn-clear {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-muted);
-      font-family: var(--font); font-size: .84rem;
-      padding: .42rem .9rem;
-      cursor: pointer;
-      transition: all .15s;
-      display: flex; align-items: center; gap: .35rem;
-    }
-    .btn-clear:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); }
-    .btn-clear svg { flex-shrink: 0; }
-
-    .filter-right {
-      margin-left: auto;
-      display: flex; align-items: flex-end; gap: 1rem;
-    }
-    .filter-count {
-      font-family: var(--mono); font-size: .72rem;
-      color: var(--text-muted); text-align: right;
-      line-height: 1.4;
-    }
-    .filter-count strong { color: var(--text); font-size: .85rem; }
-
-    /* active filter indicator */
-    .filter-active {
-      display: none;
-      background: var(--leng-bg);
-      border: 1px solid rgba(56,189,248,.3);
-      border-radius: 4px;
-      padding: .15rem .5rem;
-      font-size: .68rem; color: var(--leng);
-      align-self: flex-end;
-    }
-    .filter-active.visible { display: block; }
-
-    /* ── KPI grid ── */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-    }
-    .kpi {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 1.1rem 1.25rem;
-      position: relative; overflow: hidden;
-    }
-    .kpi::after {
-      content: '';
-      position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
-      background: var(--kpi-color);
-      opacity: .5;
-    }
-    .kpi--total  { --kpi-color: var(--total); }
-    .kpi--leng   { --kpi-color: var(--leng); }
-    .kpi--mate   { --kpi-color: var(--mate); }
-    .kpi--reg    { --kpi-color: var(--purple); }
-
-    .kpi-icon {
-      position: absolute; right: 1.1rem; top: 1.1rem;
-      font-size: 1.4rem; opacity: .25;
-    }
-    .kpi-label {
-      font-size: .68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .07em;
-      color: var(--text-muted); margin-bottom: .5rem;
-    }
-    .kpi-val {
-      font-family: var(--mono); font-size: 2rem; font-weight: 700;
-      line-height: 1; color: var(--text);
-    }
-    .kpi--total .kpi-val  { color: var(--total); }
-    .kpi--leng  .kpi-val  { color: var(--leng); }
-    .kpi--mate  .kpi-val  { color: var(--mate); }
-    .kpi--reg   .kpi-val  { color: var(--purple); }
-
-    .kpi-sub {
-      font-size: .72rem; color: var(--text-muted); margin-top: .35rem;
-    }
-
-    /* ── Charts ── */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 5fr 8fr;
-      gap: 1.25rem;
-    }
-    .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 1.25rem 1.4rem;
-      display: flex; flex-direction: column;
-    }
-    .chart-header {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      margin-bottom: 1.1rem;
-    }
-    .chart-title {
-      font-size: .68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .07em;
-      color: var(--text-muted);
-    }
-    .chart-title span { color: var(--text); font-size: .8rem; display: block; margin-top: .15rem; }
-    .chart-legend {
-      display: flex; gap: .75rem; align-items: center;
-    }
-    .legend-item {
-      display: flex; align-items: center; gap: .3rem;
-      font-size: .72rem; color: var(--text-muted);
-    }
-    .legend-dot {
-      width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
-    }
-    .chart-wrap { position: relative; flex: 1; min-height: 0; }
-    .chart-wrap canvas { display: block; }
-
-    /* ── Error ── */
-    #error-msg {
-      display: none;
-      background: rgba(220,38,38,.1);
-      border: 1px solid rgba(220,38,38,.35);
-      border-radius: var(--r);
-      padding: 1rem 1.25rem;
-      font-size: .85rem; color: #fca5a5;
-    }
-    #error-msg code { font-family: var(--mono); background: rgba(0,0,0,.3); padding: .1rem .35rem; border-radius: 3px; }
-
-    /* ── Responsive ── */
-    @media (max-width: 1100px) {
-      .charts-grid { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 768px) {
-      .main { padding: 1rem; }
-      .header { padding: .9rem 1rem; }
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      #f-rbd { min-width: 200px; }
-    }
-    @media (max-width: 500px) {
-      .kpi-grid { grid-template-columns: 1fr 1fr; }
-      .kpi-val { font-size: 1.6rem; }
-    }
-  </style>
+        /* Leyenda año */
+        .year-legend { display: flex; align-items: center; gap: 16px; font-size: 12px; color: #64748b; }
+        .year-legend-item { display: flex; align-items: center; gap: 6px; }
+        .year-legend-line { width: 24px; height: 2px; }
+        .year-legend-line.solid { border-bottom: 2px solid currentColor; }
+        .year-legend-line.dashed { border-bottom: 2px dashed currentColor; }
+    </style>
 </head>
-<body>
+<body class="flex h-screen overflow-hidden text-slate-800">
 
-<!-- Loading screen -->
-<div id="loading">
-  <div class="loader"></div>
-  <p>Cargando datos DIA&hellip;</p>
-</div>
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
+        <p class="text-slate-600 font-medium">Procesando base de datos institucional...</p>
+    </div>
 
-<!-- Header -->
-<header class="header">
-  <div class="header-icon">📊</div>
-  <div>
-    <div class="header-title">Dashboard DIA &mdash; Resultados Institucionales</div>
-    <div class="header-sub">Evaluación Diagnóstica Institucional &middot; Lenguaje &amp; Matemática</div>
-  </div>
-  <div class="header-badge" id="header-badge">cargando&hellip;</div>
-</header>
+    <!-- SIDEBAR FILTROS GLOBALES -->
+    <aside class="sidebar flex flex-col shrink-0 overflow-y-auto">
+        <div class="p-6 bg-blue-800 text-white">
+            <h1 class="text-xl font-bold tracking-tight">Monitor DIA</h1>
+            <p class="text-xs opacity-75 font-medium uppercase mt-1">SLEP Del Pino</p>
+            <p class="text-xs opacity-50 mt-2">Filtros Globales</p>
+        </div>
+        
+        <div class="p-5 flex-1 space-y-4">
+            <div>
+                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Establecimiento</label>
+                <select id="f-rbd" multiple placeholder="Todos los colegios..."></select>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Nivel</label>
+                <select id="f-nivel" multiple placeholder="Todos los niveles..."></select>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Curso</label>
+                <select id="f-curso" multiple placeholder="Todos los cursos..."></select>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Asignatura</label>
+                <select id="f-asig" multiple placeholder="Ambas asignaturas..."></select>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-400 uppercase mb-1 block">Eje / Indicador</label>
+                <select id="f-eje" multiple placeholder="Todos los ejes..."></select>
+            </div>
+        </div>
 
-<!-- Dashboard -->
-<main class="main" id="dashboard" style="display:none">
+        <div class="p-5 border-t border-slate-100">
+            <button id="btn-reset" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all text-sm">
+                Limpiar Filtros
+            </button>
+        </div>
+    </aside>
 
-  <div id="error-msg">⚠ No se pudieron cargar los datos. Verifica que <code>datos.json</code> esté en la raíz del repositorio.</div>
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto p-8 space-y-8">
 
-  <!-- Filter bar -->
-  <div class="filter-bar">
-    <div class="filter-group">
-      <span class="filter-label">Nivel</span>
-      <select id="f-nivel">
-        <option value="">Todos los niveles</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">Establecimiento (RBD)</span>
-      <select id="f-rbd">
-        <option value="">Todos los establecimientos</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">Período</span>
-      <select id="f-periodo">
-        <option value="">Todos los períodos</option>
-      </select>
-    </div>
-    <button class="btn-clear" id="btn-clear">
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-        <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Limpiar filtros
-    </button>
-    <span class="filter-active" id="filter-active">Filtros activos</span>
-    <div class="filter-right">
-      <div class="filter-count">
-        <strong id="count-n">—</strong><br>registros filtrados
-      </div>
-    </div>
-  </div>
+        <!-- KPIs -->
+        <div class="grid grid-cols-2 gap-6">
+            <div class="card p-6 border-l-4 border-blue-600">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wide">Promedio Logro Matemática</h3>
+                <p class="text-4xl font-black text-slate-800 mt-1" id="kpi-mat">—</p>
+                <p class="text-xs text-slate-400 mt-1" id="kpi-mat-n"></p>
+            </div>
+            <div class="card p-6 border-l-4 border-teal-500">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wide">Promedio Logro Lenguaje</h3>
+                <p class="text-4xl font-black text-slate-800 mt-1" id="kpi-len">—</p>
+                <p class="text-xs text-slate-400 mt-1" id="kpi-len-n"></p>
+            </div>
+        </div>
 
-  <!-- KPIs -->
-  <div class="kpi-grid">
-    <div class="kpi kpi--total">
-      <div class="kpi-icon">⬡</div>
-      <div class="kpi-label">Promedio General</div>
-      <div class="kpi-val" id="kpi-total">—</div>
-      <div class="kpi-sub" id="kpi-total-sub">todas las asignaturas</div>
-    </div>
-    <div class="kpi kpi--leng">
-      <div class="kpi-icon">📖</div>
-      <div class="kpi-label">Promedio Lenguaje</div>
-      <div class="kpi-val" id="kpi-leng">—</div>
-      <div class="kpi-sub" id="kpi-leng-sub">—</div>
-    </div>
-    <div class="kpi kpi--mate">
-      <div class="kpi-icon">🔢</div>
-      <div class="kpi-label">Promedio Matemática</div>
-      <div class="kpi-val" id="kpi-mate">—</div>
-      <div class="kpi-sub" id="kpi-mate-sub">—</div>
-    </div>
-    <div class="kpi kpi--reg">
-      <div class="kpi-icon">🏫</div>
-      <div class="kpi-label">Registros</div>
-      <div class="kpi-val" id="kpi-reg">—</div>
-      <div class="kpi-sub" id="kpi-reg-sub">establecimientos</div>
-    </div>
-  </div>
-
-  <!-- Charts -->
-  <div class="charts-grid">
-
-    <!-- Line chart -->
-    <div class="chart-card">
-      <div class="chart-header">
+        <!-- SECCIÓN 1: EVOLUCIÓN POR ETAPA -->
         <div>
-          <div class="chart-title">Progreso por Etapa</div>
-          <div class="chart-title"><span>Lenguaje vs Matemática</span></div>
+            <p class="section-title">Evolución por Etapa — Comparativo 2025 / 2026</p>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <!-- Evolución Matemática -->
+                <div class="card p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">Matemática</h2>
+                            <p class="text-xs text-slate-400">Progreso por etapa de evaluación</p>
+                        </div>
+                        <div class="year-legend">
+                            <span class="year-legend-item" style="color: var(--mat-2025)">
+                                <span class="year-legend-line solid" style="color: var(--mat-2025); border-color: var(--mat-2025);"></span>2025
+                            </span>
+                            <span class="year-legend-item" style="color: var(--mat-2026)">
+                                <span class="year-legend-line dashed" style="border-color: var(--mat-2026);"></span>2026
+                            </span>
+                        </div>
+                    </div>
+                    <div class="h-64"><canvas id="chart-evol-mat"></canvas></div>
+                </div>
+                <!-- Evolución Lenguaje -->
+                <div class="card p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">Lenguaje</h2>
+                            <p class="text-xs text-slate-400">Progreso por etapa de evaluación</p>
+                        </div>
+                        <div class="year-legend">
+                            <span class="year-legend-item" style="color: var(--len-2025)">
+                                <span class="year-legend-line solid" style="border-color: var(--len-2025);"></span>2025
+                            </span>
+                            <span class="year-legend-item" style="color: var(--len-2026)">
+                                <span class="year-legend-line dashed" style="border-color: var(--len-2026);"></span>2026
+                            </span>
+                        </div>
+                    </div>
+                    <div class="h-64"><canvas id="chart-evol-len"></canvas></div>
+                </div>
+            </div>
         </div>
-        <div class="chart-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--leng)"></div>Lenguaje</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--mate)"></div>Matemática</div>
-        </div>
-      </div>
-      <div class="chart-wrap" style="height:300px">
-        <canvas id="chart-lines"></canvas>
-      </div>
-    </div>
 
-    <!-- Bar chart -->
-    <div class="chart-card">
-      <div class="chart-header">
+        <!-- SECCIÓN 2: EVOLUCIÓN POR INDICADOR/EJE -->
         <div>
-          <div class="chart-title">Rendimiento por Eje</div>
-          <div class="chart-title"><span>Promedio por Indicador y Asignatura</span></div>
+            <p class="section-title">Evolución por Indicador — Comparativo 2025 / 2026</p>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <!-- Indicadores Matemática -->
+                <div class="card p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">Matemática — por Indicador</h2>
+                            <p class="text-xs text-slate-400">Sólido = 2025 &nbsp;·&nbsp; Punteado = 2026</p>
+                        </div>
+                    </div>
+                    <div id="toggles-mat" class="flex flex-wrap gap-2 mb-4"></div>
+                    <div class="h-72"><canvas id="chart-ejes-mat"></canvas></div>
+                </div>
+                <!-- Indicadores Lenguaje -->
+                <div class="card p-6">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">Lenguaje — por Indicador</h2>
+                            <p class="text-xs text-slate-400">Sólido = 2025 &nbsp;·&nbsp; Punteado = 2026</p>
+                        </div>
+                    </div>
+                    <div id="toggles-len" class="flex flex-wrap gap-2 mb-4"></div>
+                    <div class="h-72"><canvas id="chart-ejes-len"></canvas></div>
+                </div>
+            </div>
         </div>
-        <div class="chart-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--leng)"></div>Lenguaje</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--mate)"></div>Matemática</div>
+
+        <!-- SECCIÓN 3: POR COLEGIO / CURSO -->
+        <div>
+            <p class="section-title">Evolución por Colegio y Curso</p>
+            <div class="card p-6">
+                <!-- Filtros internos -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div>
+                        <span class="inner-filter-label">Asignatura</span>
+                        <select id="g3-asig" placeholder="Seleccionar asignatura..."></select>
+                    </div>
+                    <div>
+                        <span class="inner-filter-label">Establecimiento (RBD)</span>
+                        <select id="g3-rbd" multiple placeholder="Buscar por RBD o nombre..."></select>
+                    </div>
+                    <div>
+                        <span class="inner-filter-label">Curso(s)</span>
+                        <select id="g3-curso" multiple placeholder="Todos los cursos..."></select>
+                    </div>
+                </div>
+                <div class="h-80"><canvas id="chart-colegio"></canvas></div>
+            </div>
         </div>
-      </div>
-      <div class="chart-wrap" style="height:300px">
-        <canvas id="chart-bars"></canvas>
-      </div>
-    </div>
 
-  </div>
-</main>
+    </main>
 
-<script>
-(async () => {
-  /* ── 1. Fetch ──────────────────────────────────────────────────────────── */
-  let COLS, MAPS, ROWS;
-  let I = {}; // column index map
+    <script>
+    // ─────────────────────────────────────────────
+    // ESTADO GLOBAL
+    // ─────────────────────────────────────────────
+    let rawData = [];
+    let maps = {};
+    let filteredData = [];   // filtro global aplicado
+    let controls = {};
+    let charts = {};
 
-  try {
-    const res = await fetch('datos.json');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const raw = await res.json();
-    ({ cols: COLS, maps: MAPS, rows: ROWS } = raw);
-    COLS.forEach((c, i) => I[c] = i);
-  } catch (err) {
-    console.error('[DIA]', err);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'flex';
-    document.getElementById('error-msg').style.display = 'block';
-    return;
-  }
-
-  /* ── 2. Pre-compute column indices & lookup refs ────────────────────────── */
-  const IP  = I['Periodo_evaluación'];
-  const IR  = I['RBD_Establecimiento'];
-  const IAS = I['Asignatura'];
-  const IIN = I['Indicador_fixed'];
-  const IPU = I['Puntaje_fixed'];
-  const INI = I['Nivel_fixed'];
-
-  const M_PERIODO = MAPS['Periodo_evaluación'];
-  const M_RBD     = MAPS['RBD_Establecimiento'];
-  const M_ASIG    = MAPS['Asignatura'];
-  const M_IND     = MAPS['Indicador_fixed'];
-  const M_NIVEL   = MAPS['Nivel_fixed'];
-
-  const IDX_LENG = M_ASIG.indexOf('Lenguaje');
-  const IDX_MATE = M_ASIG.indexOf('Matemática');
-
-  /* ── 3. Period labels ───────────────────────────────────────────────────── */
-  const PLABEL = {
-    '2025_1_Diagnóstico': 'Diagnóstico 2025',
-    '2025_2_Intermedio':  'Intermedio 2025',
-    '2025_3_Cierre':      'Cierre 2025',
-    '2026_1_Diagnóstico': 'Diagnóstico 2026',
-  };
-  const pl = s => PLABEL[s] || s;
-
-  /* ── 4. Populate selects ─────────────────────────────────────────────────── */
-  function addOptions(id, vals, sortFn) {
-    const sel = document.getElementById(id);
-    const sorted = vals.map((v, i) => ({ v, i }));
-    if (sortFn) sorted.sort((a, b) => sortFn(a.v, b.v));
-    for (const { v, i } of sorted) {
-      const o = document.createElement('option');
-      o.value = i; o.textContent = v;
-      sel.appendChild(o);
-    }
-  }
-
-  // Nivel: sort numerics first, then roman
-  addOptions('f-nivel', M_NIVEL, (a, b) => {
-    const na = isNaN(+a) ? 99 : +a, nb = isNaN(+b) ? 99 : +b;
-    return na !== nb ? na - nb : String(a).localeCompare(String(b));
-  });
-
-  // RBD: alphabetical
-  addOptions('f-rbd', M_RBD, (a, b) => String(a).localeCompare(String(b)));
-
-  // Period: chronological (lexicographic works for this format)
-  const periodSorted = M_PERIODO.map((v, i) => ({ v, i })).sort((a, b) => a.v.localeCompare(b.v));
-  {
-    const sel = document.getElementById('f-periodo');
-    for (const { v, i } of periodSorted) {
-      const o = document.createElement('option');
-      o.value = i; o.textContent = pl(v);
-      sel.appendChild(o);
-    }
-  }
-
-  /* ── 5. Filter state ─────────────────────────────────────────────────────── */
-  const F = { nivel: -1, rbd: -1, periodo: -1 };
-
-  /* ── 6. Aggregate ────────────────────────────────────────────────────────── */
-  function aggregate() {
-    const fNivel   = F.nivel;
-    const fRbd     = F.rbd;
-    const fPeriodo = F.periodo;
-
-    // line[periodoIdx][asigIdx] = {s,n}
-    const line = [];
-    // bar[indIdx][asigIdx] = {s,n}
-    const bar  = [];
-
-    let tS = 0, tN = 0, lS = 0, lN = 0, mS = 0, mN = 0;
-    const rbdSet = new Set();
-
-    for (let r = 0, len = ROWS.length; r < len; r++) {
-      const row = ROWS[r];
-      if (fNivel   >= 0 && row[INI] !== fNivel)   continue;
-      if (fRbd     >= 0 && row[IR]  !== fRbd)     continue;
-      if (fPeriodo >= 0 && row[IP]  !== fPeriodo) continue;
-
-      const p = row[IP], a = row[IAS], ind = row[IIN], pu = row[IPU];
-
-      // line
-      if (!line[p])    line[p] = [];
-      if (!line[p][a]) line[p][a] = { s: 0, n: 0 };
-      line[p][a].s += pu; line[p][a].n++;
-
-      // bar
-      if (!bar[ind])    bar[ind] = [];
-      if (!bar[ind][a]) bar[ind][a] = { s: 0, n: 0 };
-      bar[ind][a].s += pu; bar[ind][a].n++;
-
-      tS += pu; tN++;
-      if (a === IDX_LENG) { lS += pu; lN++; }
-      if (a === IDX_MATE) { mS += pu; mN++; }
-      rbdSet.add(row[IR]);
-    }
-
-    return { line, bar, tS, tN, lS, lN, mS, mN, rbdSet };
-  }
-
-  /* ── 7. Charts ───────────────────────────────────────────────────────────── */
-  const CLENG = '#38bdf8', CMATE = '#fb923c';
-  const CLENG_A = 'rgba(56,189,248,.15)', CMATE_A = 'rgba(251,146,60,.15)';
-
-  const baseScales = {
-    x: {
-      grid: { color: '#21262d', drawBorder: false },
-      ticks: { color: '#7d8590', font: { family: 'Archivo', size: 11 } }
-    },
-    y: {
-      grid: { color: '#21262d', drawBorder: false },
-      ticks: {
-        color: '#7d8590',
-        font: { family: 'JetBrains Mono', size: 10 },
-        callback: v => (v * 100).toFixed(0) + '%'
-      },
-      min: 0, max: 1,
-      border: { display: false }
-    }
-  };
-
-  const baseTooltip = {
-    backgroundColor: '#1c2128',
-    borderColor: '#30363d', borderWidth: 1,
-    titleColor: '#e6edf3',
-    bodyColor: '#7d8590',
-    padding: 10,
-    cornerRadius: 6,
-  };
-
-  /* Line chart */
-  const ctxL = document.getElementById('chart-lines').getContext('2d');
-  const chartL = new Chart(ctxL, {
-    type: 'line',
-    data: { labels: [], datasets: [] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      animation: { duration: 300 },
-      elements: {
-        line: { tension: 0.38, borderWidth: 2.5 },
-        point: { radius: 5, hoverRadius: 7, borderWidth: 2.5, hoverBorderWidth: 2.5 }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          ...baseTooltip,
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%`
-          }
-        }
-      },
-      scales: baseScales
-    }
-  });
-
-  /* Bar chart */
-  const ctxB = document.getElementById('chart-bars').getContext('2d');
-  const chartB = new Chart(ctxB, {
-    type: 'bar',
-    data: { labels: [], datasets: [] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      animation: { duration: 300 },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          ...baseTooltip,
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label || 'Promedio'}: ${(ctx.parsed.y * 100).toFixed(1)}%`
-          }
-        }
-      },
-      scales: {
-        ...baseScales,
-        x: {
-          ...baseScales.x,
-          ticks: {
-            ...baseScales.x.ticks,
-            maxRotation: 38, minRotation: 0,
-            font: { family: 'Archivo', size: 10 }
-          }
-        }
-      }
-    }
-  });
-
-  /* ── 8. Update function ──────────────────────────────────────────────────── */
-  const fmt = (s, n) => n > 0 ? (s / n * 100).toFixed(1) + '%' : '—';
-  const fmtN = n => n.toLocaleString('es-CL');
-
-  function update() {
-    const { line, bar, tS, tN, lS, lN, mS, mN, rbdSet } = aggregate();
-
-    // KPIs
-    document.getElementById('kpi-total').textContent    = fmt(tS, tN);
-    document.getElementById('kpi-leng').textContent     = fmt(lS, lN);
-    document.getElementById('kpi-mate').textContent     = fmt(mS, mN);
-    document.getElementById('kpi-reg').textContent      = fmtN(tN);
-    document.getElementById('kpi-total-sub').textContent = `${fmtN(tN)} registros`;
-    document.getElementById('kpi-leng-sub').textContent  = `${fmtN(lN)} registros`;
-    document.getElementById('kpi-mate-sub').textContent  = `${fmtN(mN)} registros`;
-    document.getElementById('kpi-reg-sub').textContent   = `${rbdSet.size} establecimientos`;
-    document.getElementById('count-n').textContent       = fmtN(tN);
-    document.getElementById('header-badge').textContent  = `${fmtN(ROWS.length)} registros totales`;
-
-    // Active filter badge
-    const activeCount = (F.nivel >= 0 ? 1 : 0) + (F.rbd >= 0 ? 1 : 0) + (F.periodo >= 0 ? 1 : 0);
-    const badge = document.getElementById('filter-active');
-    badge.textContent = activeCount === 1 ? '1 filtro activo' : `${activeCount} filtros activos`;
-    badge.classList.toggle('visible', activeCount > 0);
-
-    /* ── Line chart data ── */
-    const lineLabels = periodSorted.map(({ v }) => pl(v));
-    const lengLine   = periodSorted.map(({ i }) => {
-      const d = line[i]?.[IDX_LENG];
-      return d ? d.s / d.n : null;
-    });
-    const mateLine   = periodSorted.map(({ i }) => {
-      const d = line[i]?.[IDX_MATE];
-      return d ? d.s / d.n : null;
-    });
-
-    chartL.data.labels = lineLabels;
-    chartL.data.datasets = [
-      { label: 'Lenguaje',    data: lengLine, borderColor: CLENG, backgroundColor: CLENG_A, pointBackgroundColor: CLENG, pointBorderColor: '#161b22', fill: true },
-      { label: 'Matemática',  data: mateLine, borderColor: CMATE, backgroundColor: CMATE_A, pointBackgroundColor: CMATE, pointBorderColor: '#161b22', fill: true }
+    // Paleta de colores para múltiples líneas (indicadores / cursos)
+    const PALETTE = [
+        '#1e40af','#0f766e','#b45309','#7c3aed','#be123c',
+        '#065f46','#9333ea','#c2410c','#0369a1','#4d7c0f',
+        '#a21caf','#0e7490','#92400e','#166534','#1d4ed8'
     ];
-    chartL.update('none');
 
-    /* ── Bar chart data ── */
-    // Separate indicadores by subject based on which subject has data
-    const indLeng = [], indMate = [];
-    for (let i = 0; i < M_IND.length; i++) {
-      if (bar[i]?.[IDX_LENG]) indLeng.push(i);
-      if (bar[i]?.[IDX_MATE]) indMate.push(i);
+    const ETAPAS = ['Diagnóstico', 'Intermedio', 'Cierre'];
+
+    // Para cada año, mapa de etapa → clave del periodo
+    // Se construirá dinámicamente al cargar datos
+    let periodMap = {}; // { '2025': { 'Diagnóstico': '2025_1_Diagnóstico', ... }, '2026': {...} }
+
+    // Estado de toggles de indicadores
+    const activeIndicators = { mat: new Set(), len: new Set() };
+
+    // ─────────────────────────────────────────────
+    // INIT
+    // ─────────────────────────────────────────────
+    async function init() {
+        try {
+            const response = await fetch('datos.json');
+            const json = await response.json();
+            maps = json.maps;
+
+            rawData = json.data.map(row => ({
+                periodo: maps.Periodo_evaluación[row[0]],
+                rbd: maps.RBD_Establecimiento[row[1]],
+                curso: maps.Curso[row[2]],
+                asignatura: maps.Asignatura[row[3]],
+                eje: maps.Indicador_fixed[row[4]],
+                puntaje: row[5],
+                nivel: maps.Nivel_fixed[row[6]]
+            }));
+
+            buildPeriodMap();
+            setupGlobalFilters();
+            setupChart3Filters();
+            initCharts();
+            updateDashboard();
+
+            document.getElementById('loading-overlay').style.display = 'none';
+        } catch (e) {
+            console.error("Error cargando datos:", e);
+            alert("No se pudo cargar la base de datos. Verifica que datos.json esté disponible.");
+        }
     }
-    indLeng.sort((a, b) => M_IND[a].localeCompare(M_IND[b]));
-    indMate.sort((a, b) => M_IND[a].localeCompare(M_IND[b]));
 
-    // Build label array: Lenguaje group · gap · Matemática group
-    const hasGap = indLeng.length > 0 && indMate.length > 0;
-    const allIdxs   = hasGap ? [...indLeng, null, ...indMate] : [...indLeng, ...indMate];
-    const barLabels = allIdxs.map(i => i === null ? '' : M_IND[i]);
+    // ─────────────────────────────────────────────
+    // CONSTRUCCIÓN DEL MAPA DE PERIODOS
+    // ─────────────────────────────────────────────
+    function buildPeriodMap() {
+        const allPeriods = [...new Set(rawData.map(d => d.periodo))];
+        periodMap = {};
+        allPeriods.forEach(p => {
+            // Formato esperado: "2025_1_Diagnóstico"
+            const parts = p.split('_');
+            if (parts.length < 3) return;
+            const year = parts[0];
+            const etapa = parts.slice(2).join('_'); // por si tiene underscore en nombre
+            if (!periodMap[year]) periodMap[year] = {};
+            periodMap[year][etapa] = p;
+        });
+    }
 
-    const setLeng = new Set(indLeng);
-    const barVals = allIdxs.map(iIdx => {
-      if (iIdx === null) return null;
-      const asig = setLeng.has(iIdx) ? IDX_LENG : IDX_MATE;
-      const d = bar[iIdx]?.[asig];
-      return d ? d.s / d.n : null;
-    });
-    const barColors = allIdxs.map(iIdx => {
-      if (iIdx === null) return 'transparent';
-      return setLeng.has(iIdx) ? CLENG : CMATE;
-    });
-    const barHover = allIdxs.map(iIdx => {
-      if (iIdx === null) return 'transparent';
-      return setLeng.has(iIdx)
-        ? 'rgba(56,189,248,.75)'
-        : 'rgba(251,146,60,.75)';
-    });
+    // ─────────────────────────────────────────────
+    // FILTROS GLOBALES
+    // ─────────────────────────────────────────────
+    function setupGlobalFilters() {
+        const createFilter = (id, key) => {
+            const uniqueValues = [...new Set(rawData.map(d => d[key]))].sort();
+            const el = document.getElementById(id);
+            uniqueValues.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v; opt.text = v; el.appendChild(opt);
+            });
+            return new TomSelect(el, {
+                plugins: ['remove_button', 'checkbox_options'],
+                persist: false,
+                onChange: updateDashboard
+            });
+        };
 
-    // Custom tooltip label for subject name
-    const asigLabel = allIdxs.map(iIdx => {
-      if (iIdx === null) return '';
-      return setLeng.has(iIdx) ? 'Lenguaje' : 'Matemática';
-    });
+        controls.rbd   = createFilter('f-rbd', 'rbd');
+        controls.nivel = createFilter('f-nivel', 'nivel');
+        controls.curso = createFilter('f-curso', 'curso');
+        controls.asig  = createFilter('f-asig', 'asignatura');
+        controls.eje   = createFilter('f-eje', 'eje');
 
-    chartB.data.labels = barLabels;
-    chartB.data.datasets = [{
-      label: 'Promedio',
-      data: barVals,
-      backgroundColor: barColors,
-      hoverBackgroundColor: barHover,
-      borderRadius: 5,
-      borderSkipped: false,
-      barPercentage: 0.72,
-      categoryPercentage: 0.85,
-    }];
+        document.getElementById('btn-reset').onclick = () => {
+            Object.values(controls).forEach(c => c.clear());
+            updateDashboard();
+        };
+    }
 
-    // Patch tooltip to show subject per bar
-    chartB.options.plugins.tooltip.callbacks.label = ctx => {
-      const subj = asigLabel[ctx.dataIndex];
-      const val  = ctx.parsed.y != null ? (ctx.parsed.y * 100).toFixed(1) + '%' : '—';
-      return ` ${subj}: ${val}`;
-    };
+    // ─────────────────────────────────────────────
+    // FILTROS INTERNOS GRÁFICO 3
+    // ─────────────────────────────────────────────
+    let g3controls = {};
 
-    chartB.update('none');
-  }
+    function setupChart3Filters() {
+        // Asignatura (single select)
+        const asigEl = document.getElementById('g3-asig');
+        ['Matemática', 'Lenguaje'].forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v; opt.text = v; asigEl.appendChild(opt);
+        });
+        g3controls.asig = new TomSelect(asigEl, {
+            onChange: updateChart3
+        });
 
-  /* ── 9. Event listeners ──────────────────────────────────────────────────── */
-  function parseFilter(val) { return val === '' ? -1 : +val; }
+        // RBD
+        const rbdEl = document.getElementById('g3-rbd');
+        const rbds = [...new Set(rawData.map(d => d.rbd))].sort();
+        rbds.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v; opt.text = v; rbdEl.appendChild(opt);
+        });
+        g3controls.rbd = new TomSelect(rbdEl, {
+            plugins: ['remove_button', 'checkbox_options'],
+            persist: false,
+            onChange: updateChart3
+        });
 
-  document.getElementById('f-nivel').addEventListener('change', e => {
-    F.nivel = parseFilter(e.target.value); update();
-  });
-  document.getElementById('f-rbd').addEventListener('change', e => {
-    F.rbd = parseFilter(e.target.value); update();
-  });
-  document.getElementById('f-periodo').addEventListener('change', e => {
-    F.periodo = parseFilter(e.target.value); update();
-  });
-  document.getElementById('btn-clear').addEventListener('click', () => {
-    F.nivel = F.rbd = F.periodo = -1;
-    ['f-nivel','f-rbd','f-periodo'].forEach(id => document.getElementById(id).value = '');
-    update();
-  });
+        // Curso
+        const cursoEl = document.getElementById('g3-curso');
+        const cursos = [...new Set(rawData.map(d => d.curso))].sort();
+        cursos.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v; opt.text = v; cursoEl.appendChild(opt);
+        });
+        g3controls.curso = new TomSelect(cursoEl, {
+            plugins: ['remove_button', 'checkbox_options'],
+            persist: false,
+            onChange: updateChart3
+        });
+    }
 
-  /* ── 10. Boot ────────────────────────────────────────────────────────────── */
-  update();
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'flex';
-  document.getElementById('dashboard').style.flexDirection = 'column';
+    // ─────────────────────────────────────────────
+    // UPDATE DASHBOARD
+    // ─────────────────────────────────────────────
+    function updateDashboard() {
+        const f = {
+            rbd:   controls.rbd.getValue(),
+            nivel: controls.nivel.getValue(),
+            curso: controls.curso.getValue(),
+            asig:  controls.asig.getValue(),
+            eje:   controls.eje.getValue()
+        };
 
-})();
-</script>
+        filteredData = rawData.filter(d =>
+            (f.rbd.length   === 0 || f.rbd.includes(d.rbd))       &&
+            (f.nivel.length === 0 || f.nivel.includes(d.nivel))    &&
+            (f.curso.length === 0 || f.curso.includes(d.curso))    &&
+            (f.asig.length  === 0 || f.asig.includes(d.asignatura))&&
+            (f.eje.length   === 0 || f.eje.includes(d.eje))
+        );
+
+        renderKPIs();
+        renderEvolCharts();
+        renderEjesCharts();
+        updateChart3();
+    }
+
+    // ─────────────────────────────────────────────
+    // KPIs
+    // ─────────────────────────────────────────────
+    function renderKPIs() {
+        const calc = (asig) => {
+            const sub = filteredData.filter(d => d.asignatura === asig);
+            if (!sub.length) return { pct: '—', n: '' };
+            const avg = sub.reduce((a, b) => a + b.puntaje, 0) / sub.length;
+            return { pct: (avg * 100).toFixed(1) + '%', n: `${sub.length.toLocaleString()} registros` };
+        };
+        const mat = calc('Matemática');
+        const len = calc('Lenguaje');
+        document.getElementById('kpi-mat').innerText = mat.pct;
+        document.getElementById('kpi-mat-n').innerText = mat.n;
+        document.getElementById('kpi-len').innerText = len.pct;
+        document.getElementById('kpi-len-n').innerText = len.n;
+    }
+
+    // ─────────────────────────────────────────────
+    // HELPERS
+    // ─────────────────────────────────────────────
+
+    // Promedio de puntaje de un subconjunto
+    function avg(arr) {
+        if (!arr.length) return null;
+        return (arr.reduce((a, b) => a + b.puntaje, 0) / arr.length) * 100;
+    }
+
+    // Datos por etapa para un año y asignatura
+    function evolDataByYear(data, year, asig) {
+        return ETAPAS.map(etapa => {
+            const periodoKey = periodMap[year] && periodMap[year][etapa];
+            if (!periodoKey) return null;
+            const sub = data.filter(d => d.asignatura === asig && d.periodo === periodoKey);
+            return avg(sub);
+        });
+    }
+
+    // Obtener años disponibles
+    function getYears() {
+        return Object.keys(periodMap).sort();
+    }
+
+    // ─────────────────────────────────────────────
+    // INIT CHARTS
+    // ─────────────────────────────────────────────
+    function initCharts() {
+        const lineOpts = (color) => ({
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+                x: { ticks: { font: { size: 12, weight: '600' } }, grid: { display: false } }
+            },
+            plugins: { legend: { display: false }, tooltip: {
+                callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y.toFixed(1) + '%' : 'Sin datos'}` }
+            }}
+        });
+
+        charts.evolMat = new Chart(document.getElementById('chart-evol-mat'), {
+            type: 'line', data: { labels: ETAPAS, datasets: [] }, options: lineOpts()
+        });
+        charts.evolLen = new Chart(document.getElementById('chart-evol-len'), {
+            type: 'line', data: { labels: ETAPAS, datasets: [] }, options: lineOpts()
+        });
+        charts.ejesMat = new Chart(document.getElementById('chart-ejes-mat'), {
+            type: 'line', data: { labels: ETAPAS, datasets: [] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+                    x: { ticks: { font: { size: 12, weight: '600' } }, grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: {
+                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y.toFixed(1) + '%' : 'Sin datos'}`
+                    }}
+                }
+            }
+        });
+        charts.ejesLen = new Chart(document.getElementById('chart-ejes-len'), {
+            type: 'line', data: { labels: ETAPAS, datasets: [] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+                    x: { ticks: { font: { size: 12, weight: '600' } }, grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: {
+                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y.toFixed(1) + '%' : 'Sin datos'}`
+                    }}
+                }
+            }
+        });
+        charts.colegio = new Chart(document.getElementById('chart-colegio'), {
+            type: 'line', data: { labels: ETAPAS, datasets: [] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { min: 0, max: 100, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+                    x: { ticks: { font: { size: 12, weight: '600' } }, grid: { display: false } }
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 24, padding: 10 } },
+                    tooltip: { callbacks: {
+                        label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y !== null ? ctx.parsed.y.toFixed(1) + '%' : 'Sin datos'}`
+                    }}
+                }
+            }
+        });
+    }
+
+    // ─────────────────────────────────────────────
+    // GRÁFICO 1: EVOLUCIÓN (Mate + Lenguaje)
+    // ─────────────────────────────────────────────
+    function renderEvolCharts() {
+        const years = getYears();
+
+        const buildDatasets = (asig, colorMap) => {
+            return years.map((year, i) => {
+                const color = colorMap[year] || PALETTE[i];
+                const isLast = i === years.length - 1;
+                // Si es el año más reciente y solo tiene diagnóstico, igual lo incluimos
+                return {
+                    label: year,
+                    data: evolDataByYear(filteredData, year, asig),
+                    borderColor: color,
+                    backgroundColor: color + '18',
+                    borderWidth: 2.5,
+                    borderDash: year === '2026' ? [6, 4] : [],
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    tension: 0.3,
+                    fill: false,
+                    spanGaps: false
+                };
+            });
+        };
+
+        charts.evolMat.data.datasets = buildDatasets('Matemática', { '2025': '#1e40af', '2026': '#60a5fa' });
+        charts.evolMat.update();
+
+        charts.evolLen.data.datasets = buildDatasets('Lenguaje', { '2025': '#0f766e', '2026': '#2dd4bf' });
+        charts.evolLen.update();
+    }
+
+    // ─────────────────────────────────────────────
+    // GRÁFICO 2: INDICADORES POR EJE
+    // ─────────────────────────────────────────────
+    function renderEjesCharts() {
+        renderEjesForAsig('Matemática', charts.ejesMat, 'toggles-mat', activeIndicators.mat, 'mat');
+        renderEjesForAsig('Lenguaje',   charts.ejesLen,  'toggles-len', activeIndicators.len,  'len');
+    }
+
+    function renderEjesForAsig(asig, chart, togglesId, activeSet, key) {
+        const sub = filteredData.filter(d => d.asignatura === asig);
+        const ejes = [...new Set(sub.map(d => d.eje))].sort();
+        const years = getYears();
+
+        // Primera vez: activar todos
+        if (activeSet.size === 0) ejes.forEach(e => activeSet.add(e));
+
+        // Rebuild toggles si cambiaron los ejes disponibles
+        const togglesEl = document.getElementById(togglesId);
+        const currentToggles = new Set([...togglesEl.querySelectorAll('[data-eje]')].map(el => el.dataset.eje));
+        const newEjesSet = new Set(ejes);
+        const needsRebuild = ejes.some(e => !currentToggles.has(e)) || [...currentToggles].some(e => !newEjesSet.has(e));
+
+        if (needsRebuild) {
+            togglesEl.innerHTML = '';
+            ejes.forEach((eje, i) => {
+                const color = PALETTE[i % PALETTE.length];
+                const btn = document.createElement('span');
+                btn.className = `indicator-toggle ${activeSet.has(eje) ? 'active' : 'inactive'}`;
+                btn.dataset.eje = eje;
+                btn.style.borderColor = color + '80';
+                btn.style.backgroundColor = color + '15';
+                btn.style.color = '#334155';
+                btn.innerHTML = `<span class="dot" style="background:${color}"></span>${eje}`;
+                btn.onclick = () => {
+                    if (activeSet.has(eje)) activeSet.delete(eje);
+                    else activeSet.add(eje);
+                    btn.className = `indicator-toggle ${activeSet.has(eje) ? 'active' : 'inactive'}`;
+                    renderEjesForAsig(asig, chart, togglesId, activeSet, key);
+                };
+                togglesEl.appendChild(btn);
+            });
+        } else {
+            // Solo actualizar estado visual
+            togglesEl.querySelectorAll('[data-eje]').forEach(btn => {
+                btn.className = `indicator-toggle ${activeSet.has(btn.dataset.eje) ? 'active' : 'inactive'}`;
+            });
+        }
+
+        // Construir datasets: por cada eje activo, una línea por año
+        const datasets = [];
+        ejes.forEach((eje, i) => {
+            if (!activeSet.has(eje)) return;
+            const color = PALETTE[i % PALETTE.length];
+
+            years.forEach(year => {
+                datasets.push({
+                    label: `${eje} (${year})`,
+                    data: ETAPAS.map(etapa => {
+                        const periodoKey = periodMap[year] && periodMap[year][etapa];
+                        if (!periodoKey) return null;
+                        const rows = sub.filter(d => d.eje === eje && d.periodo === periodoKey);
+                        return avg(rows);
+                    }),
+                    borderColor: color,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: year === '2026' ? [6, 4] : [],
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.3,
+                    fill: false,
+                    spanGaps: false
+                });
+            });
+        });
+
+        chart.data.datasets = datasets;
+        chart.update();
+    }
+
+    // ─────────────────────────────────────────────
+    // GRÁFICO 3: POR COLEGIO / CURSO
+    // ─────────────────────────────────────────────
+    function updateChart3() {
+        const asig   = g3controls.asig.getValue()  || 'Matemática';
+        const rbds   = g3controls.rbd.getValue();
+        const cursos = g3controls.curso.getValue();
+
+        // Base: filtro global + filtros internos
+        let base = filteredData.filter(d => d.asignatura === asig);
+        if (rbds.length)   base = base.filter(d => rbds.includes(d.rbd));
+        if (cursos.length) base = base.filter(d => cursos.includes(d.curso));
+
+        // Agrupar por curso (si hay filtro de rbd) o por rbd (si no hay)
+        let groupKey = rbds.length > 0 ? 'curso' : 'rbd';
+        const groups = [...new Set(base.map(d => d[groupKey]))].sort();
+
+        const years = getYears();
+        const datasets = [];
+
+        groups.forEach((group, i) => {
+            const color = PALETTE[i % PALETTE.length];
+            const groupData = base.filter(d => d[groupKey] === group);
+
+            years.forEach(year => {
+                datasets.push({
+                    label: `${group} (${year})`,
+                    data: ETAPAS.map(etapa => {
+                        const periodoKey = periodMap[year] && periodMap[year][etapa];
+                        if (!periodoKey) return null;
+                        const rows = groupData.filter(d => d.periodo === periodoKey);
+                        return avg(rows);
+                    }),
+                    borderColor: color,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: year === '2026' ? [6, 4] : [],
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.3,
+                    fill: false,
+                    spanGaps: false
+                });
+            });
+        });
+
+        charts.colegio.data.datasets = datasets;
+        charts.colegio.update();
+    }
+
+    init();
+    </script>
 </body>
 </html>
