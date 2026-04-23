@@ -110,37 +110,40 @@
             len: { stroke: '#14b8a6', bg: 'rgba(20, 184, 166, 0.1)' }
         };
 
-        async function init() {
-            try {
-                // LLAMADA AL ARCHIVO: La forma más eficiente es fetch directo. 
-                // Si está en GitHub, usa la URL 'raw.githubusercontent.com...'
-                const response = await fetch('datos.json'); 
-                const json = await response.json();
-                
-                maps = json.maps;
-                
-                // Desempaquetado eficiente (Hydration)
-                // Convertimos los índices en texto legible una sola vez para ganar fluidez en filtros
-                rawData = json.data.map(row => ({
-                    periodo: maps.Periodo_evaluación[row[0]],
-                    rbd: maps.RBD_Establecimiento[row[1]],
-                    curso: maps.Curso[row[2]],
-                    asignatura: maps.Asignatura[row[3]],
-                    eje: maps.Indicador_fixed[row[4]],
-                    puntaje: row[5],
-                    nivel: maps.Nivel_fixed[row[6]]
-                }));
-
-                setupFilters();
-                initCharts();
-                updateDashboard();
-                
-                document.getElementById('loading-overlay').style.display = 'none';
-            } catch (e) {
-                console.error("Error cargando datos:", e);
-                alert("No se pudo cargar la base de datos de GitHub.");
-            }
+async function init() {
+    try {
+        // Usamos ./ para forzar la búsqueda en la misma carpeta
+        const response = await fetch('./datos.json'); 
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} - No se encontró el archivo`);
         }
+        
+        const json = await response.json();
+        maps = json.maps;
+        
+        // El resto del código de desempaquetado...
+        rawData = json.data.map(row => ({
+            periodo: maps.Periodo_evaluación[row[0]],
+            rbd: maps.RBD_Establecimiento[row[1]],
+            curso: maps.Curso[row[2]],
+            asignatura: maps.Asignatura[row[3]],
+            eje: maps.Indicador_fixed[row[4]],
+            puntaje: row[5],
+            nivel: maps.Nivel_fixed[row[6]]
+        }));
+
+        setupFilters();
+        initCharts();
+        updateDashboard();
+        
+        document.getElementById('loading-overlay').style.display = 'none';
+    } catch (e) {
+        console.error("Error detallado:", e);
+        // Esto te dirá el error real en la ventana emergente
+        alert("Error de carga: " + e.message);
+    }
+}
 
         function setupFilters() {
             const createFilter = (id, key) => {
