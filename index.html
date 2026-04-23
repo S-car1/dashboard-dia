@@ -305,7 +305,7 @@
                 opt.value = v; opt.text = v; el.appendChild(opt);
             });
             return new TomSelect(el, {
-                plugins: ['remove_button', 'checkbox_options'],
+                plugins: ['remove_button'],
                 persist: false,
                 onChange: updateDashboard
             });
@@ -347,7 +347,7 @@
             opt.value = v; opt.text = v; rbdEl.appendChild(opt);
         });
         g3controls.rbd = new TomSelect(rbdEl, {
-            plugins: ['remove_button', 'checkbox_options'],
+            plugins: ['remove_button'],
             persist: false,
             onChange: updateChart3
         });
@@ -360,7 +360,7 @@
             opt.value = v; opt.text = v; cursoEl.appendChild(opt);
         });
         g3controls.curso = new TomSelect(cursoEl, {
-            plugins: ['remove_button', 'checkbox_options'],
+            plugins: ['remove_button'],
             persist: false,
             onChange: updateChart3
         });
@@ -628,13 +628,20 @@
         const rbds   = g3controls.rbd.getValue();
         const cursos = g3controls.curso.getValue();
 
+        // Solo renderizar si hay al menos un RBD seleccionado
+        if (rbds.length === 0) {
+            charts.colegio.data.datasets = [];
+            charts.colegio.update();
+            return;
+        }
+
         // Base: filtro global + filtros internos
         let base = filteredData.filter(d => d.asignatura === asig);
         if (rbds.length)   base = base.filter(d => rbds.includes(d.rbd));
         if (cursos.length) base = base.filter(d => cursos.includes(d.curso));
 
-        // Agrupar por curso (si hay filtro de rbd) o por rbd (si no hay)
-        let groupKey = rbds.length > 0 ? 'curso' : 'rbd';
+        // Agrupar siempre por curso (ya que se filtró por RBD)
+        let groupKey = 'curso';
         const groups = [...new Set(base.map(d => d[groupKey]))].sort();
 
         const years = getYears();
