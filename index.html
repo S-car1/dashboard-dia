@@ -112,7 +112,7 @@
 
 async function init() {
     try {
-        // Usamos ./ para forzar la búsqueda en la misma carpeta
+        // Mantenemos el ./ para asegurar que lo busque en la misma carpeta
         const response = await fetch('./datos.json'); 
         
         if (!response.ok) {
@@ -122,8 +122,8 @@ async function init() {
         const json = await response.json();
         maps = json.maps;
         
-        // El resto del código de desempaquetado...
-        rawData = json.data.map(row => ({
+        // ¡LA CORRECCIÓN ESTÁ AQUÍ! Cambiamos json.data.map por json.rows.map
+        rawData = json.rows.map(row => ({
             periodo: maps.Periodo_evaluación[row[0]],
             rbd: maps.RBD_Establecimiento[row[1]],
             curso: maps.Curso[row[2]],
@@ -140,7 +140,6 @@ async function init() {
         document.getElementById('loading-overlay').style.display = 'none';
     } catch (e) {
         console.error("Error detallado:", e);
-        // Esto te dirá el error real en la ventana emergente
         alert("Error de carga: " + e.message);
     }
 }
