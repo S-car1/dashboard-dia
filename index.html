@@ -40,12 +40,12 @@
     .loader { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--leng); border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Filtros: Diseño Original Recuperado ── */
+    /* ── Filtros ── */
     .filter-bar {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
       padding: 1rem 1.25rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
     }
-    .filter-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 220px; }
+    .filter-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 160px; }
     .filter-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
 
     .btn-clear {
@@ -56,7 +56,7 @@
     }
     .btn-clear:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); }
 
-    /* ── Customización Extrema de TomSelect (Dark Mode Elegante) ── */
+    /* ── Customización TomSelect ── */
     .ts-wrapper.multi .ts-control {
       background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 6px !important;
       color: var(--text) !important; font-family: var(--font); font-size: 0.84rem;
@@ -65,7 +65,6 @@
     .ts-wrapper.multi.focus .ts-control { border-color: var(--border-2) !important; }
     .ts-control input { color: var(--text) !important; font-family: var(--font); }
     
-    /* Etiquetas seleccionadas (Tags) */
     .ts-wrapper.multi .ts-control > div.item {
       background: rgba(56,189,248,0.12) !important; border: 1px solid rgba(56,189,248,0.3) !important; color: var(--text) !important;
       border-radius: 4px; padding: 2px 6px !important; font-size: 0.75rem; margin: 2px 4px 2px 0 !important;
@@ -73,7 +72,6 @@
     .ts-wrapper.multi .ts-control > div.item .remove { border-left-color: rgba(56,189,248,0.3) !important; color: var(--leng) !important; }
     .ts-wrapper.multi .ts-control > div.item.active { background: rgba(56,189,248,0.25) !important; border-color: var(--leng) !important; }
 
-    /* Menú desplegable */
     .ts-dropdown {
       background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 8px !important;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; color: var(--text) !important; padding: 4px 0 !important;
@@ -82,14 +80,13 @@
     .ts-dropdown .active { background: rgba(56,189,248,0.1) !important; color: var(--text) !important; }
     .ts-dropdown .option input[type="checkbox"] { margin-right: 10px; accent-color: var(--leng); cursor: pointer; }
 
-    /* ── KPIs ── */
+    /* ── KPIs y Gráficos ── */
     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
     .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; overflow: hidden; }
     .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--kpi-c); opacity: 0.5; }
     .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 0.5rem; }
     .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; color: var(--kpi-c); }
 
-    /* ── Gráficos ── */
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
     .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; }
     .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.1rem; flex-shrink: 0; }
@@ -124,21 +121,27 @@
   <div class="filter-bar">
     <div class="filter-group" style="flex: 0.5;">
       <span class="filter-label">Año</span>
-      <select id="f-agno" multiple placeholder="Todos los años"></select>
+      <select id="f-agno" multiple placeholder="Todos"></select>
     </div>
-    <div class="filter-group" style="flex: 0.8;">
+    <div class="filter-group" style="flex: 0.5;">
       <span class="filter-label">Nivel</span>
-      <select id="f-nivel" multiple placeholder="Todos los niveles"></select>
+      <select id="f-nivel" multiple placeholder="Todos"></select>
     </div>
-    <div class="filter-group" style="flex: 2;">
+    <div class="filter-group" style="flex: 1.5;">
       <span class="filter-label">Establecimiento (RBD)</span>
       <select id="f-rbd" multiple placeholder="Buscar por nombre o RBD..."></select>
     </div>
+    <div class="filter-group" style="flex: 1;">
+      <span class="filter-label">Filtro Ejes</span>
+      <select id="f-eje" multiple placeholder="Visibilizar ejes..."></select>
+    </div>
+    <div class="filter-group" style="flex: 1;">
+      <span class="filter-label">Filtro Cursos</span>
+      <select id="f-curso" multiple placeholder="Ej: 6A, 6B..."></select>
+    </div>
     <button class="btn-clear" id="btn-clear">
-      <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
-        <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Limpiar filtros
+      <svg width="12" height="12" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Limpiar
     </button>
   </div>
 
@@ -235,22 +238,24 @@ let ts = {};
 function setupFilters() {
   const config = {
     plugins: ['remove_button', 'checkbox_options'],
-    maxOptions: 50, // CRUCIAL UX: Limita el renderizado inicial para que no se congele la página al buscar
+    maxOptions: 50,
     hideSelected: false,
     closeAfterSelect: false,
-    render: {
-      item: function(data, escape) { return `<div>${escape(data.text)}</div>`; }
-    },
+    render: { item: function(data, escape) { return `<div>${escape(data.text)}</div>`; } },
     onChange: () => update()
   };
 
   ts.agno = new TomSelect('#f-agno', config);
   ts.nivel = new TomSelect('#f-nivel', config);
   ts.rbd = new TomSelect('#f-rbd', config);
+  ts.eje = new TomSelect('#f-eje', config);
+  ts.curso = new TomSelect('#f-curso', config);
 
-  DATA_RAW.maps[I.AGNO].forEach((v, i) => ts.agno.addOption({value: i, text: v}));
-  DATA_RAW.maps[I.NIVEL].forEach((v, i) => ts.nivel.addOption({value: i, text: v}));
-  DATA_RAW.maps[I.RBD].forEach((v, i) => ts.rbd.addOption({value: i, text: v}));
+  DATA_RAW.maps[I.AGNO].forEach((v, i) => { if (v && v.trim() !== '') ts.agno.addOption({value: i, text: v}); });
+  DATA_RAW.maps[I.NIVEL].forEach((v, i) => { if (v && v.trim() !== '') ts.nivel.addOption({value: i, text: v}); });
+  DATA_RAW.maps[I.RBD].forEach((v, i) => { if (v && v.trim() !== '') ts.rbd.addOption({value: i, text: v}); });
+  DATA_RAW.maps[I.EJE].forEach((v, i) => { if (v && v.trim() !== '') ts.eje.addOption({value: i, text: v}); });
+  DATA_RAW.maps[I.CURSO].forEach((v, i) => { if (v && v.trim() !== '') ts.curso.addOption({value: i, text: v}); });
 
   document.getElementById('btn-clear').onclick = () => {
     Object.values(ts).forEach(t => t.clear());
@@ -261,6 +266,8 @@ function aggregate() {
   const fAgno = ts.agno.items.map(Number);
   const fNivel = ts.nivel.items.map(Number);
   const fRbd = ts.rbd.items.map(Number);
+  const fEje = ts.eje.items.map(Number);
+  const fCurso = ts.curso.items.map(Number);
 
   const res = {
     kpi: { sum: 0, count: 0, lengSum: 0, lengC: 0, mateSum: 0, mateC: 0, rbds: new Set() },
@@ -272,6 +279,7 @@ function aggregate() {
   for (let i = 0; i < DATA_RAW.rows.length; i++) {
     const r = DATA_RAW.rows[i];
     
+    // Filtros que afectan TODO el dashboard
     if (fAgno.length && !fAgno.includes(r[I.AGNO])) continue;
     if (fNivel.length && !fNivel.includes(r[I.NIVEL])) continue;
     if (fRbd.length && !fRbd.includes(r[I.RBD])) continue;
@@ -296,19 +304,25 @@ function aggregate() {
 
       const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
       if (ejeV && ejeV.trim() !== "") {
-        if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
-        if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-        res.ejes[asigV][ejeV][agnoV][etapaIdx][0] += p;
-        res.ejes[asigV][ejeV][agnoV][etapaIdx][1]++;
+        // Filtro específico: Aplica solo a la vista de Ejes
+        if (fEje.length === 0 || fEje.includes(r[I.EJE])) {
+          if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
+          if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+          res.ejes[asigV][ejeV][agnoV][etapaIdx][0] += p;
+          res.ejes[asigV][ejeV][agnoV][etapaIdx][1]++;
+        }
       }
     }
 
     if (fRbd.length > 0 && asigV === currentAsigFilter) {
-      const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
-      if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
-      if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      res.cursos[cursoV][agnoV][etapaIdx][0] += p;
-      res.cursos[cursoV][agnoV][etapaIdx][1]++;
+      // Filtro específico: Aplica solo a la vista de Cursos
+      if (fCurso.length === 0 || fCurso.includes(r[I.CURSO])) {
+        const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
+        if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
+        if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+        res.cursos[cursoV][agnoV][etapaIdx][0] += p;
+        res.cursos[cursoV][agnoV][etapaIdx][1]++;
+      }
     }
   }
   return res;
@@ -319,7 +333,7 @@ let currentAsigFilter = 'Lenguaje';
 function initCharts() {
   const chartOptions = () => ({
     responsive: true, maintainAspectRatio: false,
-    animation: { duration: 400 }, // UX: Se restauran las transiciones suaves
+    animation: { duration: 400 },
     scales: {
       y: { min: 0, max: 1, ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d', drawBorder: false } },
       x: { grid: { display: false } }
@@ -380,7 +394,7 @@ function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
        colorIdx++;
     }
   });
-  chart.update(); // UX: Actualiza con animación suave
+  chart.update();
 }
 
 function createDataset(label, points, color, isDashed) {
@@ -392,7 +406,10 @@ function createDataset(label, points, color, isDashed) {
     backgroundColor: color + '22',
     fill: !isDashed && label.length <= 4,
     borderWidth: 2.5,
-    pointRadius: 4, pointHoverRadius: 6,
+    // Aquí implementamos la forma específica para el año
+    pointStyle: isDashed ? 'triangle' : 'circle',
+    pointRadius: isDashed ? 5 : 4,
+    pointHoverRadius: isDashed ? 8 : 6,
     tension: 0.38
   };
 }
