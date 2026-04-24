@@ -47,10 +47,22 @@
 
     /* Gráficos */
     .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; min-height: 400px; }
-    .chart-header { margin-bottom: 1.5rem; }
+    .chart-card { 
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; 
+      padding: 1.5rem; 
+      min-height: 450px; 
+      display: flex; flex-direction: column; /* Crucial para evitar el bucle infinito */
+    }
+    .chart-header { margin-bottom: 1.5rem; flex-shrink: 0; }
     .chart-title { font-size: 0.9rem; font-weight: 800; color: var(--text); }
     .chart-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* El contenedor estricto que frena el crecimiento infinito de Chart.js */
+    .chart-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
 
     .full-width { grid-column: 1 / -1; }
 
@@ -114,14 +126,18 @@
         <h2 class="chart-title">Evolución: Lenguaje</h2>
         <p class="chart-subtitle">Comparativa 2025 (Sólida) vs 2026 (Punteada)</p>
       </div>
-      <canvas id="canvas-leng-evo"></canvas>
+      <div class="chart-wrap">
+        <canvas id="canvas-leng-evo"></canvas>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-header">
         <h2 class="chart-title">Evolución: Matemática</h2>
         <p class="chart-subtitle">Comparativa 2025 (Sólida) vs 2026 (Punteada)</p>
       </div>
-      <canvas id="canvas-mate-evo"></canvas>
+      <div class="chart-wrap">
+        <canvas id="canvas-mate-evo"></canvas>
+      </div>
     </div>
 
     <div class="chart-card">
@@ -129,14 +145,18 @@
         <h2 class="chart-title">Lenguaje: Desempeño por Eje</h2>
         <p class="chart-subtitle">Evolución de indicadores por etapa</p>
       </div>
-      <canvas id="canvas-leng-ejes"></canvas>
+      <div class="chart-wrap">
+        <canvas id="canvas-leng-ejes"></canvas>
+      </div>
     </div>
     <div class="chart-card">
       <div class="chart-header">
         <h2 class="chart-title">Matemática: Desempeño por Eje</h2>
         <p class="chart-subtitle">Evolución de indicadores por etapa</p>
       </div>
-      <canvas id="canvas-mate-ejes"></canvas>
+      <div class="chart-wrap">
+        <canvas id="canvas-mate-ejes"></canvas>
+      </div>
     </div>
 
     <div class="chart-card full-width">
@@ -146,12 +166,14 @@
           <p class="chart-subtitle">Selecciona un colegio para ver el desglose por niveles</p>
         </div>
         <div style="display: flex; gap: 0.5rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px;">
-          <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer;">Lenguaje</button>
-          <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer;">Matemática</button>
+          <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text);">Lenguaje</button>
+          <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent;">Matemática</button>
         </div>
       </div>
       <div id="msg-colegio" style="text-align: center; padding: 4rem; color: var(--text-muted);">Debe filtrar al menos un Establecimiento para visualizar esta sección.</div>
-      <canvas id="canvas-curso-evo" style="display: none;"></canvas>
+      <div class="chart-wrap" id="wrap-curso-evo" style="display: none;">
+        <canvas id="canvas-curso-evo"></canvas>
+      </div>
     </div>
   </div>
 </main>
@@ -165,13 +187,14 @@ const COLORS = [
   '#fbbf24', '#2dd4bf', '#818cf8', '#fb7185', '#a3e635'
 ];
 
-// Mapeo de columnas
+// Mapeo estricto basado en la salida del script de Python
 const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
 
 /* --- 1. Inicialización --- */
 async function init() {
   try {
     const res = await fetch('datos.json');
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
     DATA_RAW = await res.json();
     
     setupFilters();
@@ -198,14 +221,10 @@ function setupFilters() {
   ts.nivel = new TomSelect('#f-nivel', config);
   ts.rbd = new TomSelect('#f-rbd', config);
 
-  // Poblar opciones
-  const mapAgno = DATA_RAW.maps[I.AGNO];
-  const mapNivel = DATA_RAW.maps[I.NIVEL];
-  const mapRbd = DATA_RAW.maps[I.RBD];
-
-  mapAgno.forEach((v, i) => ts.agno.addOption({value: i, text: v}));
-  mapNivel.forEach((v, i) => ts.nivel.addOption({value: i, text: v}));
-  mapRbd.forEach((v, i) => ts.rbd.addOption({value: i, text: v}));
+  // Poblar opciones usando los mapas generados por Python
+  DATA_RAW.maps[I.AGNO].forEach((v, i) => ts.agno.addOption({value: i, text: v}));
+  DATA_RAW.maps[I.NIVEL].forEach((v, i) => ts.nivel.addOption({value: i, text: v}));
+  DATA_RAW.maps[I.RBD].forEach((v, i) => ts.rbd.addOption({value: i, text: v}));
 
   document.getElementById('btn-reset').onclick = () => {
     Object.values(ts).forEach(t => t.clear());
@@ -218,26 +237,24 @@ function aggregate() {
   const fNivel = ts.nivel.items.map(Number);
   const fRbd = ts.rbd.items.map(Number);
 
-  // Resultados
   const res = {
     kpi: { sum: 0, count: 0, lengSum: 0, lengC: 0, mateSum: 0, mateC: 0, rbds: new Set() },
-    evo: { Lenguaje: {}, Matemática: {} }, // { Asig: { Agno: [sum, count] x 3 stages } }
-    ejes: { Lenguaje: {}, Matemática: {} }, // { Asig: { Eje: { Agno: [sum, count] x 3 stages } } }
-    cursos: {} // { Curso: { Agno: [sum, count] x 3 stages } }
+    evo: { Lenguaje: {}, Matemática: {} },
+    ejes: { Lenguaje: {}, Matemática: {} },
+    cursos: {}
   };
 
   const rows = DATA_RAW.rows;
-  const mapAsig = DATA_RAW.maps[I.ASIG];
-  const mapEtapa = DATA_RAW.maps[I.ETAPA];
 
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
     
-    // Filtrado
+    // Filtrado contra los índices numéricos
     if (fAgno.length && !fAgno.includes(r[I.AGNO])) continue;
     if (fNivel.length && !fNivel.includes(r[I.NIVEL])) continue;
     if (fRbd.length && !fRbd.includes(r[I.RBD])) continue;
 
+    // Traducir índices numéricos a texto usando los mapas
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
     const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
     const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
@@ -255,19 +272,22 @@ function aggregate() {
     if (asigV === 'Matemática') { res.kpi.mateSum += p; res.kpi.mateC++; }
 
     // Evolución General
-    if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-    res.evo[asigV][agnoV][etapaIdx][0] += p;
-    res.evo[asigV][agnoV][etapaIdx][1]++;
+    if (asigV === 'Lenguaje' || asigV === 'Matemática') {
+      if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+      res.evo[asigV][agnoV][etapaIdx][0] += p;
+      res.evo[asigV][agnoV][etapaIdx][1]++;
 
-    // Ejes
-    if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
-    if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-    res.ejes[asigV][ejeV][agnoV][etapaIdx][0] += p;
-    res.ejes[asigV][ejeV][agnoV][etapaIdx][1]++;
+      // Ejes
+      if (ejeV && ejeV.trim() !== "") {
+        if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
+        if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+        res.ejes[asigV][ejeV][agnoV][etapaIdx][0] += p;
+        res.ejes[asigV][ejeV][agnoV][etapaIdx][1]++;
+      }
+    }
 
-    // Cursos (para el gráfico detallado)
-    // Filtro adicional: solo si hay un colegio seleccionado o un nivel específico
-    if (asigV === currentAsigFilter) {
+    // Cursos (solo calculamos si hay un colegio filtrado para optimizar rendimiento)
+    if (fRbd.length > 0 && asigV === currentAsigFilter) {
       if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
       if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({length: 3}, () => [0, 0]);
       res.cursos[cursoV][agnoV][etapaIdx][0] += p;
@@ -281,15 +301,20 @@ function aggregate() {
 let currentAsigFilter = 'Lenguaje';
 
 function initCharts() {
-  const chartOptions = (yTitle) => ({
+  const chartOptions = () => ({
     responsive: true,
     maintainAspectRatio: false,
     scales: {
-      y: { min: 0, max: 1, ticks: { callback: v => (v * 100) + '%' }, grid: { color: '#21262d' } },
+      y: { min: 0, max: 1, ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d' } },
       x: { grid: { display: false } }
     },
     plugins: {
-      legend: { position: 'bottom', labels: { boxWidth: 12, color: '#7d8590', font: { size: 10 } } }
+      legend: { position: 'bottom', labels: { boxWidth: 12, color: '#7d8590', font: { size: 10 } } },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%`
+        }
+      }
     }
   });
 
@@ -308,8 +333,8 @@ function update() {
   document.getElementById('kpi-global').innerText = f(data.kpi.sum, data.kpi.count);
   document.getElementById('kpi-leng').innerText = f(data.kpi.lengSum, data.kpi.lengC);
   document.getElementById('kpi-mate').innerText = f(data.kpi.mateSum, data.kpi.mateC);
-  document.getElementById('kpi-rbd').innerText = data.kpi.rbds.size.toLocaleString();
-  document.getElementById('total-registros').innerText = `${data.kpi.count.toLocaleString()} registros`;
+  document.getElementById('kpi-rbd').innerText = data.kpi.rbds.size.toLocaleString('es-CL');
+  document.getElementById('total-registros').innerText = `${data.kpi.count.toLocaleString('es-CL')} registros`;
 
   // Update Evolución General
   updateEvoChart(charts.lengEvo, data.evo.Lenguaje, varColor('--leng'));
@@ -322,11 +347,11 @@ function update() {
   // Update Detalle Colegio
   if (ts.rbd.items.length > 0) {
     document.getElementById('msg-colegio').style.display = 'none';
-    document.getElementById('canvas-curso-evo').style.display = 'block';
+    document.getElementById('wrap-curso-evo').style.display = 'block';
     updateCursosChart(charts.cursoEvo, data.cursos);
   } else {
     document.getElementById('msg-colegio').style.display = 'block';
-    document.getElementById('canvas-curso-evo').style.display = 'none';
+    document.getElementById('wrap-curso-evo').style.display = 'none';
   }
 }
 
@@ -344,7 +369,7 @@ function updateEvoChart(chart, asigData, color) {
       tension: 0.3
     });
   });
-  chart.update();
+  chart.update('none');
 }
 
 function updateEjesChart(chart, ejesData) {
@@ -366,7 +391,7 @@ function updateEjesChart(chart, ejesData) {
     });
     colorIdx++;
   });
-  chart.update();
+  chart.update('none');
 }
 
 function updateCursosChart(chart, cursosData) {
@@ -386,7 +411,7 @@ function updateCursosChart(chart, cursosData) {
     });
     colorIdx++;
   });
-  chart.update();
+  chart.update('none');
 }
 
 // Helpers
@@ -395,8 +420,12 @@ function varColor(name) { return getComputedStyle(document.documentElement).getP
 // Toggle Asignatura en Detalle Colegio
 document.querySelectorAll('.btn-toggle').forEach(btn => {
   btn.onclick = (e) => {
-    document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.btn-toggle').forEach(b => {
+      b.classList.remove('active');
+      b.style.background = 'transparent';
+    });
     e.target.classList.add('active');
+    e.target.style.background = 'var(--leng)'; // Color de fondo activo
     currentAsigFilter = e.target.dataset.asig;
     update();
   };
