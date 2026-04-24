@@ -10,167 +10,197 @@
   
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-  
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <style>
     :root {
-      --bg: #0d1117; --surface: #161b22; --surface-2: #21262d;
-      --border: #30363d; --text: #e6edf3; --text-muted: #7d8590;
-      --leng: #38bdf8; --mate: #fb923c; --total: #34d399; --purple: #a78bfa;
-      --font: 'Archivo', sans-serif; --mono: 'JetBrains Mono', monospace;
+      --bg:         #0d1117;
+      --surface:    #161b22;
+      --surface-2:  #21262d;
+      --border:     #30363d;
+      --border-2:   #3d444d;
+      --text:       #e6edf3;
+      --text-muted: #7d8590;
+      --leng:       #38bdf8;
+      --mate:       #fb923c;
+      --total:      #34d399;
+      --purple:     #a78bfa;
+      --r:          12px;
+      --font:       'Archivo', sans-serif;
+      --mono:       'JetBrains Mono', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; }
 
-    /* Layout */
+    /* ── Layout ── */
     .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
-    .main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    .main { max-width: 1560px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
     
-    /* Loading */
     #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-    .loader { width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--leng); border-radius: 50%; animation: spin 1s linear infinite; }
+    .loader { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--leng); border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Filtros - Estilo TomSelect */
-    .filter-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; align-items: end; }
-    .ts-control { background: var(--surface-2) !important; border-color: var(--border) !important; color: var(--text) !important; border-radius: 8px !important; }
-    .ts-dropdown { background: var(--surface-2) !important; color: var(--text) !important; border-color: var(--border) !important; }
-    .ts-dropdown .active { background: var(--leng) !important; color: #000 !important; }
-    .label-f { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; display: block; }
-
-    /* KPIs */
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-    .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; border-left: 4px solid var(--kpi-c); }
-    .kpi-val { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; margin: 0.25rem 0; }
-    .kpi-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
-
-    /* Gráficos */
-    .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .chart-card { 
-      background: var(--surface); border: 1px solid var(--border); border-radius: 12px; 
-      padding: 1.5rem; 
-      min-height: 450px; 
-      display: flex; flex-direction: column; /* Crucial para evitar el bucle infinito */
+    /* ── Filtros: Diseño Original Recuperado ── */
+    .filter-bar {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+      padding: 1rem 1.25rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
     }
-    .chart-header { margin-bottom: 1.5rem; flex-shrink: 0; }
-    .chart-title { font-size: 0.9rem; font-weight: 800; color: var(--text); }
-    .chart-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+    .filter-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 220px; }
+    .filter-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
 
-    /* El contenedor estricto que frena el crecimiento infinito de Chart.js */
-    .chart-wrap {
-      position: relative;
-      flex: 1;
-      min-height: 0;
+    .btn-clear {
+      background: transparent; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text-muted); font-family: var(--font); font-size: 0.84rem;
+      padding: 0.42rem 0.9rem; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 0.35rem; height: 38px;
     }
+    .btn-clear:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); }
 
+    /* ── Customización Extrema de TomSelect (Dark Mode Elegante) ── */
+    .ts-wrapper.multi .ts-control {
+      background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 6px !important;
+      color: var(--text) !important; font-family: var(--font); font-size: 0.84rem;
+      padding: 0.3rem 0.6rem !important; min-height: 38px; box-shadow: none !important; cursor: text; transition: border-color 0.15s;
+    }
+    .ts-wrapper.multi.focus .ts-control { border-color: var(--border-2) !important; }
+    .ts-control input { color: var(--text) !important; font-family: var(--font); }
+    
+    /* Etiquetas seleccionadas (Tags) */
+    .ts-wrapper.multi .ts-control > div.item {
+      background: rgba(56,189,248,0.12) !important; border: 1px solid rgba(56,189,248,0.3) !important; color: var(--text) !important;
+      border-radius: 4px; padding: 2px 6px !important; font-size: 0.75rem; margin: 2px 4px 2px 0 !important;
+    }
+    .ts-wrapper.multi .ts-control > div.item .remove { border-left-color: rgba(56,189,248,0.3) !important; color: var(--leng) !important; }
+    .ts-wrapper.multi .ts-control > div.item.active { background: rgba(56,189,248,0.25) !important; border-color: var(--leng) !important; }
+
+    /* Menú desplegable */
+    .ts-dropdown {
+      background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 8px !important;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; color: var(--text) !important; padding: 4px 0 !important;
+    }
+    .ts-dropdown .option { padding: 8px 12px !important; font-size: 0.84rem; cursor: pointer; }
+    .ts-dropdown .active { background: rgba(56,189,248,0.1) !important; color: var(--text) !important; }
+    .ts-dropdown .option input[type="checkbox"] { margin-right: 10px; accent-color: var(--leng); cursor: pointer; }
+
+    /* ── KPIs ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; overflow: hidden; }
+    .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--kpi-c); opacity: 0.5; }
+    .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; color: var(--kpi-c); }
+
+    /* ── Gráficos ── */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; }
+    .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.1rem; flex-shrink: 0; }
+    .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+    .chart-title span { color: var(--text); font-size: 0.8rem; display: block; margin-top: 0.15rem; text-transform: none; font-weight: 600;}
+    .chart-wrap { position: relative; flex: 1; min-height: 0; }
     .full-width { grid-column: 1 / -1; }
 
-    @media (max-width: 1024px) { .charts-container { grid-template-columns: 1fr; } }
+    @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
 <body>
 
 <div id="loading">
   <div class="loader"></div>
-  <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted)">Procesando registros DIA...</p>
+  <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); letter-spacing: 0.04em;">Cargando datos DIA&hellip;</p>
 </div>
 
 <header class="header">
-  <div>
-    <h1 style="font-size: 1.2rem; font-weight: 800;">Dashboard DIA · Resultados Institucionales</h1>
-    <p style="font-size: 0.75rem; color: var(--text-muted)">Evolución 2025 - 2026 · Lenguaje & Matemática</p>
+  <div style="display: flex; align-items: center; gap: 1rem;">
+    <div style="width: 38px; height: 38px; border-radius: 9px; background: linear-gradient(135deg, var(--leng) 0%, var(--mate) 100%); display: flex; align-items: center; justify-content: center; font-size: 19px;">📊</div>
+    <div>
+      <div style="font-size: 1rem; font-weight: 800; letter-spacing: -.025em;">Dashboard DIA &mdash; Resultados Institucionales</div>
+      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">Evaluación Diagnóstica Institucional &middot; Evolución</div>
+    </div>
   </div>
-  <div id="total-registros" style="font-family: var(--mono); font-size: 0.75rem; background: var(--surface-2); padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid var(--border);"></div>
+  <div id="total-registros" style="font-family: var(--mono); font-size: 0.7rem; background: var(--surface-2); padding: 0.25rem 0.75rem; border-radius: 20px; border: 1px solid var(--border); color: var(--text-muted);"></div>
 </header>
 
-<main class="main">
-  <section class="filter-section">
-    <div>
-      <span class="label-f">Año</span>
+<main class="main" id="dashboard" style="display:none;">
+  
+  <div class="filter-bar">
+    <div class="filter-group" style="flex: 0.5;">
+      <span class="filter-label">Año</span>
       <select id="f-agno" multiple placeholder="Todos los años"></select>
     </div>
-    <div>
-      <span class="label-f">Nivel (General)</span>
+    <div class="filter-group" style="flex: 0.8;">
+      <span class="filter-label">Nivel</span>
       <select id="f-nivel" multiple placeholder="Todos los niveles"></select>
     </div>
-    <div>
-      <span class="label-f">Establecimiento (RBD)</span>
-      <select id="f-rbd" multiple placeholder="Filtrar colegios"></select>
+    <div class="filter-group" style="flex: 2;">
+      <span class="filter-label">Establecimiento (RBD)</span>
+      <select id="f-rbd" multiple placeholder="Buscar por nombre o RBD..."></select>
     </div>
-    <button id="btn-reset" style="padding: 0.6rem; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; cursor: pointer; font-size: 0.8rem;">Limpiar Filtros</button>
-  </section>
+    <button class="btn-clear" id="btn-clear">
+      <svg width="12" height="12" viewBox="0 0 10 10" fill="none">
+        <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Limpiar filtros
+    </button>
+  </div>
 
-  <section class="kpi-grid">
-    <div class="kpi-card" style="--kpi-c: var(--total)">
+  <div class="kpi-grid">
+    <div class="kpi" style="--kpi-c: var(--text)">
       <div class="kpi-label">Promedio General</div>
       <div class="kpi-val" id="kpi-global">—</div>
     </div>
-    <div class="kpi-card" style="--kpi-c: var(--leng)">
-      <div class="kpi-label">Lenguaje</div>
+    <div class="kpi" style="--kpi-c: var(--leng)">
+      <div class="kpi-label">Promedio Lenguaje</div>
       <div class="kpi-val" id="kpi-leng">—</div>
     </div>
-    <div class="kpi-card" style="--kpi-c: var(--mate)">
-      <div class="kpi-label">Matemática</div>
+    <div class="kpi" style="--kpi-c: var(--mate)">
+      <div class="kpi-label">Promedio Matemática</div>
       <div class="kpi-val" id="kpi-mate">—</div>
     </div>
-    <div class="kpi-card" style="--kpi-c: var(--purple)">
+    <div class="kpi" style="--kpi-c: var(--purple)">
       <div class="kpi-label">Establecimientos</div>
       <div class="kpi-val" id="kpi-rbd">—</div>
     </div>
-  </section>
+  </div>
 
-  <div class="charts-container">
+  <div class="charts-grid">
     <div class="chart-card">
       <div class="chart-header">
-        <h2 class="chart-title">Evolución: Lenguaje</h2>
-        <p class="chart-subtitle">Comparativa 2025 (Sólida) vs 2026 (Punteada)</p>
+        <div class="chart-title">Evolución General<span>Lenguaje</span></div>
       </div>
-      <div class="chart-wrap">
-        <canvas id="canvas-leng-evo"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div>
     </div>
+    
     <div class="chart-card">
       <div class="chart-header">
-        <h2 class="chart-title">Evolución: Matemática</h2>
-        <p class="chart-subtitle">Comparativa 2025 (Sólida) vs 2026 (Punteada)</p>
+        <div class="chart-title">Evolución General<span>Matemática</span></div>
       </div>
-      <div class="chart-wrap">
-        <canvas id="canvas-mate-evo"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div>
     </div>
 
     <div class="chart-card">
       <div class="chart-header">
-        <h2 class="chart-title">Lenguaje: Desempeño por Eje</h2>
-        <p class="chart-subtitle">Evolución de indicadores por etapa</p>
+        <div class="chart-title">Rendimiento por Eje<span>Lenguaje</span></div>
       </div>
-      <div class="chart-wrap">
-        <canvas id="canvas-leng-ejes"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="canvas-leng-ejes"></canvas></div>
     </div>
+    
     <div class="chart-card">
       <div class="chart-header">
-        <h2 class="chart-title">Matemática: Desempeño por Eje</h2>
-        <p class="chart-subtitle">Evolución de indicadores por etapa</p>
+        <div class="chart-title">Rendimiento por Eje<span>Matemática</span></div>
       </div>
-      <div class="chart-wrap">
-        <canvas id="canvas-mate-ejes"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="canvas-mate-ejes"></canvas></div>
     </div>
 
     <div class="chart-card full-width">
-      <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <h2 class="chart-title">Análisis por Establecimiento y Curso</h2>
-          <p class="chart-subtitle">Selecciona un colegio para ver el desglose por niveles</p>
-        </div>
-        <div style="display: flex; gap: 0.5rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px;">
-          <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text);">Lenguaje</button>
-          <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent;">Matemática</button>
+      <div class="chart-header" style="align-items: center;">
+        <div class="chart-title">Desglose Institucional<span>Análisis Comparativo por Curso</span></div>
+        <div style="display: flex; gap: 0.4rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border);">
+          <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lenguaje</button>
+          <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button>
         </div>
       </div>
-      <div id="msg-colegio" style="text-align: center; padding: 4rem; color: var(--text-muted);">Debe filtrar al menos un Establecimiento para visualizar esta sección.</div>
+      <div id="msg-colegio" style="text-align: center; padding: 4rem; color: var(--text-muted); font-size: 0.9rem;">
+        Filtra un establecimiento en la barra superior para visualizar el desglose interno de sus cursos.
+      </div>
       <div class="chart-wrap" id="wrap-curso-evo" style="display: none;">
         <canvas id="canvas-curso-evo"></canvas>
       </div>
@@ -182,38 +212,35 @@
 let DATA_RAW = null;
 let charts = {};
 const STAGES = ['Diagnóstico', 'Intermedio', 'Cierre'];
-const COLORS = [
-  '#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', 
-  '#fbbf24', '#2dd4bf', '#818cf8', '#fb7185', '#a3e635'
-];
-
-// Mapeo estricto basado en la salida del script de Python
+const COLORS = ['#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', '#fbbf24', '#2dd4bf', '#818cf8'];
 const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
 
-/* --- 1. Inicialización --- */
 async function init() {
   try {
     const res = await fetch('datos.json');
-    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
     DATA_RAW = await res.json();
-    
     setupFilters();
     initCharts();
     update();
     
     document.getElementById('loading').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
   } catch (e) {
-    console.error("Error cargando datos:", e);
+    console.error(e);
     alert("Error al cargar datos.json. Revisa la consola.");
   }
 }
 
-/* --- 2. Filtros (TomSelect) --- */
 let ts = {};
 function setupFilters() {
   const config = {
     plugins: ['remove_button', 'checkbox_options'],
-    persist: false,
+    maxOptions: 50, // CRUCIAL UX: Limita el renderizado inicial para que no se congele la página al buscar
+    hideSelected: false,
+    closeAfterSelect: false,
+    render: {
+      item: function(data, escape) { return `<div>${escape(data.text)}</div>`; }
+    },
     onChange: () => update()
   };
 
@@ -221,17 +248,15 @@ function setupFilters() {
   ts.nivel = new TomSelect('#f-nivel', config);
   ts.rbd = new TomSelect('#f-rbd', config);
 
-  // Poblar opciones usando los mapas generados por Python
   DATA_RAW.maps[I.AGNO].forEach((v, i) => ts.agno.addOption({value: i, text: v}));
   DATA_RAW.maps[I.NIVEL].forEach((v, i) => ts.nivel.addOption({value: i, text: v}));
   DATA_RAW.maps[I.RBD].forEach((v, i) => ts.rbd.addOption({value: i, text: v}));
 
-  document.getElementById('btn-reset').onclick = () => {
+  document.getElementById('btn-clear').onclick = () => {
     Object.values(ts).forEach(t => t.clear());
   };
 }
 
-/* --- 3. Lógica de Agregación --- */
 function aggregate() {
   const fAgno = ts.agno.items.map(Number);
   const fNivel = ts.nivel.items.map(Number);
@@ -244,40 +269,32 @@ function aggregate() {
     cursos: {}
   };
 
-  const rows = DATA_RAW.rows;
-
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i];
+  for (let i = 0; i < DATA_RAW.rows.length; i++) {
+    const r = DATA_RAW.rows[i];
     
-    // Filtrado contra los índices numéricos
     if (fAgno.length && !fAgno.includes(r[I.AGNO])) continue;
     if (fNivel.length && !fNivel.includes(r[I.NIVEL])) continue;
     if (fRbd.length && !fRbd.includes(r[I.RBD])) continue;
 
-    // Traducir índices numéricos a texto usando los mapas
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
     const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
     const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
-    const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
-    const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
     const p = r[I.PUNTAJE];
-
     const etapaIdx = STAGES.indexOf(etapaV);
+    
     if (etapaIdx === -1) continue;
 
-    // KPIs
     res.kpi.sum += p; res.kpi.count++;
     res.kpi.rbds.add(r[I.RBD]);
     if (asigV === 'Lenguaje') { res.kpi.lengSum += p; res.kpi.lengC++; }
     if (asigV === 'Matemática') { res.kpi.mateSum += p; res.kpi.mateC++; }
 
-    // Evolución General
     if (asigV === 'Lenguaje' || asigV === 'Matemática') {
       if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
       res.evo[asigV][agnoV][etapaIdx][0] += p;
       res.evo[asigV][agnoV][etapaIdx][1]++;
 
-      // Ejes
+      const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
       if (ejeV && ejeV.trim() !== "") {
         if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
         if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
@@ -286,8 +303,8 @@ function aggregate() {
       }
     }
 
-    // Cursos (solo calculamos si hay un colegio filtrado para optimizar rendimiento)
     if (fRbd.length > 0 && asigV === currentAsigFilter) {
+      const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
       if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
       if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({length: 3}, () => [0, 0]);
       res.cursos[cursoV][agnoV][etapaIdx][0] += p;
@@ -297,135 +314,96 @@ function aggregate() {
   return res;
 }
 
-/* --- 4. Charts Setup --- */
 let currentAsigFilter = 'Lenguaje';
 
 function initCharts() {
   const chartOptions = () => ({
-    responsive: true,
-    maintainAspectRatio: false,
+    responsive: true, maintainAspectRatio: false,
+    animation: { duration: 400 }, // UX: Se restauran las transiciones suaves
     scales: {
-      y: { min: 0, max: 1, ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d' } },
+      y: { min: 0, max: 1, ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d', drawBorder: false } },
       x: { grid: { display: false } }
     },
     plugins: {
-      legend: { position: 'bottom', labels: { boxWidth: 12, color: '#7d8590', font: { size: 10 } } },
+      legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, color: '#7d8590', font: { family: 'Archivo', size: 11 } } },
       tooltip: {
-        callbacks: {
-          label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%`
-        }
+        backgroundColor: '#1c2128', borderColor: '#30363d', borderWidth: 1, padding: 10, cornerRadius: 6,
+        callbacks: { label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%` }
       }
     }
   });
 
-  charts.lengEvo = new Chart(document.getElementById('canvas-leng-evo'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
-  charts.mateEvo = new Chart(document.getElementById('canvas-mate-evo'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
-  charts.lengEjes = new Chart(document.getElementById('canvas-leng-ejes'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
-  charts.mateEjes = new Chart(document.getElementById('canvas-mate-ejes'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
-  charts.cursoEvo = new Chart(document.getElementById('canvas-curso-evo'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
+  ['leng-evo', 'mate-evo', 'leng-ejes', 'mate-ejes', 'curso-evo'].forEach(id => {
+    charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
+  });
 }
 
 function update() {
   const data = aggregate();
   const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
 
-  // Update KPIs
   document.getElementById('kpi-global').innerText = f(data.kpi.sum, data.kpi.count);
   document.getElementById('kpi-leng').innerText = f(data.kpi.lengSum, data.kpi.lengC);
   document.getElementById('kpi-mate').innerText = f(data.kpi.mateSum, data.kpi.mateC);
   document.getElementById('kpi-rbd').innerText = data.kpi.rbds.size.toLocaleString('es-CL');
-  document.getElementById('total-registros').innerText = `${data.kpi.count.toLocaleString('es-CL')} registros`;
+  document.getElementById('total-registros').innerText = `${data.kpi.count.toLocaleString('es-CL')} registros procesados`;
 
-  // Update Evolución General
-  updateEvoChart(charts.lengEvo, data.evo.Lenguaje, varColor('--leng'));
-  updateEvoChart(charts.mateEvo, data.evo.Matemática, varColor('--mate'));
+  updateLineChart(charts['leng-evo'], data.evo.Lenguaje, true, varColor('--leng'));
+  updateLineChart(charts['mate-evo'], data.evo.Matemática, true, varColor('--mate'));
+  updateLineChart(charts['leng-ejes'], data.ejes.Lenguaje, false);
+  updateLineChart(charts['mate-ejes'], data.ejes.Matemática, false);
 
-  // Update Ejes
-  updateEjesChart(charts.lengEjes, data.ejes.Lenguaje);
-  updateEjesChart(charts.mateEjes, data.ejes.Matemática);
-
-  // Update Detalle Colegio
   if (ts.rbd.items.length > 0) {
     document.getElementById('msg-colegio').style.display = 'none';
     document.getElementById('wrap-curso-evo').style.display = 'block';
-    updateCursosChart(charts.cursoEvo, data.cursos);
+    updateLineChart(charts['curso-evo'], data.cursos, false);
   } else {
     document.getElementById('msg-colegio').style.display = 'block';
     document.getElementById('wrap-curso-evo').style.display = 'none';
   }
 }
 
-function updateEvoChart(chart, asigData, color) {
-  chart.data.datasets = [];
-  Object.keys(asigData).sort().forEach(agno => {
-    const is2026 = agno.includes('2026');
-    chart.data.datasets.push({
-      label: agno,
-      data: asigData[agno].map(d => d[1] > 0 ? d[0] / d[1] : null),
-      borderColor: color,
-      borderDash: is2026 ? [5, 5] : [],
-      backgroundColor: color + '22',
-      fill: !is2026,
-      tension: 0.3
-    });
-  });
-  chart.update('none');
-}
-
-function updateEjesChart(chart, ejesData) {
+function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
   chart.data.datasets = [];
   let colorIdx = 0;
-  Object.keys(ejesData).sort().forEach(eje => {
-    const ejeColor = COLORS[colorIdx % COLORS.length];
-    Object.keys(ejesData[eje]).sort().forEach(agno => {
-      const is2026 = agno.includes('2026');
-      chart.data.datasets.push({
-        label: `${eje} (${agno})`,
-        data: ejesData[eje][agno].map(d => d[1] > 0 ? d[0] / d[1] : null),
-        borderColor: ejeColor,
-        borderDash: is2026 ? [5, 5] : [],
-        borderWidth: is2026 ? 2 : 2.5,
-        pointStyle: is2026 ? 'rectRot' : 'circle',
-        tension: 0.3
-      });
-    });
-    colorIdx++;
+  
+  Object.keys(dataObj).sort().forEach(groupKey => {
+    const isEvo = (groupKey === '2025' || groupKey === '2026');
+    const groupColor = isSingleColor ? forcedColor : COLORS[colorIdx % COLORS.length];
+    
+    if (isEvo) {
+       chart.data.datasets.push(createDataset(groupKey, dataObj[groupKey], groupColor, groupKey === '2026'));
+    } else {
+       Object.keys(dataObj[groupKey]).sort().forEach(agno => {
+         chart.data.datasets.push(createDataset(`${groupKey} (${agno})`, dataObj[groupKey][agno], groupColor, agno === '2026'));
+       });
+       colorIdx++;
+    }
   });
-  chart.update('none');
+  chart.update(); // UX: Actualiza con animación suave
 }
 
-function updateCursosChart(chart, cursosData) {
-  chart.data.datasets = [];
-  let colorIdx = 0;
-  Object.keys(cursosData).sort().forEach(curso => {
-    const cursoColor = COLORS[colorIdx % COLORS.length];
-    Object.keys(cursosData[curso]).sort().forEach(agno => {
-      const is2026 = agno.includes('2026');
-      chart.data.datasets.push({
-        label: `${curso} (${agno})`,
-        data: cursosData[curso][agno].map(d => d[1] > 0 ? d[0] / d[1] : null),
-        borderColor: cursoColor,
-        borderDash: is2026 ? [5, 5] : [],
-        tension: 0.3
-      });
-    });
-    colorIdx++;
-  });
-  chart.update('none');
+function createDataset(label, points, color, isDashed) {
+  return {
+    label: label,
+    data: points.map(d => d[1] > 0 ? d[0] / d[1] : null),
+    borderColor: color,
+    borderDash: isDashed ? [5, 5] : [],
+    backgroundColor: color + '22',
+    fill: !isDashed && label.length <= 4,
+    borderWidth: 2.5,
+    pointRadius: 4, pointHoverRadius: 6,
+    tension: 0.38
+  };
 }
 
-// Helpers
 function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
-// Toggle Asignatura en Detalle Colegio
 document.querySelectorAll('.btn-toggle').forEach(btn => {
   btn.onclick = (e) => {
-    document.querySelectorAll('.btn-toggle').forEach(b => {
-      b.classList.remove('active');
-      b.style.background = 'transparent';
-    });
+    document.querySelectorAll('.btn-toggle').forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; });
     e.target.classList.add('active');
-    e.target.style.background = 'var(--leng)'; // Color de fondo activo
+    e.target.style.background = e.target.dataset.asig === 'Lenguaje' ? 'var(--leng)' : 'var(--mate)';
     currentAsigFilter = e.target.dataset.asig;
     update();
   };
