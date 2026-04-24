@@ -3,728 +3,407 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard DIA · Resultados</title>
+  <title>Dashboard DIA · Análisis Evolutivo</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
   <style>
     :root {
-      --bg:         #0d1117;
-      --surface:    #161b22;
-      --surface-2:  #21262d;
-      --border:     #30363d;
-      --border-2:   #3d444d;
-      --text:       #e6edf3;
-      --text-muted: #7d8590;
-      --text-dim:   #484f58;
-      --leng:       #38bdf8;
-      --leng-bg:    rgba(56,189,248,.12);
-      --mate:       #fb923c;
-      --mate-bg:    rgba(251,146,60,.12);
-      --total:      #34d399;
-      --total-bg:   rgba(52,211,153,.12);
-      --purple:     #a78bfa;
-      --purple-bg:  rgba(167,139,250,.12);
-      --r:          10px;
-      --font:       'Archivo', sans-serif;
-      --mono:       'JetBrains Mono', monospace;
+      --bg: #0d1117; --surface: #161b22; --surface-2: #21262d;
+      --border: #30363d; --text: #e6edf3; --text-muted: #7d8590;
+      --leng: #38bdf8; --mate: #fb923c; --total: #34d399; --purple: #a78bfa;
+      --font: 'Archivo', sans-serif; --mono: 'JetBrains Mono', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      min-height: 100vh;
-    }
-
-    /* ── Loading ── */
-    #loading {
-      position: fixed; inset: 0;
-      background: var(--bg);
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
-      z-index: 200;
-    }
-    .loader {
-      width: 44px; height: 44px;
-      border: 3px solid var(--border);
-      border-top-color: var(--leng);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-    }
+    /* Layout */
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    .main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    
+    /* Loading */
+    #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+    .loader { width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--leng); border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #loading p { font-size: .82rem; color: var(--text-muted); letter-spacing: .04em; }
 
-    /* ── Header ── */
-    .header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 2rem;
-      display: flex; align-items: center; gap: 1rem;
-    }
-    .header-icon {
-      width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0;
-      background: linear-gradient(135deg, var(--leng) 0%, var(--mate) 100%);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 19px;
-    }
-    .header-title { font-size: 1rem; font-weight: 800; letter-spacing: -.025em; }
-    .header-sub { font-size: .75rem; color: var(--text-muted); margin-top: .1rem; }
-    .header-badge {
-      margin-left: auto;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: .25rem .75rem;
-      font-family: var(--mono);
-      font-size: .7rem;
-      color: var(--text-muted);
-    }
+    /* Filtros - Estilo TomSelect */
+    .filter-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; align-items: end; }
+    .ts-control { background: var(--surface-2) !important; border-color: var(--border) !important; color: var(--text) !important; border-radius: 8px !important; }
+    .ts-dropdown { background: var(--surface-2) !important; color: var(--text) !important; border-color: var(--border) !important; }
+    .ts-dropdown .active { background: var(--leng) !important; color: #000 !important; }
+    .label-f { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; display: block; }
 
-    /* ── Main layout ── */
-    .main {
-      max-width: 1460px;
-      margin: 0 auto;
-      padding: 1.5rem 2rem 3rem;
-      display: flex; flex-direction: column; gap: 1.25rem;
-    }
+    /* KPIs */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; border-left: 4px solid var(--kpi-c); }
+    .kpi-val { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; margin: 0.25rem 0; }
+    .kpi-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
 
-    /* ── Filter bar ── */
-    .filter-bar {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 1rem 1.25rem;
-      display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end;
-    }
-    .filter-group { display: flex; flex-direction: column; gap: .3rem; }
-    .filter-label {
-      font-size: .68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .07em;
-      color: var(--text-muted);
-    }
-    select {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-family: var(--font); font-size: .84rem;
-      padding: .42rem .7rem;
-      cursor: pointer; outline: none;
-      transition: border-color .15s;
-    }
-    select:hover, select:focus { border-color: var(--border-2); }
-    #f-rbd { min-width: 260px; }
-    #f-nivel, #f-periodo { min-width: 160px; }
+    /* Gráficos */
+    .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; min-height: 400px; }
+    .chart-header { margin-bottom: 1.5rem; }
+    .chart-title { font-size: 0.9rem; font-weight: 800; color: var(--text); }
+    .chart-subtitle { font-size: 0.75rem; color: var(--text-muted); }
 
-    .btn-clear {
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text-muted);
-      font-family: var(--font); font-size: .84rem;
-      padding: .42rem .9rem;
-      cursor: pointer;
-      transition: all .15s;
-      display: flex; align-items: center; gap: .35rem;
-    }
-    .btn-clear:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); }
-    .btn-clear svg { flex-shrink: 0; }
+    .full-width { grid-column: 1 / -1; }
 
-    .filter-right {
-      margin-left: auto;
-      display: flex; align-items: flex-end; gap: 1rem;
-    }
-    .filter-count {
-      font-family: var(--mono); font-size: .72rem;
-      color: var(--text-muted); text-align: right;
-      line-height: 1.4;
-    }
-    .filter-count strong { color: var(--text); font-size: .85rem; }
-
-    /* active filter indicator */
-    .filter-active {
-      display: none;
-      background: var(--leng-bg);
-      border: 1px solid rgba(56,189,248,.3);
-      border-radius: 4px;
-      padding: .15rem .5rem;
-      font-size: .68rem; color: var(--leng);
-      align-self: flex-end;
-    }
-    .filter-active.visible { display: block; }
-
-    /* ── KPI grid ── */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-    }
-    .kpi {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 1.1rem 1.25rem;
-      position: relative; overflow: hidden;
-    }
-    .kpi::after {
-      content: '';
-      position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
-      background: var(--kpi-color);
-      opacity: .5;
-    }
-    .kpi--total  { --kpi-color: var(--total); }
-    .kpi--leng   { --kpi-color: var(--leng); }
-    .kpi--mate   { --kpi-color: var(--mate); }
-    .kpi--reg    { --kpi-color: var(--purple); }
-
-    .kpi-icon {
-      position: absolute; right: 1.1rem; top: 1.1rem;
-      font-size: 1.4rem; opacity: .25;
-    }
-    .kpi-label {
-      font-size: .68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .07em;
-      color: var(--text-muted); margin-bottom: .5rem;
-    }
-    .kpi-val {
-      font-family: var(--mono); font-size: 2rem; font-weight: 700;
-      line-height: 1; color: var(--text);
-    }
-    .kpi--total .kpi-val  { color: var(--total); }
-    .kpi--leng  .kpi-val  { color: var(--leng); }
-    .kpi--mate  .kpi-val  { color: var(--mate); }
-    .kpi--reg   .kpi-val  { color: var(--purple); }
-
-    .kpi-sub {
-      font-size: .72rem; color: var(--text-muted); margin-top: .35rem;
-    }
-
-    /* ── Charts ── */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 5fr 8fr;
-      gap: 1.25rem;
-    }
-    .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 1.25rem 1.4rem;
-      display: flex; flex-direction: column;
-    }
-    .chart-header {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      margin-bottom: 1.1rem;
-    }
-    .chart-title {
-      font-size: .68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .07em;
-      color: var(--text-muted);
-    }
-    .chart-title span { color: var(--text); font-size: .8rem; display: block; margin-top: .15rem; }
-    .chart-legend {
-      display: flex; gap: .75rem; align-items: center;
-    }
-    .legend-item {
-      display: flex; align-items: center; gap: .3rem;
-      font-size: .72rem; color: var(--text-muted);
-    }
-    .legend-dot {
-      width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
-    }
-    .chart-wrap { position: relative; flex: 1; min-height: 0; }
-    .chart-wrap canvas { display: block; }
-
-    /* ── Error ── */
-    #error-msg {
-      display: none;
-      background: rgba(220,38,38,.1);
-      border: 1px solid rgba(220,38,38,.35);
-      border-radius: var(--r);
-      padding: 1rem 1.25rem;
-      font-size: .85rem; color: #fca5a5;
-    }
-    #error-msg code { font-family: var(--mono); background: rgba(0,0,0,.3); padding: .1rem .35rem; border-radius: 3px; }
-
-    /* ── Responsive ── */
-    @media (max-width: 1100px) {
-      .charts-grid { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 768px) {
-      .main { padding: 1rem; }
-      .header { padding: .9rem 1rem; }
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      #f-rbd { min-width: 200px; }
-    }
-    @media (max-width: 500px) {
-      .kpi-grid { grid-template-columns: 1fr 1fr; }
-      .kpi-val { font-size: 1.6rem; }
-    }
+    @media (max-width: 1024px) { .charts-container { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
-<!-- Loading screen -->
 <div id="loading">
   <div class="loader"></div>
-  <p>Cargando datos DIA&hellip;</p>
+  <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted)">Procesando registros DIA...</p>
 </div>
 
-<!-- Header -->
 <header class="header">
-  <div class="header-icon">📊</div>
   <div>
-    <div class="header-title">Dashboard DIA &mdash; Resultados Institucionales</div>
-    <div class="header-sub">Evaluación Diagnóstica Institucional &middot; Lenguaje &amp; Matemática</div>
+    <h1 style="font-size: 1.2rem; font-weight: 800;">Dashboard DIA · Resultados Institucionales</h1>
+    <p style="font-size: 0.75rem; color: var(--text-muted)">Evolución 2025 - 2026 · Lenguaje & Matemática</p>
   </div>
-  <div class="header-badge" id="header-badge">cargando&hellip;</div>
+  <div id="total-registros" style="font-family: var(--mono); font-size: 0.75rem; background: var(--surface-2); padding: 0.4rem 0.8rem; border-radius: 20px; border: 1px solid var(--border);"></div>
 </header>
 
-<!-- Dashboard -->
-<main class="main" id="dashboard" style="display:none">
+<main class="main">
+  <section class="filter-section">
+    <div>
+      <span class="label-f">Año</span>
+      <select id="f-agno" multiple placeholder="Todos los años"></select>
+    </div>
+    <div>
+      <span class="label-f">Nivel (General)</span>
+      <select id="f-nivel" multiple placeholder="Todos los niveles"></select>
+    </div>
+    <div>
+      <span class="label-f">Establecimiento (RBD)</span>
+      <select id="f-rbd" multiple placeholder="Filtrar colegios"></select>
+    </div>
+    <button id="btn-reset" style="padding: 0.6rem; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; cursor: pointer; font-size: 0.8rem;">Limpiar Filtros</button>
+  </section>
 
-  <div id="error-msg">⚠ No se pudieron cargar los datos. Verifica que <code>datos.json</code> esté en la raíz del repositorio.</div>
-
-  <!-- Filter bar -->
-  <div class="filter-bar">
-    <div class="filter-group">
-      <span class="filter-label">Nivel</span>
-      <select id="f-nivel">
-        <option value="">Todos los niveles</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">Establecimiento (RBD)</span>
-      <select id="f-rbd">
-        <option value="">Todos los establecimientos</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">Período</span>
-      <select id="f-periodo">
-        <option value="">Todos los períodos</option>
-      </select>
-    </div>
-    <button class="btn-clear" id="btn-clear">
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-        <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Limpiar filtros
-    </button>
-    <span class="filter-active" id="filter-active">Filtros activos</span>
-    <div class="filter-right">
-      <div class="filter-count">
-        <strong id="count-n">—</strong><br>registros filtrados
-      </div>
-    </div>
-  </div>
-
-  <!-- KPIs -->
-  <div class="kpi-grid">
-    <div class="kpi kpi--total">
-      <div class="kpi-icon">⬡</div>
+  <section class="kpi-grid">
+    <div class="kpi-card" style="--kpi-c: var(--total)">
       <div class="kpi-label">Promedio General</div>
-      <div class="kpi-val" id="kpi-total">—</div>
-      <div class="kpi-sub" id="kpi-total-sub">todas las asignaturas</div>
+      <div class="kpi-val" id="kpi-global">—</div>
     </div>
-    <div class="kpi kpi--leng">
-      <div class="kpi-icon">📖</div>
-      <div class="kpi-label">Promedio Lenguaje</div>
+    <div class="kpi-card" style="--kpi-c: var(--leng)">
+      <div class="kpi-label">Lenguaje</div>
       <div class="kpi-val" id="kpi-leng">—</div>
-      <div class="kpi-sub" id="kpi-leng-sub">—</div>
     </div>
-    <div class="kpi kpi--mate">
-      <div class="kpi-icon">🔢</div>
-      <div class="kpi-label">Promedio Matemática</div>
+    <div class="kpi-card" style="--kpi-c: var(--mate)">
+      <div class="kpi-label">Matemática</div>
       <div class="kpi-val" id="kpi-mate">—</div>
-      <div class="kpi-sub" id="kpi-mate-sub">—</div>
     </div>
-    <div class="kpi kpi--reg">
-      <div class="kpi-icon">🏫</div>
-      <div class="kpi-label">Registros</div>
-      <div class="kpi-val" id="kpi-reg">—</div>
-      <div class="kpi-sub" id="kpi-reg-sub">establecimientos</div>
+    <div class="kpi-card" style="--kpi-c: var(--purple)">
+      <div class="kpi-label">Establecimientos</div>
+      <div class="kpi-val" id="kpi-rbd">—</div>
     </div>
-  </div>
+  </section>
 
-  <!-- Charts -->
-  <div class="charts-grid">
-
-    <!-- Line chart -->
+  <div class="charts-container">
     <div class="chart-card">
       <div class="chart-header">
-        <div>
-          <div class="chart-title">Progreso por Etapa</div>
-          <div class="chart-title"><span>Lenguaje vs Matemática</span></div>
-        </div>
-        <div class="chart-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--leng)"></div>Lenguaje</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--mate)"></div>Matemática</div>
-        </div>
+        <h2 class="chart-title">Evolución: Lenguaje</h2>
+        <p class="chart-subtitle">Comparativa 2025 (Sólida) vs 2026 (Punteada)</p>
       </div>
-      <div class="chart-wrap" style="height:300px">
-        <canvas id="chart-lines"></canvas>
-      </div>
+      <canvas id="canvas-leng-evo"></canvas>
     </div>
-
-    <!-- Bar chart -->
     <div class="chart-card">
       <div class="chart-header">
-        <div>
-          <div class="chart-title">Rendimiento por Eje</div>
-          <div class="chart-title"><span>Promedio por Indicador y Asignatura</span></div>
-        </div>
-        <div class="chart-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--leng)"></div>Lenguaje</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--mate)"></div>Matemática</div>
-        </div>
+        <h2 class="chart-title">Evolución: Matemática</h2>
+        <p class="chart-subtitle">Comparativa 2025 (Sólida) vs 2026 (Punteada)</p>
       </div>
-      <div class="chart-wrap" style="height:300px">
-        <canvas id="chart-bars"></canvas>
-      </div>
+      <canvas id="canvas-mate-evo"></canvas>
     </div>
 
+    <div class="chart-card">
+      <div class="chart-header">
+        <h2 class="chart-title">Lenguaje: Desempeño por Eje</h2>
+        <p class="chart-subtitle">Evolución de indicadores por etapa</p>
+      </div>
+      <canvas id="canvas-leng-ejes"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <h2 class="chart-title">Matemática: Desempeño por Eje</h2>
+        <p class="chart-subtitle">Evolución de indicadores por etapa</p>
+      </div>
+      <canvas id="canvas-mate-ejes"></canvas>
+    </div>
+
+    <div class="chart-card full-width">
+      <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 class="chart-title">Análisis por Establecimiento y Curso</h2>
+          <p class="chart-subtitle">Selecciona un colegio para ver el desglose por niveles</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px;">
+          <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer;">Lenguaje</button>
+          <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer;">Matemática</button>
+        </div>
+      </div>
+      <div id="msg-colegio" style="text-align: center; padding: 4rem; color: var(--text-muted);">Debe filtrar al menos un Establecimiento para visualizar esta sección.</div>
+      <canvas id="canvas-curso-evo" style="display: none;"></canvas>
+    </div>
   </div>
 </main>
 
 <script>
-(async () => {
-  /* ── 1. Fetch ──────────────────────────────────────────────────────────── */
-  let COLS, MAPS, ROWS;
-  let I = {}; // column index map
+let DATA_RAW = null;
+let charts = {};
+const STAGES = ['Diagnóstico', 'Intermedio', 'Cierre'];
+const COLORS = [
+  '#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', 
+  '#fbbf24', '#2dd4bf', '#818cf8', '#fb7185', '#a3e635'
+];
 
+// Mapeo de columnas
+const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
+
+/* --- 1. Inicialización --- */
+async function init() {
   try {
     const res = await fetch('datos.json');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const raw = await res.json();
-    ({ cols: COLS, maps: MAPS, rows: ROWS } = raw);
-    COLS.forEach((c, i) => I[c] = i);
-  } catch (err) {
-    console.error('[DIA]', err);
+    DATA_RAW = await res.json();
+    
+    setupFilters();
+    initCharts();
+    update();
+    
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'flex';
-    document.getElementById('error-msg').style.display = 'block';
-    return;
+  } catch (e) {
+    console.error("Error cargando datos:", e);
+    alert("Error al cargar datos.json. Revisa la consola.");
   }
+}
 
-  /* ── 2. Pre-compute column indices & lookup refs ────────────────────────── */
-  const IP  = I['Periodo_evaluación'];
-  const IR  = I['RBD_Establecimiento'];
-  const IAS = I['Asignatura'];
-  const IIN = I['Indicador_fixed'];
-  const IPU = I['Puntaje_fixed'];
-  const INI = I['Nivel_fixed'];
-
-  const M_PERIODO = MAPS['Periodo_evaluación'];
-  const M_RBD     = MAPS['RBD_Establecimiento'];
-  const M_ASIG    = MAPS['Asignatura'];
-  const M_IND     = MAPS['Indicador_fixed'];
-  const M_NIVEL   = MAPS['Nivel_fixed'];
-
-  const IDX_LENG = M_ASIG.indexOf('Lenguaje');
-  const IDX_MATE = M_ASIG.indexOf('Matemática');
-
-  /* ── 3. Period labels ───────────────────────────────────────────────────── */
-  const PLABEL = {
-    '2025_1_Diagnóstico': 'Diagnóstico 2025',
-    '2025_2_Intermedio':  'Intermedio 2025',
-    '2025_3_Cierre':      'Cierre 2025',
-    '2026_1_Diagnóstico': 'Diagnóstico 2026',
-  };
-  const pl = s => PLABEL[s] || s;
-
-  /* ── 4. Populate selects ─────────────────────────────────────────────────── */
-  function addOptions(id, vals, sortFn) {
-    const sel = document.getElementById(id);
-    const sorted = vals.map((v, i) => ({ v, i }));
-    if (sortFn) sorted.sort((a, b) => sortFn(a.v, b.v));
-    for (const { v, i } of sorted) {
-      const o = document.createElement('option');
-      o.value = i; o.textContent = v;
-      sel.appendChild(o);
-    }
-  }
-
-  // Nivel: sort numerics first, then roman
-  addOptions('f-nivel', M_NIVEL, (a, b) => {
-    const na = isNaN(+a) ? 99 : +a, nb = isNaN(+b) ? 99 : +b;
-    return na !== nb ? na - nb : String(a).localeCompare(String(b));
-  });
-
-  // RBD: alphabetical
-  addOptions('f-rbd', M_RBD, (a, b) => String(a).localeCompare(String(b)));
-
-  // Period: chronological (lexicographic works for this format)
-  const periodSorted = M_PERIODO.map((v, i) => ({ v, i })).sort((a, b) => a.v.localeCompare(b.v));
-  {
-    const sel = document.getElementById('f-periodo');
-    for (const { v, i } of periodSorted) {
-      const o = document.createElement('option');
-      o.value = i; o.textContent = pl(v);
-      sel.appendChild(o);
-    }
-  }
-
-  /* ── 5. Filter state ─────────────────────────────────────────────────────── */
-  const F = { nivel: -1, rbd: -1, periodo: -1 };
-
-  /* ── 6. Aggregate ────────────────────────────────────────────────────────── */
-  function aggregate() {
-    const fNivel   = F.nivel;
-    const fRbd     = F.rbd;
-    const fPeriodo = F.periodo;
-
-    // line[periodoIdx][asigIdx] = {s,n}
-    const line = [];
-    // bar[indIdx][asigIdx] = {s,n}
-    const bar  = [];
-
-    let tS = 0, tN = 0, lS = 0, lN = 0, mS = 0, mN = 0;
-    const rbdSet = new Set();
-
-    for (let r = 0, len = ROWS.length; r < len; r++) {
-      const row = ROWS[r];
-      if (fNivel   >= 0 && row[INI] !== fNivel)   continue;
-      if (fRbd     >= 0 && row[IR]  !== fRbd)     continue;
-      if (fPeriodo >= 0 && row[IP]  !== fPeriodo) continue;
-
-      const p = row[IP], a = row[IAS], ind = row[IIN], pu = row[IPU];
-
-      // line
-      if (!line[p])    line[p] = [];
-      if (!line[p][a]) line[p][a] = { s: 0, n: 0 };
-      line[p][a].s += pu; line[p][a].n++;
-
-      // bar
-      if (!bar[ind])    bar[ind] = [];
-      if (!bar[ind][a]) bar[ind][a] = { s: 0, n: 0 };
-      bar[ind][a].s += pu; bar[ind][a].n++;
-
-      tS += pu; tN++;
-      if (a === IDX_LENG) { lS += pu; lN++; }
-      if (a === IDX_MATE) { mS += pu; mN++; }
-      rbdSet.add(row[IR]);
-    }
-
-    return { line, bar, tS, tN, lS, lN, mS, mN, rbdSet };
-  }
-
-  /* ── 7. Charts ───────────────────────────────────────────────────────────── */
-  const CLENG = '#38bdf8', CMATE = '#fb923c';
-  const CLENG_A = 'rgba(56,189,248,.15)', CMATE_A = 'rgba(251,146,60,.15)';
-
-  const baseScales = {
-    x: {
-      grid: { color: '#21262d', drawBorder: false },
-      ticks: { color: '#7d8590', font: { family: 'Archivo', size: 11 } }
-    },
-    y: {
-      grid: { color: '#21262d', drawBorder: false },
-      ticks: {
-        color: '#7d8590',
-        font: { family: 'JetBrains Mono', size: 10 },
-        callback: v => (v * 100).toFixed(0) + '%'
-      },
-      min: 0, max: 1,
-      border: { display: false }
-    }
+/* --- 2. Filtros (TomSelect) --- */
+let ts = {};
+function setupFilters() {
+  const config = {
+    plugins: ['remove_button', 'checkbox_options'],
+    persist: false,
+    onChange: () => update()
   };
 
-  const baseTooltip = {
-    backgroundColor: '#1c2128',
-    borderColor: '#30363d', borderWidth: 1,
-    titleColor: '#e6edf3',
-    bodyColor: '#7d8590',
-    padding: 10,
-    cornerRadius: 6,
+  ts.agno = new TomSelect('#f-agno', config);
+  ts.nivel = new TomSelect('#f-nivel', config);
+  ts.rbd = new TomSelect('#f-rbd', config);
+
+  // Poblar opciones
+  const mapAgno = DATA_RAW.maps[I.AGNO];
+  const mapNivel = DATA_RAW.maps[I.NIVEL];
+  const mapRbd = DATA_RAW.maps[I.RBD];
+
+  mapAgno.forEach((v, i) => ts.agno.addOption({value: i, text: v}));
+  mapNivel.forEach((v, i) => ts.nivel.addOption({value: i, text: v}));
+  mapRbd.forEach((v, i) => ts.rbd.addOption({value: i, text: v}));
+
+  document.getElementById('btn-reset').onclick = () => {
+    Object.values(ts).forEach(t => t.clear());
+  };
+}
+
+/* --- 3. Lógica de Agregación --- */
+function aggregate() {
+  const fAgno = ts.agno.items.map(Number);
+  const fNivel = ts.nivel.items.map(Number);
+  const fRbd = ts.rbd.items.map(Number);
+
+  // Resultados
+  const res = {
+    kpi: { sum: 0, count: 0, lengSum: 0, lengC: 0, mateSum: 0, mateC: 0, rbds: new Set() },
+    evo: { Lenguaje: {}, Matemática: {} }, // { Asig: { Agno: [sum, count] x 3 stages } }
+    ejes: { Lenguaje: {}, Matemática: {} }, // { Asig: { Eje: { Agno: [sum, count] x 3 stages } } }
+    cursos: {} // { Curso: { Agno: [sum, count] x 3 stages } }
   };
 
-  /* Line chart */
-  const ctxL = document.getElementById('chart-lines').getContext('2d');
-  const chartL = new Chart(ctxL, {
-    type: 'line',
-    data: { labels: [], datasets: [] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      animation: { duration: 300 },
-      elements: {
-        line: { tension: 0.38, borderWidth: 2.5 },
-        point: { radius: 5, hoverRadius: 7, borderWidth: 2.5, hoverBorderWidth: 2.5 }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          ...baseTooltip,
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%`
-          }
-        }
-      },
-      scales: baseScales
-    }
-  });
+  const rows = DATA_RAW.rows;
+  const mapAsig = DATA_RAW.maps[I.ASIG];
+  const mapEtapa = DATA_RAW.maps[I.ETAPA];
 
-  /* Bar chart */
-  const ctxB = document.getElementById('chart-bars').getContext('2d');
-  const chartB = new Chart(ctxB, {
-    type: 'bar',
-    data: { labels: [], datasets: [] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      animation: { duration: 300 },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          ...baseTooltip,
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label || 'Promedio'}: ${(ctx.parsed.y * 100).toFixed(1)}%`
-          }
-        }
-      },
-      scales: {
-        ...baseScales,
-        x: {
-          ...baseScales.x,
-          ticks: {
-            ...baseScales.x.ticks,
-            maxRotation: 38, minRotation: 0,
-            font: { family: 'Archivo', size: 10 }
-          }
-        }
-      }
-    }
-  });
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    
+    // Filtrado
+    if (fAgno.length && !fAgno.includes(r[I.AGNO])) continue;
+    if (fNivel.length && !fNivel.includes(r[I.NIVEL])) continue;
+    if (fRbd.length && !fRbd.includes(r[I.RBD])) continue;
 
-  /* ── 8. Update function ──────────────────────────────────────────────────── */
-  const fmt = (s, n) => n > 0 ? (s / n * 100).toFixed(1) + '%' : '—';
-  const fmtN = n => n.toLocaleString('es-CL');
+    const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
+    const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
+    const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
+    const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
+    const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
+    const p = r[I.PUNTAJE];
 
-  function update() {
-    const { line, bar, tS, tN, lS, lN, mS, mN, rbdSet } = aggregate();
+    const etapaIdx = STAGES.indexOf(etapaV);
+    if (etapaIdx === -1) continue;
 
     // KPIs
-    document.getElementById('kpi-total').textContent    = fmt(tS, tN);
-    document.getElementById('kpi-leng').textContent     = fmt(lS, lN);
-    document.getElementById('kpi-mate').textContent     = fmt(mS, mN);
-    document.getElementById('kpi-reg').textContent      = fmtN(tN);
-    document.getElementById('kpi-total-sub').textContent = `${fmtN(tN)} registros`;
-    document.getElementById('kpi-leng-sub').textContent  = `${fmtN(lN)} registros`;
-    document.getElementById('kpi-mate-sub').textContent  = `${fmtN(mN)} registros`;
-    document.getElementById('kpi-reg-sub').textContent   = `${rbdSet.size} establecimientos`;
-    document.getElementById('count-n').textContent       = fmtN(tN);
-    document.getElementById('header-badge').textContent  = `${fmtN(ROWS.length)} registros totales`;
+    res.kpi.sum += p; res.kpi.count++;
+    res.kpi.rbds.add(r[I.RBD]);
+    if (asigV === 'Lenguaje') { res.kpi.lengSum += p; res.kpi.lengC++; }
+    if (asigV === 'Matemática') { res.kpi.mateSum += p; res.kpi.mateC++; }
 
-    // Active filter badge
-    const activeCount = (F.nivel >= 0 ? 1 : 0) + (F.rbd >= 0 ? 1 : 0) + (F.periodo >= 0 ? 1 : 0);
-    const badge = document.getElementById('filter-active');
-    badge.textContent = activeCount === 1 ? '1 filtro activo' : `${activeCount} filtros activos`;
-    badge.classList.toggle('visible', activeCount > 0);
+    // Evolución General
+    if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+    res.evo[asigV][agnoV][etapaIdx][0] += p;
+    res.evo[asigV][agnoV][etapaIdx][1]++;
 
-    /* ── Line chart data ── */
-    const lineLabels = periodSorted.map(({ v }) => pl(v));
-    const lengLine   = periodSorted.map(({ i }) => {
-      const d = line[i]?.[IDX_LENG];
-      return d ? d.s / d.n : null;
-    });
-    const mateLine   = periodSorted.map(({ i }) => {
-      const d = line[i]?.[IDX_MATE];
-      return d ? d.s / d.n : null;
-    });
+    // Ejes
+    if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
+    if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+    res.ejes[asigV][ejeV][agnoV][etapaIdx][0] += p;
+    res.ejes[asigV][ejeV][agnoV][etapaIdx][1]++;
 
-    chartL.data.labels = lineLabels;
-    chartL.data.datasets = [
-      { label: 'Lenguaje',    data: lengLine, borderColor: CLENG, backgroundColor: CLENG_A, pointBackgroundColor: CLENG, pointBorderColor: '#161b22', fill: true },
-      { label: 'Matemática',  data: mateLine, borderColor: CMATE, backgroundColor: CMATE_A, pointBackgroundColor: CMATE, pointBorderColor: '#161b22', fill: true }
-    ];
-    chartL.update('none');
-
-    /* ── Bar chart data ── */
-    // Separate indicadores by subject based on which subject has data
-    const indLeng = [], indMate = [];
-    for (let i = 0; i < M_IND.length; i++) {
-      if (bar[i]?.[IDX_LENG]) indLeng.push(i);
-      if (bar[i]?.[IDX_MATE]) indMate.push(i);
+    // Cursos (para el gráfico detallado)
+    // Filtro adicional: solo si hay un colegio seleccionado o un nivel específico
+    if (asigV === currentAsigFilter) {
+      if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
+      if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+      res.cursos[cursoV][agnoV][etapaIdx][0] += p;
+      res.cursos[cursoV][agnoV][etapaIdx][1]++;
     }
-    indLeng.sort((a, b) => M_IND[a].localeCompare(M_IND[b]));
-    indMate.sort((a, b) => M_IND[a].localeCompare(M_IND[b]));
-
-    // Build label array: Lenguaje group · gap · Matemática group
-    const hasGap = indLeng.length > 0 && indMate.length > 0;
-    const allIdxs   = hasGap ? [...indLeng, null, ...indMate] : [...indLeng, ...indMate];
-    const barLabels = allIdxs.map(i => i === null ? '' : M_IND[i]);
-
-    const setLeng = new Set(indLeng);
-    const barVals = allIdxs.map(iIdx => {
-      if (iIdx === null) return null;
-      const asig = setLeng.has(iIdx) ? IDX_LENG : IDX_MATE;
-      const d = bar[iIdx]?.[asig];
-      return d ? d.s / d.n : null;
-    });
-    const barColors = allIdxs.map(iIdx => {
-      if (iIdx === null) return 'transparent';
-      return setLeng.has(iIdx) ? CLENG : CMATE;
-    });
-    const barHover = allIdxs.map(iIdx => {
-      if (iIdx === null) return 'transparent';
-      return setLeng.has(iIdx)
-        ? 'rgba(56,189,248,.75)'
-        : 'rgba(251,146,60,.75)';
-    });
-
-    // Custom tooltip label for subject name
-    const asigLabel = allIdxs.map(iIdx => {
-      if (iIdx === null) return '';
-      return setLeng.has(iIdx) ? 'Lenguaje' : 'Matemática';
-    });
-
-    chartB.data.labels = barLabels;
-    chartB.data.datasets = [{
-      label: 'Promedio',
-      data: barVals,
-      backgroundColor: barColors,
-      hoverBackgroundColor: barHover,
-      borderRadius: 5,
-      borderSkipped: false,
-      barPercentage: 0.72,
-      categoryPercentage: 0.85,
-    }];
-
-    // Patch tooltip to show subject per bar
-    chartB.options.plugins.tooltip.callbacks.label = ctx => {
-      const subj = asigLabel[ctx.dataIndex];
-      const val  = ctx.parsed.y != null ? (ctx.parsed.y * 100).toFixed(1) + '%' : '—';
-      return ` ${subj}: ${val}`;
-    };
-
-    chartB.update('none');
   }
+  return res;
+}
 
-  /* ── 9. Event listeners ──────────────────────────────────────────────────── */
-  function parseFilter(val) { return val === '' ? -1 : +val; }
+/* --- 4. Charts Setup --- */
+let currentAsigFilter = 'Lenguaje';
 
-  document.getElementById('f-nivel').addEventListener('change', e => {
-    F.nivel = parseFilter(e.target.value); update();
+function initCharts() {
+  const chartOptions = (yTitle) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: { min: 0, max: 1, ticks: { callback: v => (v * 100) + '%' }, grid: { color: '#21262d' } },
+      x: { grid: { display: false } }
+    },
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, color: '#7d8590', font: { size: 10 } } }
+    }
   });
-  document.getElementById('f-rbd').addEventListener('change', e => {
-    F.rbd = parseFilter(e.target.value); update();
+
+  charts.lengEvo = new Chart(document.getElementById('canvas-leng-evo'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
+  charts.mateEvo = new Chart(document.getElementById('canvas-mate-evo'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
+  charts.lengEjes = new Chart(document.getElementById('canvas-leng-ejes'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
+  charts.mateEjes = new Chart(document.getElementById('canvas-mate-ejes'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
+  charts.cursoEvo = new Chart(document.getElementById('canvas-curso-evo'), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
+}
+
+function update() {
+  const data = aggregate();
+  const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
+
+  // Update KPIs
+  document.getElementById('kpi-global').innerText = f(data.kpi.sum, data.kpi.count);
+  document.getElementById('kpi-leng').innerText = f(data.kpi.lengSum, data.kpi.lengC);
+  document.getElementById('kpi-mate').innerText = f(data.kpi.mateSum, data.kpi.mateC);
+  document.getElementById('kpi-rbd').innerText = data.kpi.rbds.size.toLocaleString();
+  document.getElementById('total-registros').innerText = `${data.kpi.count.toLocaleString()} registros`;
+
+  // Update Evolución General
+  updateEvoChart(charts.lengEvo, data.evo.Lenguaje, varColor('--leng'));
+  updateEvoChart(charts.mateEvo, data.evo.Matemática, varColor('--mate'));
+
+  // Update Ejes
+  updateEjesChart(charts.lengEjes, data.ejes.Lenguaje);
+  updateEjesChart(charts.mateEjes, data.ejes.Matemática);
+
+  // Update Detalle Colegio
+  if (ts.rbd.items.length > 0) {
+    document.getElementById('msg-colegio').style.display = 'none';
+    document.getElementById('canvas-curso-evo').style.display = 'block';
+    updateCursosChart(charts.cursoEvo, data.cursos);
+  } else {
+    document.getElementById('msg-colegio').style.display = 'block';
+    document.getElementById('canvas-curso-evo').style.display = 'none';
+  }
+}
+
+function updateEvoChart(chart, asigData, color) {
+  chart.data.datasets = [];
+  Object.keys(asigData).sort().forEach(agno => {
+    const is2026 = agno.includes('2026');
+    chart.data.datasets.push({
+      label: agno,
+      data: asigData[agno].map(d => d[1] > 0 ? d[0] / d[1] : null),
+      borderColor: color,
+      borderDash: is2026 ? [5, 5] : [],
+      backgroundColor: color + '22',
+      fill: !is2026,
+      tension: 0.3
+    });
   });
-  document.getElementById('f-periodo').addEventListener('change', e => {
-    F.periodo = parseFilter(e.target.value); update();
+  chart.update();
+}
+
+function updateEjesChart(chart, ejesData) {
+  chart.data.datasets = [];
+  let colorIdx = 0;
+  Object.keys(ejesData).sort().forEach(eje => {
+    const ejeColor = COLORS[colorIdx % COLORS.length];
+    Object.keys(ejesData[eje]).sort().forEach(agno => {
+      const is2026 = agno.includes('2026');
+      chart.data.datasets.push({
+        label: `${eje} (${agno})`,
+        data: ejesData[eje][agno].map(d => d[1] > 0 ? d[0] / d[1] : null),
+        borderColor: ejeColor,
+        borderDash: is2026 ? [5, 5] : [],
+        borderWidth: is2026 ? 2 : 2.5,
+        pointStyle: is2026 ? 'rectRot' : 'circle',
+        tension: 0.3
+      });
+    });
+    colorIdx++;
   });
-  document.getElementById('btn-clear').addEventListener('click', () => {
-    F.nivel = F.rbd = F.periodo = -1;
-    ['f-nivel','f-rbd','f-periodo'].forEach(id => document.getElementById(id).value = '');
+  chart.update();
+}
+
+function updateCursosChart(chart, cursosData) {
+  chart.data.datasets = [];
+  let colorIdx = 0;
+  Object.keys(cursosData).sort().forEach(curso => {
+    const cursoColor = COLORS[colorIdx % COLORS.length];
+    Object.keys(cursosData[curso]).sort().forEach(agno => {
+      const is2026 = agno.includes('2026');
+      chart.data.datasets.push({
+        label: `${curso} (${agno})`,
+        data: cursosData[curso][agno].map(d => d[1] > 0 ? d[0] / d[1] : null),
+        borderColor: cursoColor,
+        borderDash: is2026 ? [5, 5] : [],
+        tension: 0.3
+      });
+    });
+    colorIdx++;
+  });
+  chart.update();
+}
+
+// Helpers
+function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+// Toggle Asignatura en Detalle Colegio
+document.querySelectorAll('.btn-toggle').forEach(btn => {
+  btn.onclick = (e) => {
+    document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentAsigFilter = e.target.dataset.asig;
     update();
-  });
+  };
+});
 
-  /* ── 10. Boot ────────────────────────────────────────────────────────────── */
-  update();
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'flex';
-  document.getElementById('dashboard').style.flexDirection = 'column';
-
-})();
+init();
 </script>
+
 </body>
 </html>
