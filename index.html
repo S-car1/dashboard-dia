@@ -335,7 +335,20 @@ function initCharts() {
     responsive: true, maintainAspectRatio: false,
     animation: { duration: 400 },
     scales: {
-      y: { min: 0, max: 1, ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d', drawBorder: false } },
+      y: { 
+        // 1. ELIMINAMOS min: 0 y max: 1 para liberar el zoom
+        beginAtZero: false, // 2. Permitimos que el gráfico empiece en 30% en vez de 0%
+        grace: '10%',       // 3. Añadimos margen para que los puntos no toquen el techo o suelo
+        ticks: { 
+          callback: v => {
+            // 4. Aseguramos que el "grace" no nos genere etiquetas raras sobre 100% o bajo 0%
+            if (v > 1) return '100%';
+            if (v < 0) return '0%';
+            return (v * 100).toFixed(0) + '%';
+          } 
+        }, 
+        grid: { color: '#21262d', drawBorder: false } 
+      },
       x: { grid: { display: false } }
     },
     plugins: {
