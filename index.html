@@ -11,7 +11,7 @@
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
+ 
   <style>
     :root {
       --bg:         #0d1117;
@@ -31,23 +31,23 @@
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; }
-
+ 
     /* ── Layout ── */
-    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; }
     .main { max-width: 1560px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
-    
+ 
     #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
     .loader { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--leng); border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
+ 
     /* ── Filtros ── */
     .filter-bar {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
       padding: 1rem 1.25rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
     }
-    .filter-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 160px; }
+    .filter-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 140px; }
     .filter-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
-
+ 
     .btn-clear {
       background: transparent; border: 1px solid var(--border); border-radius: 6px;
       color: var(--text-muted); font-family: var(--font); font-size: 0.84rem;
@@ -55,8 +55,8 @@
       display: flex; align-items: center; gap: 0.35rem; height: 38px;
     }
     .btn-clear:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); }
-
-    /* ── Customización TomSelect ── */
+ 
+    /* ── TomSelect ── */
     .ts-wrapper.multi .ts-control {
       background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 6px !important;
       color: var(--text) !important; font-family: var(--font); font-size: 0.84rem;
@@ -64,14 +64,14 @@
     }
     .ts-wrapper.multi.focus .ts-control { border-color: var(--border-2) !important; }
     .ts-control input { color: var(--text) !important; font-family: var(--font); }
-    
+ 
     .ts-wrapper.multi .ts-control > div.item {
       background: rgba(56,189,248,0.12) !important; border: 1px solid rgba(56,189,248,0.3) !important; color: var(--text) !important;
       border-radius: 4px; padding: 2px 6px !important; font-size: 0.75rem; margin: 2px 4px 2px 0 !important;
     }
     .ts-wrapper.multi .ts-control > div.item .remove { border-left-color: rgba(56,189,248,0.3) !important; color: var(--leng) !important; }
     .ts-wrapper.multi .ts-control > div.item.active { background: rgba(56,189,248,0.25) !important; border-color: var(--leng) !important; }
-
+ 
     .ts-dropdown {
       background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 8px !important;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; color: var(--text) !important; padding: 4px 0 !important;
@@ -79,55 +79,54 @@
     .ts-dropdown .option { padding: 8px 12px !important; font-size: 0.84rem; cursor: pointer; }
     .ts-dropdown .active { background: rgba(56,189,248,0.1) !important; color: var(--text) !important; }
     .ts-dropdown .option input[type="checkbox"] { margin-right: 10px; accent-color: var(--leng); cursor: pointer; }
-
-    /* ── KPIs y Gráficos ── */
+ 
+    /* ── KPIs ── */
     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
     .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; overflow: hidden; }
     .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--kpi-c); opacity: 0.5; }
     .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 0.5rem; }
-    .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; color: var(--kpi-c); }
-    /* NUEVO: Subtítulo para micro-datos */
-    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; font-family: var(--font); }
-
+    .kpi-val   { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; color: var(--kpi-c); }
+    .kpi-trend { font-size: 0.72rem; font-weight: 700; margin-top: 0.3rem; min-height: 1.1em; }
+    .kpi-sub   { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.35rem; }
+ 
+    /* ── Gráficos ── */
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; }
+    .chart-card  { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; }
     .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.1rem; flex-shrink: 0; }
-    .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
-    .chart-title span { color: var(--text); font-size: 0.8rem; display: block; margin-top: 0.15rem; text-transform: none; font-weight: 600;}
-    .chart-wrap { position: relative; flex: 1; min-height: 0; }
-    .full-width { grid-column: 1 / -1; }
-
-    /* NUEVO: Controles de Gráficos (Exportar y Estados Vacíos) */
-    .chart-actions { display: flex; gap: 0.5rem; align-items: center; }
-    .btn-export { background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--text-muted); cursor: pointer; padding: 0.3rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-    .btn-export:hover { color: var(--text); border-color: var(--border); background: var(--surface-2); }
-    
-    .empty-overlay { position: absolute; inset: 0; background: var(--surface); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem; border-radius: 8px; z-index: 10; text-align: center; padding: 2rem; border: 1px dashed var(--border); }
-    .empty-icon { font-size: 1.5rem; opacity: 0.5; }
-
+    .chart-title  { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+    .chart-title span { color: var(--text); font-size: 0.8rem; display: block; margin-top: 0.15rem; text-transform: none; font-weight: 600; }
+    .chart-wrap  { position: relative; flex: 1; min-height: 0; }
+    .full-width  { grid-column: 1 / -1; }
+ 
+    /* ── Empty state ── */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; text-align: center; flex: 1; }
+    .empty-state svg { opacity: 0.18; }
+    .empty-state-title { color: var(--text); font-size: 0.9rem; font-weight: 600; margin-top: 1.1rem; }
+    .empty-state-desc  { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.35rem; line-height: 1.65; }
+ 
     @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
 <body>
-
+ 
 <div id="loading">
   <div class="loader"></div>
   <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); letter-spacing: 0.04em;">Cargando datos DIA&hellip;</p>
 </div>
-
+ 
 <header class="header">
   <div style="display: flex; align-items: center; gap: 1rem;">
-    <img src="logo3.png" alt="Logo Institucional" style="height: 55px; width: auto; object-fit: contain; border-radius: 4px;">    
+    <img src="logo3.png" alt="Logo Institucional" style="height: 55px; width: auto; object-fit: contain; border-radius: 4px;">
     <div>
       <div style="font-size: 1rem; font-weight: 800; letter-spacing: -.025em;">Dashboard resultados DIA</div>
       <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">Período 2025 - 2026</div>
     </div>
   </div>
-  <div id="total-registros" style="font-family: var(--mono); font-size: 0.7rem; background: var(--surface-2); padding: 0.25rem 0.75rem; border-radius: 20px; border: 1px solid var(--border); color: var(--text-muted);"></div>
 </header>
-
+ 
 <main class="main" id="dashboard" style="display:none;">
-  
+ 
+  <!-- ── Filtros ── -->
   <div class="filter-bar">
     <div class="filter-group" style="flex: 0.5;">
       <span class="filter-label">Año</span>
@@ -141,7 +140,11 @@
       <span class="filter-label">Nivel</span>
       <select id="f-nivel" multiple placeholder="Todos"></select>
     </div>
-    <div class="filter-group" style="flex: 1;">
+    <div class="filter-group" style="flex: 0.6;">
+      <span class="filter-label">Etapa</span>
+      <select id="f-etapa" multiple placeholder="Todas"></select>
+    </div>
+    <div class="filter-group" style="flex: 0.8;">
       <span class="filter-label">Cursos</span>
       <select id="f-curso" multiple placeholder="Ej: 6A, 6B..."></select>
     </div>
@@ -154,115 +157,131 @@
       Limpiar
     </button>
   </div>
-
+ 
+  <!-- ── KPIs ── -->
   <div class="kpi-grid">
     <div class="kpi" style="--kpi-c: var(--text)">
       <div class="kpi-label">Promedio General</div>
       <div class="kpi-val" id="kpi-global">—</div>
-      <div class="kpi-sub" id="kpi-global-sub">— registros</div>
+      <div class="kpi-trend" id="trend-global"></div>
     </div>
     <div class="kpi" style="--kpi-c: var(--leng)">
       <div class="kpi-label">Promedio Lenguaje</div>
       <div class="kpi-val" id="kpi-leng">—</div>
-      <div class="kpi-sub" id="kpi-leng-sub">— registros</div>
+      <div class="kpi-trend" id="trend-leng"></div>
     </div>
     <div class="kpi" style="--kpi-c: var(--mate)">
       <div class="kpi-label">Promedio Matemática</div>
       <div class="kpi-val" id="kpi-mate">—</div>
-      <div class="kpi-sub" id="kpi-mate-sub">— registros</div>
+      <div class="kpi-trend" id="trend-mate"></div>
     </div>
     <div class="kpi" style="--kpi-c: var(--purple)">
-      <div class="kpi-label">Establecimientos</div>
-      <div class="kpi-val" id="kpi-rbd">—</div>
-      <div class="kpi-sub" id="kpi-rbd-sub">Instituciones evaluadas</div>
+      <div class="kpi-label">Evaluaciones</div>
+      <div class="kpi-val" id="kpi-eval">—</div>
+      <div class="kpi-sub" id="kpi-rbd-sub">—</div>
     </div>
   </div>
-
+ 
+  <!-- ── Gráficos ── -->
   <div class="charts-grid">
+ 
+    <!-- Evolución general -->
     <div class="chart-card">
       <div class="chart-header">
         <div class="chart-title">Evolución General<span>Lenguaje</span></div>
-        <button class="btn-export" onclick="exportChart('leng-evo', 'Evolucion_Lenguaje')" title="Descargar Gráfico">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </button>
       </div>
-      <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-leng-evo"><span class="empty-icon">📊</span>No hay datos para esta selección</div>
-        <canvas id="canvas-leng-evo"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div>
     </div>
-    
+ 
     <div class="chart-card">
       <div class="chart-header">
         <div class="chart-title">Evolución General<span>Matemática</span></div>
-        <button class="btn-export" onclick="exportChart('mate-evo', 'Evolucion_Matematica')" title="Descargar Gráfico">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </button>
       </div>
-      <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-mate-evo"><span class="empty-icon">📊</span>No hay datos para esta selección</div>
-        <canvas id="canvas-mate-evo"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div>
     </div>
-
+ 
+    <!-- Evolución por eje (líneas — comportamiento temporal) -->
     <div class="chart-card">
       <div class="chart-header">
-        <div class="chart-title">Rendimiento por Eje<span>Lenguaje</span></div>
-        <button class="btn-export" onclick="exportChart('leng-ejes', 'Ejes_Lenguaje')" title="Descargar Gráfico">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </button>
+        <div class="chart-title">Evolución por Eje<span>Lenguaje</span></div>
       </div>
-      <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-leng-ejes"><span class="empty-icon">📈</span>No hay datos para esta selección</div>
-        <canvas id="canvas-leng-ejes"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="canvas-leng-ejes"></canvas></div>
     </div>
-    
+ 
     <div class="chart-card">
       <div class="chart-header">
-        <div class="chart-title">Rendimiento por Eje<span>Matemática</span></div>
-        <button class="btn-export" onclick="exportChart('mate-ejes', 'Ejes_Matematica')" title="Descargar Gráfico">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </button>
+        <div class="chart-title">Evolución por Eje<span>Matemática</span></div>
       </div>
-      <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-mate-ejes"><span class="empty-icon">📈</span>No hay datos para esta selección</div>
-        <canvas id="canvas-mate-ejes"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="canvas-mate-ejes"></canvas></div>
     </div>
-
+ 
+    <!-- Comparativo por eje (barras horizontales — ranking snapshot) -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Comparativo por Eje<span>Lenguaje</span></div>
+      </div>
+      <div class="chart-wrap"><canvas id="canvas-leng-ejes-bar"></canvas></div>
+    </div>
+ 
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Comparativo por Eje<span>Matemática</span></div>
+      </div>
+      <div class="chart-wrap"><canvas id="canvas-mate-ejes-bar"></canvas></div>
+    </div>
+ 
+    <!-- Desglose institucional por curso -->
     <div class="chart-card full-width">
       <div class="chart-header" style="align-items: center;">
         <div class="chart-title">Desglose Institucional<span>Análisis Comparativo por Curso</span></div>
-        
-        <div class="chart-actions">
-          <div style="display: flex; gap: 0.4rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border); margin-right: 1rem;">
-            <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lenguaje</button>
-            <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button>
-          </div>
-          <button class="btn-export" onclick="exportChart('curso-evo', 'Comparativo_Cursos')" title="Descargar Gráfico">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
+        <div style="display: flex; gap: 0.4rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border);">
+          <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lenguaje</button>
+          <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button>
         </div>
       </div>
-      <div id="msg-colegio" style="text-align: center; padding: 4rem; color: var(--text-muted); font-size: 0.9rem;">
-        Filtra un establecimiento en la barra superior para visualizar el desglose interno de sus cursos.
+      <div id="msg-colegio" class="empty-state">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 26L28 10L52 26" stroke="#e6edf3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="8" y="25" width="40" height="26" rx="2" stroke="#e6edf3" stroke-width="2.5"/>
+          <rect x="21" y="37" width="14" height="14" rx="1.5" stroke="#e6edf3" stroke-width="2"/>
+          <rect x="11" y="30" width="9" height="9" rx="1" stroke="#e6edf3" stroke-width="1.8"/>
+          <rect x="36" y="30" width="9" height="9" rx="1" stroke="#e6edf3" stroke-width="1.8"/>
+        </svg>
+        <div class="empty-state-title">Sin establecimiento seleccionado</div>
+        <div class="empty-state-desc">Filtra un establecimiento en la barra superior<br>para ver el análisis comparativo por curso.</div>
       </div>
       <div class="chart-wrap" id="wrap-curso-evo" style="display: none;">
-        <div class="empty-overlay" id="empty-curso-evo"><span class="empty-icon">🏫</span>No hay datos para esta selección</div>
         <canvas id="canvas-curso-evo"></canvas>
       </div>
     </div>
+ 
   </div>
 </main>
-
+ 
 <script>
 let DATA_RAW = null;
-let charts = {};
+let charts   = {};
 const STAGES = ['Diagnóstico', 'Intermedio', 'Cierre'];
-const COLORS = ['#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', '#fbbf24', '#2dd4bf', '#818cf8'];
+const COLORS  = ['#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', '#fbbf24', '#2dd4bf', '#818cf8'];
+// Colores semánticos para cada etapa en el gráfico de barras
+const STAGE_COLORS = ['#a78bfa', '#fbbf24', '#34d399']; // Diagnóstico · Intermedio · Cierre
 const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
-
+ 
+// ── Umbral de logro: ajustar este valor para cambiar la línea de referencia ──
+const UMBRAL_LOGRO = 0.6; // 0.6 = 60%
+ 
+// ── Mapeo de niveles a etiquetas completas ──
+const NIVEL_LABELS = {
+  '1': '1° Básico', '2': '2° Básico', '3': '3° Básico',
+  '4': '4° Básico', '5': '5° Básico', '6': '6° Básico',
+  '7': '7° Básico', '8': '8° Básico',
+  'I': 'I Medio', 'II': 'II Medio', 'III': 'III Medio', 'IV': 'IV Medio'
+};
+const labelNivel = v => NIVEL_LABELS[v] || v;
+ 
+// ────────────────────────────────────────────────────────────────
+// Init
+// ────────────────────────────────────────────────────────────────
 async function init() {
   try {
     const res = await fetch('datos.json');
@@ -270,15 +289,17 @@ async function init() {
     setupFilters();
     initCharts();
     update();
-    
     document.getElementById('loading').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
   } catch (e) {
     console.error(e);
-    alert("Error al cargar datos.json. Revisa la consola.");
+    alert('Error al cargar datos.json. Revisa la consola.');
   }
 }
-
+ 
+// ────────────────────────────────────────────────────────────────
+// Filtros
+// ────────────────────────────────────────────────────────────────
 let ts = {};
 function setupFilters() {
   const config = {
@@ -286,99 +307,131 @@ function setupFilters() {
     maxOptions: 50,
     hideSelected: false,
     closeAfterSelect: false,
-    sortField: [{field: '$order'}],
-    render: { item: function(data, escape) { return `<div>${escape(data.text)}</div>`; } },
+    sortField: [{ field: '$order' }],
+    render: { item: (data, escape) => `<div>${escape(data.text)}</div>` },
     onChange: () => update()
   };
-
-  ts.agno = new TomSelect('#f-agno', config);
+ 
+  ts.agno  = new TomSelect('#f-agno',  config);
+  ts.rbd   = new TomSelect('#f-rbd',   config);
   ts.nivel = new TomSelect('#f-nivel', config);
-  ts.rbd = new TomSelect('#f-rbd', config);
-  ts.eje = new TomSelect('#f-eje', config);
+  ts.etapa = new TomSelect('#f-etapa', config);
   ts.curso = new TomSelect('#f-curso', config);
-
+  ts.eje   = new TomSelect('#f-eje',   config);
+ 
+  // Solo los filtros raíz (no cascadan de nada) se cargan aquí
   const populateTopLevel = (tsInstance, mapData) => {
     const options = mapData
-      .map((text, index) => ({ value: index, text: text }))
+      .map((text, index) => ({ value: index, text }))
       .filter(opt => opt.text && opt.text.trim() !== '')
       .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
     options.forEach(opt => tsInstance.addOption(opt));
   };
-
+ 
   populateTopLevel(ts.agno, DATA_RAW.maps[I.AGNO]);
-  populateTopLevel(ts.rbd, DATA_RAW.maps[I.RBD]);
-
-  document.getElementById('btn-clear').onclick = () => {
-    Object.values(ts).forEach(t => t.clear());
-  };
+  populateTopLevel(ts.rbd,  DATA_RAW.maps[I.RBD]);
+ 
+  document.getElementById('btn-clear').onclick = () => Object.values(ts).forEach(t => t.clear());
 }
-
+ 
+// ────────────────────────────────────────────────────────────────
+// Agregación principal
+// ────────────────────────────────────────────────────────────────
 function aggregate() {
-  const fAgno = ts.agno.items.map(Number);
+  const fAgno  = ts.agno.items.map(Number);
+  const fRbd   = ts.rbd.items.map(Number);
   const fNivel = ts.nivel.items.map(Number);
-  const fRbd = ts.rbd.items.map(Number);
-  const fEje = ts.eje.items.map(Number);
+  const fEtapa = ts.etapa.items.map(Number);
   const fCurso = ts.curso.items.map(Number);
-
+  const fEje   = ts.eje.items.map(Number);
+ 
   const res = {
     kpi: { sum: 0, count: 0, lengSum: 0, lengC: 0, mateSum: 0, mateC: 0, rbds: new Set() },
-    evo: { Lenguaje: {}, Matemática: {} },
-    ejes: { Lenguaje: {}, Matemática: {} },
-    cursos: {},
+    // Para calcular tendencia entre etapas en los KPIs
+    kpiByEtapa: {
+      total:      Array.from({ length: 3 }, () => [0, 0]),
+      Lenguaje:   Array.from({ length: 3 }, () => [0, 0]),
+      Matemática: Array.from({ length: 3 }, () => [0, 0])
+    },
+    evo:     { Lenguaje: {}, Matemática: {} },
+    ejes:    { Lenguaje: {}, Matemática: {} },
+    ejesBar: { Lenguaje: {}, Matemática: {} }, // para gráficos de barras
+    cursos:  {},
     validNiveles: new Set(),
-    validCursos: new Set(),
-    validEjes: new Set()
+    validEtapas:  new Set(),
+    validCursos:  new Set(),
+    validEjes:    new Set()
   };
-
+ 
   for (let i = 0; i < DATA_RAW.rows.length; i++) {
     const r = DATA_RAW.rows[i];
-    
+ 
+    // Filtros raíz
     const passAgno = fAgno.length === 0 || fAgno.includes(r[I.AGNO]);
-    const passRbd = fRbd.length === 0 || fRbd.includes(r[I.RBD]);
-
+    const passRbd  = fRbd.length  === 0 || fRbd.includes(r[I.RBD]);
     if (!passAgno || !passRbd) continue;
-
+ 
+    // Nivel: registro sus opciones válidas antes de filtrar
     res.validNiveles.add(r[I.NIVEL]);
     const passNivel = fNivel.length === 0 || fNivel.includes(r[I.NIVEL]);
     if (!passNivel) continue;
-
+ 
+    // Etapa/Curso/Eje: registrar opciones válidas antes de filtrar por etapa
+    res.validEtapas.add(r[I.ETAPA]);
     res.validCursos.add(r[I.CURSO]);
     res.validEjes.add(r[I.EJE]);
-
-    const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
-    const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
-    const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
-    const p = r[I.PUNTAJE];
+ 
+    const passEtapa = fEtapa.length === 0 || fEtapa.includes(r[I.ETAPA]);
+    if (!passEtapa) continue;
+ 
+    // A partir de aquí: el registro pasa todos los filtros activos
+    const agnoV    = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
+    const etapaV   = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
+    const asigV    = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
+    const p        = r[I.PUNTAJE];
     const etapaIdx = STAGES.indexOf(etapaV);
-    
     if (etapaIdx === -1) continue;
-
+ 
+    // KPIs globales
     res.kpi.sum += p; res.kpi.count++;
     res.kpi.rbds.add(r[I.RBD]);
-    if (asigV === 'Lenguaje') { res.kpi.lengSum += p; res.kpi.lengC++; }
+    if (asigV === 'Lenguaje')   { res.kpi.lengSum += p; res.kpi.lengC++; }
     if (asigV === 'Matemática') { res.kpi.mateSum += p; res.kpi.mateC++; }
-
+ 
+    // KPIs por etapa (para tendencia)
+    res.kpiByEtapa.total[etapaIdx][0]     += p; res.kpiByEtapa.total[etapaIdx][1]++;
+    if (asigV === 'Lenguaje')   { res.kpiByEtapa.Lenguaje[etapaIdx][0]   += p; res.kpiByEtapa.Lenguaje[etapaIdx][1]++;   }
+    if (asigV === 'Matemática') { res.kpiByEtapa.Matemática[etapaIdx][0] += p; res.kpiByEtapa.Matemática[etapaIdx][1]++; }
+ 
     if (asigV === 'Lenguaje' || asigV === 'Matemática') {
-      if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+      // Gráfico de evolución general
+      if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({ length: 3 }, () => [0, 0]);
       res.evo[asigV][agnoV][etapaIdx][0] += p;
       res.evo[asigV][agnoV][etapaIdx][1]++;
-
+ 
       const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
-      if (ejeV && ejeV.trim() !== "") {
+      if (ejeV && ejeV.trim() !== '') {
         if (fEje.length === 0 || fEje.includes(r[I.EJE])) {
+          // Gráfico líneas por eje (evolución temporal)
           if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
-          if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+          if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({ length: 3 }, () => [0, 0]);
           res.ejes[asigV][ejeV][agnoV][etapaIdx][0] += p;
           res.ejes[asigV][ejeV][agnoV][etapaIdx][1]++;
+ 
+          // Gráfico barras por eje (comparativo snapshot, agrega todos los años)
+          if (!res.ejesBar[asigV][ejeV]) res.ejesBar[asigV][ejeV] = Array.from({ length: 3 }, () => [0, 0]);
+          res.ejesBar[asigV][ejeV][etapaIdx][0] += p;
+          res.ejesBar[asigV][ejeV][etapaIdx][1]++;
         }
       }
     }
-
+ 
+    // Gráfico desglose por curso (solo si hay RBD seleccionado)
     if (fRbd.length > 0 && asigV === currentAsigFilter) {
       if (fCurso.length === 0 || fCurso.includes(r[I.CURSO])) {
         const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
         if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
-        if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+        if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({ length: 3 }, () => [0, 0]);
         res.cursos[cursoV][agnoV][etapaIdx][0] += p;
         res.cursos[cursoV][agnoV][etapaIdx][1]++;
       }
@@ -386,149 +439,217 @@ function aggregate() {
   }
   return res;
 }
-
-function updateCascadingTS(tsInstance, mapData, validSet, currentItems) {
+ 
+// ────────────────────────────────────────────────────────────────
+// Filtros en cascada
+// ────────────────────────────────────────────────────────────────
+function updateCascadingTS(tsInstance, mapData, validSet, currentItems, labelFn = null) {
   tsInstance.clearOptions();
   const options = mapData
-    .map((text, index) => ({ value: index, text: text }))
+    .map((text, index) => ({ value: index, text: labelFn ? labelFn(text) : text }))
     .filter(opt => validSet.has(opt.value) && opt.text && opt.text.trim() !== '')
     .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
-  
   options.forEach(opt => tsInstance.addOption(opt));
-  tsInstance.setValue(currentItems, true); 
+  tsInstance.setValue(currentItems, true);
 }
-
+ 
+// ────────────────────────────────────────────────────────────────
+// Tendencia KPIs
+// ────────────────────────────────────────────────────────────────
+function calcTrend(etapaArr) {
+  const vals = etapaArr.map(([s, c]) => c > 0 ? s / c : null);
+  if (vals.filter(v => v !== null).length < 2) return null;
+  const first = vals.find(v => v !== null);
+  const last  = [...vals].reverse().find(v => v !== null);
+  return last - first;
+}
+ 
+function setTrend(elId, trend) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (trend === null) { el.textContent = ''; return; }
+  el.style.color = trend >= 0 ? '#34d399' : '#f87171';
+  el.textContent  = `${trend >= 0 ? '↑' : '↓'} ${Math.abs(trend * 100).toFixed(1)}pp`;
+}
+ 
+// ────────────────────────────────────────────────────────────────
+// Inicialización de gráficos
+// ────────────────────────────────────────────────────────────────
 let currentAsigFilter = 'Lenguaje';
-
-// PLUGIN: Pinta fondo oscuro transparente al exportar la imagen
-const exportBackgroundPlugin = {
-  id: 'customCanvasBackgroundColor',
-  beforeDraw: (chart) => {
-    const {ctx} = chart;
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-over';
-    ctx.fillStyle = '#161b22'; // El color de fondo de las tarjetas
-    ctx.fillRect(0, 0, chart.width, chart.height);
-    ctx.restore();
-  }
-};
-
+ 
 function initCharts() {
-  const chartOptions = () => ({
+  const lineOptions = () => ({
     responsive: true, maintainAspectRatio: false,
     animation: { duration: 400 },
     scales: {
-      y: { 
+      y: {
         beginAtZero: false, grace: '10%',
-        ticks: { callback: v => { if (v > 1) return '100%'; if (v < 0) return '0%'; return (v * 100).toFixed(0) + '%'; } }, 
-        grid: { color: '#21262d', drawBorder: false } 
+        ticks: { callback: v => { if (v > 1) return '100%'; if (v < 0) return '0%'; return (v * 100).toFixed(0) + '%'; } },
+        grid: { color: '#21262d', drawBorder: false }
       },
       x: { grid: { display: false } }
     },
     plugins: {
-      legend: { 
-        position: 'bottom', 
-        labels: { usePointStyle: true, boxWidth: 8, color: '#7d8590', font: { family: 'Archivo', size: 11 } },
-        onHover: function(e) { e.native.target.style.cursor = 'pointer'; },
-        onLeave: function(e) { e.native.target.style.cursor = 'default'; }
+      legend: {
+        position: 'bottom',
+        labels: {
+          usePointStyle: true, boxWidth: 8, color: '#7d8590', font: { family: 'Archivo', size: 11 },
+          // El umbral no necesita entrada en la leyenda: la línea en el gráfico es autoexplicativa
+          filter: (item, chartData) => !chartData.datasets[item.datasetIndex]?._isUmbral
+        },
+        onHover: e => { e.native.target.style.cursor = 'pointer'; },
+        onLeave: e => { e.native.target.style.cursor = 'default'; }
       },
       tooltip: {
         backgroundColor: '#1c2128', borderColor: '#30363d', borderWidth: 1, padding: 10, cornerRadius: 6,
-        itemSort: (a, b) => b.parsed.y - a.parsed.y, // <-- MEJORA: Tooltips Ordenados de mayor a menor
+        filter: item => !item.dataset._isUmbral,
         callbacks: { label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%` }
       }
     }
   });
-
+ 
+  const barOptions = () => ({
+    responsive: true, maintainAspectRatio: false,
+    indexAxis: 'y',
+    animation: { duration: 400 },
+    scales: {
+      x: {
+        beginAtZero: true, max: 1,
+        ticks: { callback: v => (v * 100).toFixed(0) + '%' },
+        grid: { color: '#21262d' }
+      },
+      y: {
+        grid: { display: false },
+        ticks: { color: '#7d8590', font: { family: 'Archivo', size: 11 } }
+      }
+    },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { usePointStyle: true, boxWidth: 8, color: '#7d8590', font: { family: 'Archivo', size: 11 } }
+      },
+      tooltip: {
+        backgroundColor: '#1c2128', borderColor: '#30363d', borderWidth: 1, padding: 10, cornerRadius: 6,
+        callbacks: { label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.x * 100).toFixed(1)}%` }
+      }
+    }
+  });
+ 
   ['leng-evo', 'mate-evo', 'leng-ejes', 'mate-ejes', 'curso-evo'].forEach(id => {
-    charts[id] = new Chart(document.getElementById(`canvas-${id}`), { 
-      type: 'line', 
-      data: { labels: STAGES, datasets: [] }, 
-      options: chartOptions(),
-      plugins: [exportBackgroundPlugin] // <-- MEJORA: Soporte visual para exportación
+    charts[id] = new Chart(document.getElementById(`canvas-${id}`), {
+      type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOptions()
+    });
+  });
+ 
+  ['leng-ejes-bar', 'mate-ejes-bar'].forEach(id => {
+    charts[id] = new Chart(document.getElementById(`canvas-${id}`), {
+      type: 'bar', data: { labels: [], datasets: [] }, options: barOptions()
     });
   });
 }
-
+ 
+// ────────────────────────────────────────────────────────────────
+// Update principal
+// ────────────────────────────────────────────────────────────────
 function update() {
   const data = aggregate();
-  
-  updateCascadingTS(ts.nivel, DATA_RAW.maps[I.NIVEL], data.validNiveles, ts.nivel.items);
-  updateCascadingTS(ts.curso, DATA_RAW.maps[I.CURSO], data.validCursos, ts.curso.items);
-  updateCascadingTS(ts.eje, DATA_RAW.maps[I.EJE], data.validEjes, ts.eje.items);
-
+ 
+  // Actualizar filtros en cascada
+  updateCascadingTS(ts.nivel, DATA_RAW.maps[I.NIVEL], data.validNiveles, ts.nivel.items, labelNivel);
+  updateCascadingTS(ts.etapa, DATA_RAW.maps[I.ETAPA], data.validEtapas,  ts.etapa.items);
+  updateCascadingTS(ts.curso, DATA_RAW.maps[I.CURSO], data.validCursos,  ts.curso.items);
+  updateCascadingTS(ts.eje,   DATA_RAW.maps[I.EJE],   data.validEjes,    ts.eje.items);
+ 
+  // KPIs
   const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
-
-  // Actualizar KPIs Grandes
-  document.getElementById('kpi-global').innerText = f(data.kpi.sum, data.kpi.count);
-  document.getElementById('kpi-leng').innerText = f(data.kpi.lengSum, data.kpi.lengC);
-  document.getElementById('kpi-mate').innerText = f(data.kpi.mateSum, data.kpi.mateC);
-  document.getElementById('kpi-rbd').innerText = data.kpi.rbds.size.toLocaleString('es-CL');
-  document.getElementById('total-registros').innerText = `${data.kpi.count.toLocaleString('es-CL')} registros totales`;
-
-  // MEJORA: Micro-datos en subtítulos
-  document.getElementById('kpi-global-sub').innerText = `${data.kpi.count.toLocaleString('es-CL')} registros evaluados`;
-  document.getElementById('kpi-leng-sub').innerText = `${data.kpi.lengC.toLocaleString('es-CL')} registros evaluados`;
-  document.getElementById('kpi-mate-sub').innerText = `${data.kpi.mateC.toLocaleString('es-CL')} registros evaluados`;
-
-  updateLineChart(charts['leng-evo'], data.evo.Lenguaje, true, varColor('--leng'));
-  updateLineChart(charts['mate-evo'], data.evo.Matemática, true, varColor('--mate'));
-  updateLineChart(charts['leng-ejes'], data.ejes.Lenguaje, false);
+  document.getElementById('kpi-global').innerText  = f(data.kpi.sum,     data.kpi.count);
+  document.getElementById('kpi-leng').innerText    = f(data.kpi.lengSum, data.kpi.lengC);
+  document.getElementById('kpi-mate').innerText    = f(data.kpi.mateSum, data.kpi.mateC);
+  document.getElementById('kpi-eval').innerText    = data.kpi.count.toLocaleString('es-CL');
+  document.getElementById('kpi-rbd-sub').innerText =
+    `${data.kpi.rbds.size} establecimiento${data.kpi.rbds.size !== 1 ? 's' : ''}`;
+ 
+  // Tendencias
+  setTrend('trend-global', calcTrend(data.kpiByEtapa.total));
+  setTrend('trend-leng',   calcTrend(data.kpiByEtapa.Lenguaje));
+  setTrend('trend-mate',   calcTrend(data.kpiByEtapa.Matemática));
+ 
+  // Gráficos de líneas
+  updateLineChart(charts['leng-evo'],  data.evo.Lenguaje,    true,  varColor('--leng'));
+  updateLineChart(charts['mate-evo'],  data.evo.Matemática,  true,  varColor('--mate'));
+  updateLineChart(charts['leng-ejes'], data.ejes.Lenguaje,   false);
   updateLineChart(charts['mate-ejes'], data.ejes.Matemática, false);
-
+ 
+  // Gráficos de barras comparativos
+  updateBarChart(charts['leng-ejes-bar'], data.ejesBar.Lenguaje);
+  updateBarChart(charts['mate-ejes-bar'], data.ejesBar.Matemática);
+ 
+  // Desglose institucional
   if (ts.rbd.items.length > 0) {
-    document.getElementById('msg-colegio').style.display = 'none';
+    document.getElementById('msg-colegio').style.display   = 'none';
     document.getElementById('wrap-curso-evo').style.display = 'block';
     updateLineChart(charts['curso-evo'], data.cursos, false);
   } else {
-    document.getElementById('msg-colegio').style.display = 'block';
+    document.getElementById('msg-colegio').style.display   = 'flex';
     document.getElementById('wrap-curso-evo').style.display = 'none';
   }
 }
-
+ 
+// ────────────────────────────────────────────────────────────────
+// Helpers de gráficos
+// ────────────────────────────────────────────────────────────────
 function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
+  // Guardar estado de visibilidad por label (excluye la línea de umbral)
   const hiddenStates = {};
   chart.data.datasets.forEach((ds, i) => {
+    if (ds._isUmbral) return;
     const meta = chart.getDatasetMeta(i);
     hiddenStates[ds.label] = meta.hidden === true || (meta.hidden === null && ds.hidden);
   });
-
+ 
   chart.data.datasets = [];
   let colorIdx = 0;
-  
+ 
   Object.keys(dataObj).sort().forEach(groupKey => {
-    const isEvo = (groupKey === '2025' || groupKey === '2026');
+    const isEvo    = (groupKey === '2025' || groupKey === '2026');
     const groupColor = isSingleColor ? forcedColor : COLORS[colorIdx % COLORS.length];
-    
+ 
     if (isEvo) {
-       chart.data.datasets.push(createDataset(groupKey, dataObj[groupKey], groupColor, groupKey === '2026', hiddenStates[groupKey]));
+      chart.data.datasets.push(
+        createDataset(groupKey, dataObj[groupKey], groupColor, groupKey === '2026', hiddenStates[groupKey])
+      );
     } else {
-       Object.keys(dataObj[groupKey]).sort().forEach(agno => {
-         const label = `${groupKey} (${agno})`;
-         chart.data.datasets.push(createDataset(label, dataObj[groupKey][agno], groupColor, agno === '2026', hiddenStates[label]));
-       });
-       colorIdx++;
+      Object.keys(dataObj[groupKey]).sort().forEach(agno => {
+        const label = `${groupKey} (${agno})`;
+        chart.data.datasets.push(
+          createDataset(label, dataObj[groupKey][agno], groupColor, agno === '2026', hiddenStates[label])
+        );
+      });
+      colorIdx++;
     }
   });
-
-  // MEJORA: Lógica de Estados Vacíos
-  let hasValidData = false;
-  chart.data.datasets.forEach(ds => {
-    if (ds.data.some(val => val !== null)) hasValidData = true;
+ 
+  // Línea de referencia de umbral de logro
+  chart.data.datasets.push({
+    label: `Umbral ${(UMBRAL_LOGRO * 100).toFixed(0)}%`,
+    data: STAGES.map(() => UMBRAL_LOGRO),
+    borderColor: 'rgba(255,255,255,0.22)',
+    borderDash: [5, 4],
+    borderWidth: 1.5,
+    pointRadius: 0,
+    pointHoverRadius: 0,
+    backgroundColor: 'transparent',
+    fill: false,
+    tension: 0,
+    _isUmbral: true
   });
-  
-  const chartId = chart.canvas.id.replace('canvas-', '');
-  const emptyDiv = document.getElementById(`empty-${chartId}`);
-  if (emptyDiv) {
-    emptyDiv.style.display = hasValidData ? 'none' : 'flex';
-  }
-
+ 
   chart.update();
 }
-
+ 
 function createDataset(label, points, color, isDashed, isHidden) {
   return {
-    label: label,
+    label,
     data: points.map(d => d[1] > 0 ? d[0] / d[1] : null),
     borderColor: color,
     borderDash: isDashed ? [5, 5] : [],
@@ -542,31 +663,50 @@ function createDataset(label, points, color, isDashed, isHidden) {
     hidden: isHidden === true
   };
 }
-
-function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-
-// FUNCIÓN GLOBAL: Exportar Gráficos
-window.exportChart = function(chartId, fileName) {
-  const chartInstance = charts[chartId];
-  if (!chartInstance) return;
-  const link = document.createElement('a');
-  link.href = chartInstance.toBase64Image();
-  link.download = `${fileName}.png`;
-  link.click();
-};
-
+ 
+function updateBarChart(chart, ejesBarData) {
+  // Ordenar ejes por promedio general ascendente → el más alto queda arriba en barras horizontales
+  const ejeNames = Object.keys(ejesBarData).sort((a, b) => {
+    const avgOf = data => data.reduce((s, [sum, c]) => s + (c > 0 ? sum / c : 0), 0) / 3;
+    return avgOf(ejesBarData[a]) - avgOf(ejesBarData[b]);
+  });
+ 
+  chart.data.labels   = ejeNames;
+  chart.data.datasets = STAGES.map((etapa, idx) => ({
+    label: etapa,
+    data: ejeNames.map(eje => {
+      const d = ejesBarData[eje]?.[idx];
+      return (d && d[1] > 0) ? d[0] / d[1] : null;
+    }),
+    backgroundColor: STAGE_COLORS[idx] + 'bb',
+    borderColor:     STAGE_COLORS[idx],
+    borderWidth: 1.5,
+    borderRadius: 3,
+    borderSkipped: false
+  }));
+ 
+  chart.update();
+}
+ 
+function varColor(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+ 
+// Toggle asignatura en desglose institucional
 document.querySelectorAll('.btn-toggle').forEach(btn => {
-  btn.onclick = (e) => {
-    document.querySelectorAll('.btn-toggle').forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; });
+  btn.onclick = e => {
+    document.querySelectorAll('.btn-toggle').forEach(b => {
+      b.classList.remove('active'); b.style.background = 'transparent';
+    });
     e.target.classList.add('active');
     e.target.style.background = e.target.dataset.asig === 'Lenguaje' ? 'var(--leng)' : 'var(--mate)';
     currentAsigFilter = e.target.dataset.asig;
     update();
   };
 });
-
+ 
 init();
 </script>
-
+ 
 </body>
 </html>
