@@ -107,7 +107,7 @@
 
 <main class="main" id="dashboard" style="display:none;">
   
-  <div class="filter-bar">
+<div class="filter-bar">
     <div class="filter-group" style="flex: 0.5;">
       <span class="filter-label">Año</span>
       <select id="f-agno" multiple placeholder="Todos"></select>
@@ -116,19 +116,19 @@
       <span class="filter-label">Etapa</span>
       <select id="f-etapa" multiple placeholder="Todas..."></select>
     </div>
-       <div class="filter-group" style="flex: 1.5;">
-      <span class="filter-label">Establecimiento (RBD)</span>
-      <select id="f-rbd" multiple placeholder="Buscar por nombre o RBD..."></select>
-    </div>
     <div class="filter-group" style="flex: 0.6;">
       <span class="filter-label">Nivel</span>
       <select id="f-nivel" multiple placeholder="Todos"></select>
     </div>
-    <div class="filter-group" style="flex: 1;">
-      <span class="filter-label">Cursos</span>
-      <select id="f-curso" multiple placeholder="Ej: 6A, 6B..."></select>
+    <div class="filter-group" style="flex: 2.5;">
+      <span class="filter-label">Establecimiento (RBD)</span>
+      <select id="f-rbd" multiple placeholder="Buscar por nombre o RBD..."></select>
     </div>
-    <div class="filter-group" style="flex: 1;">
+    <div class="filter-group" style="flex: 0.5;">
+      <span class="filter-label">Cursos</span>
+      <select id="f-curso" multiple placeholder="Ej: 6A..."></select>
+    </div>
+    <div class="filter-group" style="flex: 1.2;">
       <span class="filter-label">Ejes</span>
       <select id="f-eje" multiple placeholder="Filtrar por ejes..."></select>
     </div>
@@ -137,7 +137,7 @@
       Limpiar
     </button>
   </div>
-
+  
   <div class="kpi-grid">
     <div class="kpi" style="--kpi-c: var(--text)">
       <div class="kpi-label">Promedio General <span id="trend-global"></span></div>
