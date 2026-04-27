@@ -86,6 +86,8 @@
     .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--kpi-c); opacity: 0.5; }
     .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 0.5rem; }
     .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; color: var(--kpi-c); }
+    /* NUEVO: Subtítulo para micro-datos */
+    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; font-family: var(--font); }
 
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
     .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; }
@@ -94,6 +96,14 @@
     .chart-title span { color: var(--text); font-size: 0.8rem; display: block; margin-top: 0.15rem; text-transform: none; font-weight: 600;}
     .chart-wrap { position: relative; flex: 1; min-height: 0; }
     .full-width { grid-column: 1 / -1; }
+
+    /* NUEVO: Controles de Gráficos (Exportar y Estados Vacíos) */
+    .chart-actions { display: flex; gap: 0.5rem; align-items: center; }
+    .btn-export { background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--text-muted); cursor: pointer; padding: 0.3rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+    .btn-export:hover { color: var(--text); border-color: var(--border); background: var(--surface-2); }
+    
+    .empty-overlay { position: absolute; inset: 0; background: var(--surface); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem; border-radius: 8px; z-index: 10; text-align: center; padding: 2rem; border: 1px dashed var(--border); }
+    .empty-icon { font-size: 1.5rem; opacity: 0.5; }
 
     @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
   </style>
@@ -107,7 +117,8 @@
 
 <header class="header">
   <div style="display: flex; align-items: center; gap: 1rem;">
-<img src="logo3.png" alt="Logo Institucional" style="height: 55px; width: auto; object-fit: contain; border-radius: 4px;">    <div>
+    <img src="logo3.png" alt="Logo Institucional" style="height: 55px; width: auto; object-fit: contain; border-radius: 4px;">    
+    <div>
       <div style="font-size: 1rem; font-weight: 800; letter-spacing: -.025em;">Dashboard resultados DIA</div>
       <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">Período 2025 - 2026</div>
     </div>
@@ -118,11 +129,11 @@
 <main class="main" id="dashboard" style="display:none;">
   
   <div class="filter-bar">
-      <div class="filter-group" style="flex: 0.5;">
+    <div class="filter-group" style="flex: 0.5;">
       <span class="filter-label">Año</span>
       <select id="f-agno" multiple placeholder="Todos"></select>
     </div>
-     <div class="filter-group" style="flex: 1.5;">
+    <div class="filter-group" style="flex: 1.5;">
       <span class="filter-label">Establecimiento (RBD)</span>
       <select id="f-rbd" multiple placeholder="Buscar por nombre o RBD..."></select>
     </div>
@@ -130,7 +141,7 @@
       <span class="filter-label">Nivel</span>
       <select id="f-nivel" multiple placeholder="Todos"></select>
     </div>
-      <div class="filter-group" style="flex: 1;">
+    <div class="filter-group" style="flex: 1;">
       <span class="filter-label">Cursos</span>
       <select id="f-curso" multiple placeholder="Ej: 6A, 6B..."></select>
     </div>
@@ -148,18 +159,22 @@
     <div class="kpi" style="--kpi-c: var(--text)">
       <div class="kpi-label">Promedio General</div>
       <div class="kpi-val" id="kpi-global">—</div>
+      <div class="kpi-sub" id="kpi-global-sub">— registros</div>
     </div>
     <div class="kpi" style="--kpi-c: var(--leng)">
       <div class="kpi-label">Promedio Lenguaje</div>
       <div class="kpi-val" id="kpi-leng">—</div>
+      <div class="kpi-sub" id="kpi-leng-sub">— registros</div>
     </div>
     <div class="kpi" style="--kpi-c: var(--mate)">
       <div class="kpi-label">Promedio Matemática</div>
       <div class="kpi-val" id="kpi-mate">—</div>
+      <div class="kpi-sub" id="kpi-mate-sub">— registros</div>
     </div>
     <div class="kpi" style="--kpi-c: var(--purple)">
       <div class="kpi-label">Establecimientos</div>
       <div class="kpi-val" id="kpi-rbd">—</div>
+      <div class="kpi-sub" id="kpi-rbd-sub">Instituciones evaluadas</div>
     </div>
   </div>
 
@@ -167,43 +182,74 @@
     <div class="chart-card">
       <div class="chart-header">
         <div class="chart-title">Evolución General<span>Lenguaje</span></div>
+        <button class="btn-export" onclick="exportChart('leng-evo', 'Evolucion_Lenguaje')" title="Descargar Gráfico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
       </div>
-      <div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div>
+      <div class="chart-wrap">
+        <div class="empty-overlay" id="empty-leng-evo"><span class="empty-icon">📊</span>No hay datos para esta selección</div>
+        <canvas id="canvas-leng-evo"></canvas>
+      </div>
     </div>
     
     <div class="chart-card">
       <div class="chart-header">
         <div class="chart-title">Evolución General<span>Matemática</span></div>
+        <button class="btn-export" onclick="exportChart('mate-evo', 'Evolucion_Matematica')" title="Descargar Gráfico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
       </div>
-      <div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div>
+      <div class="chart-wrap">
+        <div class="empty-overlay" id="empty-mate-evo"><span class="empty-icon">📊</span>No hay datos para esta selección</div>
+        <canvas id="canvas-mate-evo"></canvas>
+      </div>
     </div>
 
     <div class="chart-card">
       <div class="chart-header">
         <div class="chart-title">Rendimiento por Eje<span>Lenguaje</span></div>
+        <button class="btn-export" onclick="exportChart('leng-ejes', 'Ejes_Lenguaje')" title="Descargar Gráfico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
       </div>
-      <div class="chart-wrap"><canvas id="canvas-leng-ejes"></canvas></div>
+      <div class="chart-wrap">
+        <div class="empty-overlay" id="empty-leng-ejes"><span class="empty-icon">📈</span>No hay datos para esta selección</div>
+        <canvas id="canvas-leng-ejes"></canvas>
+      </div>
     </div>
     
     <div class="chart-card">
       <div class="chart-header">
         <div class="chart-title">Rendimiento por Eje<span>Matemática</span></div>
+        <button class="btn-export" onclick="exportChart('mate-ejes', 'Ejes_Matematica')" title="Descargar Gráfico">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
       </div>
-      <div class="chart-wrap"><canvas id="canvas-mate-ejes"></canvas></div>
+      <div class="chart-wrap">
+        <div class="empty-overlay" id="empty-mate-ejes"><span class="empty-icon">📈</span>No hay datos para esta selección</div>
+        <canvas id="canvas-mate-ejes"></canvas>
+      </div>
     </div>
 
     <div class="chart-card full-width">
       <div class="chart-header" style="align-items: center;">
         <div class="chart-title">Desglose Institucional<span>Análisis Comparativo por Curso</span></div>
-        <div style="display: flex; gap: 0.4rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border);">
-          <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lenguaje</button>
-          <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button>
+        
+        <div class="chart-actions">
+          <div style="display: flex; gap: 0.4rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border); margin-right: 1rem;">
+            <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lenguaje</button>
+            <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button>
+          </div>
+          <button class="btn-export" onclick="exportChart('curso-evo', 'Comparativo_Cursos')" title="Descargar Gráfico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
         </div>
       </div>
       <div id="msg-colegio" style="text-align: center; padding: 4rem; color: var(--text-muted); font-size: 0.9rem;">
         Filtra un establecimiento en la barra superior para visualizar el desglose interno de sus cursos.
       </div>
       <div class="chart-wrap" id="wrap-curso-evo" style="display: none;">
+        <div class="empty-overlay" id="empty-curso-evo"><span class="empty-icon">🏫</span>No hay datos para esta selección</div>
         <canvas id="canvas-curso-evo"></canvas>
       </div>
     </div>
@@ -223,7 +269,7 @@ async function init() {
     DATA_RAW = await res.json();
     setupFilters();
     initCharts();
-    update(); // El primer update llenará dinámicamente los filtros en cascada
+    update();
     
     document.getElementById('loading').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
@@ -240,7 +286,7 @@ function setupFilters() {
     maxOptions: 50,
     hideSelected: false,
     closeAfterSelect: false,
-    sortField: [{field: '$order'}], // Obliga a respetar el Orden Natural que le enviaremos
+    sortField: [{field: '$order'}],
     render: { item: function(data, escape) { return `<div>${escape(data.text)}</div>`; } },
     onChange: () => update()
   };
@@ -251,7 +297,6 @@ function setupFilters() {
   ts.eje = new TomSelect('#f-eje', config);
   ts.curso = new TomSelect('#f-curso', config);
 
-  // Solo cargamos manualmente Año y RBD (Filtros Padre que no dependen de nadie)
   const populateTopLevel = (tsInstance, mapData) => {
     const options = mapData
       .map((text, index) => ({ value: index, text: text }))
@@ -280,7 +325,6 @@ function aggregate() {
     evo: { Lenguaje: {}, Matemática: {} },
     ejes: { Lenguaje: {}, Matemática: {} },
     cursos: {},
-    // Memoria para los filtros en Cascada
     validNiveles: new Set(),
     validCursos: new Set(),
     validEjes: new Set()
@@ -289,24 +333,18 @@ function aggregate() {
   for (let i = 0; i < DATA_RAW.rows.length; i++) {
     const r = DATA_RAW.rows[i];
     
-    // 1. Verificamos Filtros Globales (Padres)
     const passAgno = fAgno.length === 0 || fAgno.includes(r[I.AGNO]);
     const passRbd = fRbd.length === 0 || fRbd.includes(r[I.RBD]);
 
     if (!passAgno || !passRbd) continue;
 
-    // 2. Si pasa los filtros Padre, guardamos qué Niveles existen realmente en este colegio
     res.validNiveles.add(r[I.NIVEL]);
-
-    // 3. Verificamos Filtro de Nivel
     const passNivel = fNivel.length === 0 || fNivel.includes(r[I.NIVEL]);
     if (!passNivel) continue;
 
-    // 4. Si pasa hasta el Nivel, guardamos los Cursos y Ejes que existen realmente
     res.validCursos.add(r[I.CURSO]);
     res.validEjes.add(r[I.EJE]);
 
-    // --- De aquí hacia abajo es el cálculo de los gráficos ---
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
     const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
     const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
@@ -327,7 +365,6 @@ function aggregate() {
 
       const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
       if (ejeV && ejeV.trim() !== "") {
-        // El filtro de eje solo afecta al gráfico de ejes
         if (fEje.length === 0 || fEje.includes(r[I.EJE])) {
           if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
           if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
@@ -338,7 +375,6 @@ function aggregate() {
     }
 
     if (fRbd.length > 0 && asigV === currentAsigFilter) {
-      // El filtro de curso solo afecta al gráfico de Cursos
       if (fCurso.length === 0 || fCurso.includes(r[I.CURSO])) {
         const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
         if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
@@ -351,7 +387,6 @@ function aggregate() {
   return res;
 }
 
-// Función que inyecta en los filtros dependientes solo las opciones válidas
 function updateCascadingTS(tsInstance, mapData, validSet, currentItems) {
   tsInstance.clearOptions();
   const options = mapData
@@ -360,10 +395,23 @@ function updateCascadingTS(tsInstance, mapData, validSet, currentItems) {
     .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
   
   options.forEach(opt => tsInstance.addOption(opt));
-  tsInstance.setValue(currentItems, true); // true = actualiza silenciosamente sin recargar
+  tsInstance.setValue(currentItems, true); 
 }
 
 let currentAsigFilter = 'Lenguaje';
+
+// PLUGIN: Pinta fondo oscuro transparente al exportar la imagen
+const exportBackgroundPlugin = {
+  id: 'customCanvasBackgroundColor',
+  beforeDraw: (chart) => {
+    const {ctx} = chart;
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#161b22'; // El color de fondo de las tarjetas
+    ctx.fillRect(0, 0, chart.width, chart.height);
+    ctx.restore();
+  }
+};
 
 function initCharts() {
   const chartOptions = () => ({
@@ -371,7 +419,7 @@ function initCharts() {
     animation: { duration: 400 },
     scales: {
       y: { 
-        beginAtZero: false, grace: '10%', // Permite el "Zoom Dinámico"
+        beginAtZero: false, grace: '10%',
         ticks: { callback: v => { if (v > 1) return '100%'; if (v < 0) return '0%'; return (v * 100).toFixed(0) + '%'; } }, 
         grid: { color: '#21262d', drawBorder: false } 
       },
@@ -381,37 +429,47 @@ function initCharts() {
       legend: { 
         position: 'bottom', 
         labels: { usePointStyle: true, boxWidth: 8, color: '#7d8590', font: { family: 'Archivo', size: 11 } },
-        // Lógica visual para indicar que es un botón clicable
         onHover: function(e) { e.native.target.style.cursor = 'pointer'; },
         onLeave: function(e) { e.native.target.style.cursor = 'default'; }
       },
       tooltip: {
         backgroundColor: '#1c2128', borderColor: '#30363d', borderWidth: 1, padding: 10, cornerRadius: 6,
+        itemSort: (a, b) => b.parsed.y - a.parsed.y, // <-- MEJORA: Tooltips Ordenados de mayor a menor
         callbacks: { label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%` }
       }
     }
   });
 
   ['leng-evo', 'mate-evo', 'leng-ejes', 'mate-ejes', 'curso-evo'].forEach(id => {
-    charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: chartOptions() });
+    charts[id] = new Chart(document.getElementById(`canvas-${id}`), { 
+      type: 'line', 
+      data: { labels: STAGES, datasets: [] }, 
+      options: chartOptions(),
+      plugins: [exportBackgroundPlugin] // <-- MEJORA: Soporte visual para exportación
+    });
   });
 }
 
 function update() {
   const data = aggregate();
   
-  // Actualizamos los filtros hijos dependiendo de lo que se encontró válido
   updateCascadingTS(ts.nivel, DATA_RAW.maps[I.NIVEL], data.validNiveles, ts.nivel.items);
   updateCascadingTS(ts.curso, DATA_RAW.maps[I.CURSO], data.validCursos, ts.curso.items);
   updateCascadingTS(ts.eje, DATA_RAW.maps[I.EJE], data.validEjes, ts.eje.items);
 
   const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
 
+  // Actualizar KPIs Grandes
   document.getElementById('kpi-global').innerText = f(data.kpi.sum, data.kpi.count);
   document.getElementById('kpi-leng').innerText = f(data.kpi.lengSum, data.kpi.lengC);
   document.getElementById('kpi-mate').innerText = f(data.kpi.mateSum, data.kpi.mateC);
   document.getElementById('kpi-rbd').innerText = data.kpi.rbds.size.toLocaleString('es-CL');
-  document.getElementById('total-registros').innerText = `${data.kpi.count.toLocaleString('es-CL')} registros procesados`;
+  document.getElementById('total-registros').innerText = `${data.kpi.count.toLocaleString('es-CL')} registros totales`;
+
+  // MEJORA: Micro-datos en subtítulos
+  document.getElementById('kpi-global-sub').innerText = `${data.kpi.count.toLocaleString('es-CL')} registros evaluados`;
+  document.getElementById('kpi-leng-sub').innerText = `${data.kpi.lengC.toLocaleString('es-CL')} registros evaluados`;
+  document.getElementById('kpi-mate-sub').innerText = `${data.kpi.mateC.toLocaleString('es-CL')} registros evaluados`;
 
   updateLineChart(charts['leng-evo'], data.evo.Lenguaje, true, varColor('--leng'));
   updateLineChart(charts['mate-evo'], data.evo.Matemática, true, varColor('--mate'));
@@ -429,7 +487,6 @@ function update() {
 }
 
 function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
-  // 1. Guardar la Memoria Visual (qué líneas estaban ocultas por clics en la leyenda)
   const hiddenStates = {};
   chart.data.datasets.forEach((ds, i) => {
     const meta = chart.getDatasetMeta(i);
@@ -453,10 +510,22 @@ function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
        colorIdx++;
     }
   });
+
+  // MEJORA: Lógica de Estados Vacíos
+  let hasValidData = false;
+  chart.data.datasets.forEach(ds => {
+    if (ds.data.some(val => val !== null)) hasValidData = true;
+  });
+  
+  const chartId = chart.canvas.id.replace('canvas-', '');
+  const emptyDiv = document.getElementById(`empty-${chartId}`);
+  if (emptyDiv) {
+    emptyDiv.style.display = hasValidData ? 'none' : 'flex';
+  }
+
   chart.update();
 }
 
-// 2. Aplicamos la Memoria Visual a la hora de reconstruir los datos
 function createDataset(label, points, color, isDashed, isHidden) {
   return {
     label: label,
@@ -470,11 +539,21 @@ function createDataset(label, points, color, isDashed, isHidden) {
     pointRadius: isDashed ? 5 : 4,
     pointHoverRadius: isDashed ? 8 : 6,
     tension: 0.38,
-    hidden: isHidden === true // Devuelve la línea a su estado oculto si el usuario la había apagado
+    hidden: isHidden === true
   };
 }
 
 function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+// FUNCIÓN GLOBAL: Exportar Gráficos
+window.exportChart = function(chartId, fileName) {
+  const chartInstance = charts[chartId];
+  if (!chartInstance) return;
+  const link = document.createElement('a');
+  link.href = chartInstance.toBase64Image();
+  link.download = `${fileName}.png`;
+  link.click();
+};
 
 document.querySelectorAll('.btn-toggle').forEach(btn => {
   btn.onclick = (e) => {
