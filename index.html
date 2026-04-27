@@ -224,7 +224,7 @@ async function init() {
     DATA_RAW = await res.json();
     setupFilters();
     initCharts();
-    update();
+    update(); // El primer update llenará dinámicamente los filtros en cascada
     
     document.getElementById('loading').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
@@ -241,8 +241,7 @@ function setupFilters() {
     maxOptions: 50,
     hideSelected: false,
     closeAfterSelect: false,
-    // Le decimos a TomSelect que respete estrictamente el orden en el que le entregamos los datos
-    sortField: [{field: '$order'}], 
+    sortField: [{field: '$order'}], // Obliga a respetar el Orden Natural que le enviaremos
     render: { item: function(data, escape) { return `<div>${escape(data.text)}</div>`; } },
     onChange: () => update()
   };
@@ -253,25 +252,17 @@ function setupFilters() {
   ts.eje = new TomSelect('#f-eje', config);
   ts.curso = new TomSelect('#f-curso', config);
 
-  // Helper para Ordenamiento Natural (Numérico + Alfabético)
-  const populateSorted = (tsInstance, mapData) => {
+  // Solo cargamos manualmente Año y RBD (Filtros Padre que no dependen de nadie)
+  const populateTopLevel = (tsInstance, mapData) => {
     const options = mapData
       .map((text, index) => ({ value: index, text: text }))
       .filter(opt => opt.text && opt.text.trim() !== '')
-      .sort((a, b) => {
-        // localeCompare con 'numeric: true' ordena como un humano (ej: 2A va antes que 10A)
-        return String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' });
-      });
-    
+      .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
     options.forEach(opt => tsInstance.addOption(opt));
   };
 
-  // Inyectamos los mapas ordenados
-  populateSorted(ts.agno, DATA_RAW.maps[I.AGNO]);
-  populateSorted(ts.nivel, DATA_RAW.maps[I.NIVEL]);
-  populateSorted(ts.rbd, DATA_RAW.maps[I.RBD]);
-  populateSorted(ts.eje, DATA_RAW.maps[I.EJE]);
-  populateSorted(ts.curso, DATA_RAW.maps[I.CURSO]);
+  populateTopLevel(ts.agno, DATA_RAW.maps[I.AGNO]);
+  populateTopLevel(ts.rbd, DATA_RAW.maps[I.RBD]);
 
   document.getElementById('btn-clear').onclick = () => {
     Object.values(ts).forEach(t => t.clear());
@@ -289,17 +280,34 @@ function aggregate() {
     kpi: { sum: 0, count: 0, lengSum: 0, lengC: 0, mateSum: 0, mateC: 0, rbds: new Set() },
     evo: { Lenguaje: {}, Matemática: {} },
     ejes: { Lenguaje: {}, Matemática: {} },
-    cursos: {}
+    cursos: {},
+    // Memoria para los filtros en Cascada
+    validNiveles: new Set(),
+    validCursos: new Set(),
+    validEjes: new Set()
   };
 
   for (let i = 0; i < DATA_RAW.rows.length; i++) {
     const r = DATA_RAW.rows[i];
     
-    // Filtros que afectan TODO el dashboard
-    if (fAgno.length && !fAgno.includes(r[I.AGNO])) continue;
-    if (fNivel.length && !fNivel.includes(r[I.NIVEL])) continue;
-    if (fRbd.length && !fRbd.includes(r[I.RBD])) continue;
+    // 1. Verificamos Filtros Globales (Padres)
+    const passAgno = fAgno.length === 0 || fAgno.includes(r[I.AGNO]);
+    const passRbd = fRbd.length === 0 || fRbd.includes(r[I.RBD]);
 
+    if (!passAgno || !passRbd) continue;
+
+    // 2. Si pasa los filtros Padre, guardamos qué Niveles existen realmente en este colegio
+    res.validNiveles.add(r[I.NIVEL]);
+
+    // 3. Verificamos Filtro de Nivel
+    const passNivel = fNivel.length === 0 || fNivel.includes(r[I.NIVEL]);
+    if (!passNivel) continue;
+
+    // 4. Si pasa hasta el Nivel, guardamos los Cursos y Ejes que existen realmente
+    res.validCursos.add(r[I.CURSO]);
+    res.validEjes.add(r[I.EJE]);
+
+    // --- De aquí hacia abajo es el cálculo de los gráficos ---
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
     const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
     const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
@@ -320,7 +328,7 @@ function aggregate() {
 
       const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
       if (ejeV && ejeV.trim() !== "") {
-        // Filtro específico: Aplica solo a la vista de Ejes
+        // El filtro de eje solo afecta al gráfico de ejes
         if (fEje.length === 0 || fEje.includes(r[I.EJE])) {
           if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
           if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
@@ -331,7 +339,7 @@ function aggregate() {
     }
 
     if (fRbd.length > 0 && asigV === currentAsigFilter) {
-      // Filtro específico: Aplica solo a la vista de Cursos
+      // El filtro de curso solo afecta al gráfico de Cursos
       if (fCurso.length === 0 || fCurso.includes(r[I.CURSO])) {
         const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
         if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
@@ -344,6 +352,18 @@ function aggregate() {
   return res;
 }
 
+// Función que inyecta en los filtros dependientes solo las opciones válidas
+function updateCascadingTS(tsInstance, mapData, validSet, currentItems) {
+  tsInstance.clearOptions();
+  const options = mapData
+    .map((text, index) => ({ value: index, text: text }))
+    .filter(opt => validSet.has(opt.value) && opt.text && opt.text.trim() !== '')
+    .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
+  
+  options.forEach(opt => tsInstance.addOption(opt));
+  tsInstance.setValue(currentItems, true); // true = actualiza silenciosamente sin recargar
+}
+
 let currentAsigFilter = 'Lenguaje';
 
 function initCharts() {
@@ -352,23 +372,20 @@ function initCharts() {
     animation: { duration: 400 },
     scales: {
       y: { 
-        // 1. ELIMINAMOS min: 0 y max: 1 para liberar el zoom
-        beginAtZero: false, // 2. Permitimos que el gráfico empiece en 30% en vez de 0%
-        grace: '10%',       // 3. Añadimos margen para que los puntos no toquen el techo o suelo
-        ticks: { 
-          callback: v => {
-            // 4. Aseguramos que el "grace" no nos genere etiquetas raras sobre 100% o bajo 0%
-            if (v > 1) return '100%';
-            if (v < 0) return '0%';
-            return (v * 100).toFixed(0) + '%';
-          } 
-        }, 
+        beginAtZero: false, grace: '10%', // Permite el "Zoom Dinámico"
+        ticks: { callback: v => { if (v > 1) return '100%'; if (v < 0) return '0%'; return (v * 100).toFixed(0) + '%'; } }, 
         grid: { color: '#21262d', drawBorder: false } 
       },
       x: { grid: { display: false } }
     },
     plugins: {
-      legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, color: '#7d8590', font: { family: 'Archivo', size: 11 } } },
+      legend: { 
+        position: 'bottom', 
+        labels: { usePointStyle: true, boxWidth: 8, color: '#7d8590', font: { family: 'Archivo', size: 11 } },
+        // Lógica visual para indicar que es un botón clicable
+        onHover: function(e) { e.native.target.style.cursor = 'pointer'; },
+        onLeave: function(e) { e.native.target.style.cursor = 'default'; }
+      },
       tooltip: {
         backgroundColor: '#1c2128', borderColor: '#30363d', borderWidth: 1, padding: 10, cornerRadius: 6,
         callbacks: { label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%` }
@@ -383,6 +400,12 @@ function initCharts() {
 
 function update() {
   const data = aggregate();
+  
+  // Actualizamos los filtros hijos dependiendo de lo que se encontró válido
+  updateCascadingTS(ts.nivel, DATA_RAW.maps[I.NIVEL], data.validNiveles, ts.nivel.items);
+  updateCascadingTS(ts.curso, DATA_RAW.maps[I.CURSO], data.validCursos, ts.curso.items);
+  updateCascadingTS(ts.eje, DATA_RAW.maps[I.EJE], data.validEjes, ts.eje.items);
+
   const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
 
   document.getElementById('kpi-global').innerText = f(data.kpi.sum, data.kpi.count);
@@ -407,6 +430,13 @@ function update() {
 }
 
 function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
+  // 1. Guardar la Memoria Visual (qué líneas estaban ocultas por clics en la leyenda)
+  const hiddenStates = {};
+  chart.data.datasets.forEach((ds, i) => {
+    const meta = chart.getDatasetMeta(i);
+    hiddenStates[ds.label] = meta.hidden === true || (meta.hidden === null && ds.hidden);
+  });
+
   chart.data.datasets = [];
   let colorIdx = 0;
   
@@ -415,10 +445,11 @@ function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
     const groupColor = isSingleColor ? forcedColor : COLORS[colorIdx % COLORS.length];
     
     if (isEvo) {
-       chart.data.datasets.push(createDataset(groupKey, dataObj[groupKey], groupColor, groupKey === '2026'));
+       chart.data.datasets.push(createDataset(groupKey, dataObj[groupKey], groupColor, groupKey === '2026', hiddenStates[groupKey]));
     } else {
        Object.keys(dataObj[groupKey]).sort().forEach(agno => {
-         chart.data.datasets.push(createDataset(`${groupKey} (${agno})`, dataObj[groupKey][agno], groupColor, agno === '2026'));
+         const label = `${groupKey} (${agno})`;
+         chart.data.datasets.push(createDataset(label, dataObj[groupKey][agno], groupColor, agno === '2026', hiddenStates[label]));
        });
        colorIdx++;
     }
@@ -426,7 +457,8 @@ function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
   chart.update();
 }
 
-function createDataset(label, points, color, isDashed) {
+// 2. Aplicamos la Memoria Visual a la hora de reconstruir los datos
+function createDataset(label, points, color, isDashed, isHidden) {
   return {
     label: label,
     data: points.map(d => d[1] > 0 ? d[0] / d[1] : null),
@@ -435,11 +467,11 @@ function createDataset(label, points, color, isDashed) {
     backgroundColor: color + '22',
     fill: !isDashed && label.length <= 4,
     borderWidth: 2.5,
-    // Aquí implementamos la forma específica para el año
     pointStyle: isDashed ? 'triangle' : 'circle',
     pointRadius: isDashed ? 5 : 4,
     pointHoverRadius: isDashed ? 8 : 6,
-    tension: 0.38
+    tension: 0.38,
+    hidden: isHidden === true // Devuelve la línea a su estado oculto si el usuario la había apagado
   };
 }
 
