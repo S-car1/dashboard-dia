@@ -113,7 +113,7 @@
       <img src="logo3.png" alt="Logo Institucional" style="height: 55px; width: auto; object-fit: contain; border-radius: 4px;">    
       <div>
         <div style="font-size: 1rem; font-weight: 800; letter-spacing: -.025em;">Dashboard resultados DIA</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">Período 2025 - 2026</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">SLEP Del Pino</div>
       </div>
     </div>
   </header>
@@ -283,6 +283,7 @@ async function init() {
 }
 
 let ts = {};
+// REESCRITURA LIMPIA: Configuración estandarizada para todos los filtros
 function setupFilters() {
   const config = {
     plugins: ['remove_button', 'checkbox_options'],
@@ -294,6 +295,7 @@ function setupFilters() {
     onChange: () => update()
   };
 
+  // Inicializar todas las instancias
   ts.agno = new TomSelect('#f-agno', config);
   ts.etapa = new TomSelect('#f-etapa', config); 
   ts.nivel = new TomSelect('#f-nivel', config);
@@ -301,10 +303,12 @@ function setupFilters() {
   ts.eje = new TomSelect('#f-eje', config);
   ts.curso = new TomSelect('#f-curso', config);
 
-  // Aseguramos que los valores internos sean Strings para evitar bugs con TomSelect
+  // REESCRITURA LIMPIA: Estandarización estricta de valores a TEXTO (String)
+  // Esto garantiza que TomSelect reconozca la selección y dibuje los tags correctamente.
   const populateTopLevel = (tsInstance, mapData) => {
+    tsInstance.clearOptions();
     const options = mapData
-      .map((text, index) => ({ value: String(index), text: text }))
+      .map((text, index) => ({ value: String(index), text: String(text) })) // Forzar String en valor y texto
       .filter(opt => opt.text && opt.text.trim() !== '')
       .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
     options.forEach(opt => tsInstance.addOption(opt));
@@ -320,12 +324,22 @@ function setupFilters() {
 }
 
 function aggregate() {
-  const fAgno = ts.agno.items.map(Number);
-  const fEtapa = ts.etapa.items.map(Number); 
-  const fNivel = ts.nivel.items.map(Number);
-  const fRbd = ts.rbd.items.map(Number);
-  const fEje = ts.eje.items.map(Number);
-  const fCurso = ts.curso.items.map(Number);
+  // Extraer ítems como Texto (String) de TomSelect
+  const fAgnoRaw = ts.agno.items;
+  const fEtapaRaw = ts.etapa.items; 
+  const fNivelRaw = ts.nivel.items;
+  const fRbdRaw = ts.rbd.items;
+  const fEjeRaw = ts.eje.items;
+  const fCursoRaw = ts.curso.items;
+
+  // REESCRITURA LIMPIA: Convertir a Número SOLO para comparar contra DATA_RAW.rows
+  // Esto mantiene la lógica de datos correcta y la interfaz visual funcionando.
+  const fAgno = fAgnoRaw.map(Number);
+  const fEtapa = fEtapaRaw.map(Number);
+  const fNivel = fNivelRaw.map(Number);
+  const fRbd = fRbdRaw.map(Number);
+  const fEje = fEjeRaw.map(Number);
+  const fCurso = fCursoRaw.map(Number);
 
   const res = {
     kpi: { sum: 0, count: 0, lengSum: 0, lengC: 0, mateSum: 0, mateC: 0, rbds: new Set() },
@@ -340,29 +354,21 @@ function aggregate() {
   for (let i = 0; i < DATA_RAW.rows.length; i++) {
     const r = DATA_RAW.rows[i];
     
-    // 1. Filtros Globales Base
-    const passAgno = fAgno.length === 0 || fAgno.includes(r[I.AGNO]);
-    const passEtapa = fEtapa.length === 0 || fEtapa.includes(r[I.ETAPA]);
-    const passRbd = fRbd.length === 0 || fRbd.includes(r[I.RBD]);
+    // Comparaciones numéricas puras contra la base de datos
+    if (fAgno.length > 0 && !fAgno.includes(r[I.AGNO])) continue;
+    if (fEtapa.length > 0 && !fEtapa.includes(r[I.ETAPA])) continue;
+    if (fRbd.length > 0 && !fRbd.includes(r[I.RBD])) continue;
 
-    if (!passAgno || !passEtapa || !passRbd) continue;
-
-    // 2. Filtro de Nivel Integrado
     res.validNiveles.add(r[I.NIVEL]);
-    const passNivel = fNivel.length === 0 || fNivel.includes(r[I.NIVEL]);
-    if (!passNivel) continue;
+    if (fNivel.length > 0 && !fNivel.includes(r[I.NIVEL])) continue;
 
-    // 3. Filtro de Curso (Ahora es 100% Global)
     res.validCursos.add(r[I.CURSO]);
-    const passCurso = fCurso.length === 0 || fCurso.includes(r[I.CURSO]);
-    if (!passCurso) continue;
+    if (fCurso.length > 0 && !fCurso.includes(r[I.CURSO])) continue;
 
-    // 4. Filtro de Eje (Ahora es 100% Global)
     res.validEjes.add(r[I.EJE]);
-    const passEje = fEje.length === 0 || fEje.includes(r[I.EJE]);
-    if (!passEje) continue;
+    if (fEje.length > 0 && !fEje.includes(r[I.EJE])) continue;
 
-    // --- CÁLCULOS PRINCIPALES ---
+    // --- CÁLCULOS ---
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
     const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
     const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
@@ -371,13 +377,13 @@ function aggregate() {
     
     if (etapaIdx === -1) continue;
 
-    // Llenar KPIs (Como el filtro es global, esto ya respeta los cursos y ejes elegidos)
+    // KPIs
     res.kpi.sum += p; res.kpi.count++;
     res.kpi.rbds.add(r[I.RBD]);
     if (asigV === 'Lenguaje') { res.kpi.lengSum += p; res.kpi.lengC++; }
     if (asigV === 'Matemática') { res.kpi.mateSum += p; res.kpi.mateC++; }
 
-    // Llenar Gráficos
+    // Gráficos
     if (asigV === 'Lenguaje' || asigV === 'Matemática') {
       if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
       res.evo[asigV][agnoV][etapaIdx][0] += p;
@@ -403,14 +409,16 @@ function aggregate() {
   return res;
 }
 
+// REESCRITURA LIMPIA: Estandarización de cascada a Texto (String)
 function updateCascadingTS(tsInstance, mapData, validSet, currentItems) {
   tsInstance.clearOptions();
   const options = mapData
-    .map((text, index) => ({ value: String(index), text: text, idx: index }))
+    .map((text, index) => ({ value: String(index), text: String(text), idx: index })) // Forzar String
     .filter(opt => validSet.has(opt.idx) && opt.text && opt.text.trim() !== '')
     .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
   
   options.forEach(opt => tsInstance.addOption({value: opt.value, text: opt.text}));
+  // currentItems ya son strings provenientes de ts.items, pasarlos directamente
   tsInstance.setValue(currentItems, true); 
 }
 
