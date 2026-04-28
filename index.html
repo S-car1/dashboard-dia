@@ -263,10 +263,9 @@ async function init() {
 }
 
 function setupFiltersStable() {
-  // 1. ORDEN ESTRICTO SOLO PARA ETAPA Y NIVEL
+  // 1. ORDEN ESTRICTO SOLO PARA ETAPA
   const customOrder = {
-    etapa: ['Diagnóstico', 'Intermedio', 'Cierre'],
-    nivel: ['1', '2', '3', '4', '5', '6', '7', '8', 'I', 'II']
+    etapa: ['Diagnóstico', 'Intermedio', 'Cierre']
   };
 
   ['agno', 'etapa', 'rbd', 'nivel', 'curso', 'eje'].forEach(k => {
@@ -275,11 +274,14 @@ function setupFiltersStable() {
     let sortRules = [{field: 'text', direction: 'asc'}]; 
 
     if (customOrder[k]) {
-      // Si es Etapa o Nivel, usa el arreglo manual de arriba
+      // Si es Etapa, usa el arreglo manual de arriba
       sortRules = [{field: 'custom_index', direction: 'asc'}];
-    } else if (k === 'rbd') {
-      // Para colegios, ordena numéricamente por el RBD que está al inicio
-      sortRules = [{field: 'num_index', direction: 'asc'}];
+    } else if (k === 'rbd' || k === 'nivel') {
+      // Colegios y Niveles: primero por número inicial, luego alfabético para desempatar (Ej: I° Medio, II° Medio)
+      sortRules = [
+        {field: 'num_index', direction: 'asc'},
+        {field: 'text', direction: 'asc'}
+      ];
     }
 
     const config = {
@@ -301,7 +303,7 @@ function setupFiltersStable() {
         if (customOrder[k]) {
           let pos = customOrder[k].indexOf(text);
           itemData.custom_index = pos !== -1 ? pos : 999; 
-        } else if (k === 'rbd') {
+        } else if (k === 'rbd' || k === 'nivel') {
           let match = text.match(/^\d+/);
           itemData.num_index = match ? parseInt(match[0], 10) : 999999;
         }
@@ -316,7 +318,6 @@ function setupFiltersStable() {
     update();
   };
 }
-
 function renderActiveFiltersTray() {
   const tray = document.getElementById('active-filters-tray');
   tray.innerHTML = ''; 
