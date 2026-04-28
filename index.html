@@ -15,88 +15,102 @@
 
   <style>
     :root {
-      --bg:         #0d1117;
-      --surface:    #161b22;
-      --surface-2:  #21262d;
-      --border:     #30363d;
-      --border-2:   #3d444d;
-      --text:       #e6edf3;
-      --text-muted: #7d8590;
-      --leng:       #38bdf8;
-      --mate:       #fb923c;
-      --total:      #34d399;
-      --purple:     #a78bfa;
-      --r:          12px;
-      --font:       'Archivo', sans-serif;
-      --mono:       'JetBrains Mono', monospace;
+      --bg:         #0d1117; --surface:    #161b22; --surface-2:  #21262d;
+      --border:     #30363d; --border-2:   #3d444d; --text:       #e6edf3;
+      --text-muted: #7d8590; --leng:       #38bdf8; --mate:       #fb923c;
+      --total:      #34d399; --purple:     #a78bfa; --red:        #f87171; --r: 12px;
+      --font:       'Archivo', sans-serif; --mono:       'JetBrains Mono', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; }
 
-    /* Bloque Sticky Superior */
     .sticky-top-section {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      padding-bottom: 1rem;
+      position: sticky; top: 0; z-index: 1000;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); padding-bottom: 1rem;
     }
+    
+    .header { padding: 1rem 2rem 0.5rem 2rem; display: block; }
+    .header::after { content: ""; display: table; clear: both; }
+    .header-info { float: left; display: flex; align-items: center; gap: 1rem; margin-right: 2rem; margin-bottom: 0.5rem; }
 
-    /* Layout */
-    .header { padding: 1rem 2rem 0.5rem 2rem; display: flex; align-items: center; justify-content: space-between; }
     .main { max-width: 1560px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
-    #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+    
+    #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
     .loader { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--leng); border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Filtros */
-    .filter-bar { padding: 0.5rem 2rem 0 2rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
-    .filter-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 150px; }
-    .filter-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+    .filter-bar { 
+      padding: 0.5rem 2rem 0 2rem; display: flex; flex-wrap: wrap; 
+      gap: 1.5rem; align-items: center; clear: both; 
+    }
+    .filter-group { position: relative; }
     
-    .btn-clear { background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-family: var(--font); font-size: 0.84rem; padding: 0.42rem 0.9rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 0.35rem; height: 38px; }
-    .btn-clear:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); }
+    .filter-group::before {
+      content: attr(data-label);
+      position: absolute; left: 0; top: 8px;
+      font-size: 0.85rem; font-weight: 800; color: var(--text-muted);
+      pointer-events: none; transition: color 0.2s; z-index: 10; letter-spacing: 0.05em;
+    }
+    .filter-group:hover::before { color: var(--text); }
+    .filter-group:focus-within::before { opacity: 0; }
 
-    /* TomSelect CSS */
-    .ts-wrapper.multi .ts-control { background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 6px !important; color: var(--text) !important; font-family: var(--font); font-size: 0.84rem; padding: 0.3rem 0.6rem !important; min-height: 38px; box-shadow: none !important; cursor: text; transition: border-color 0.15s; }
-    .ts-wrapper.multi.focus .ts-control { border-color: var(--border-2) !important; }
-    .ts-control input { color: var(--text) !important; font-family: var(--font); }
-    .ts-wrapper.multi .ts-control > div.item { background: rgba(56,189,248,0.12) !important; border: 1px solid rgba(56,189,248,0.3) !important; color: var(--text) !important; border-radius: 4px; padding: 2px 6px !important; font-size: 0.75rem; margin: 2px 4px 2px 0 !important; }
-    .ts-wrapper.multi .ts-control > div.item .remove { border-left-color: rgba(56,189,248,0.3) !important; color: var(--leng) !important; }
-    .ts-wrapper.multi .ts-control > div.item.active { background: rgba(56,189,248,0.25) !important; border-color: var(--leng) !important; }
-    .ts-dropdown { background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; color: var(--text) !important; padding: 4px 0 !important; z-index: 2000; }
-    .ts-dropdown .option { padding: 8px 12px !important; font-size: 0.84rem; cursor: pointer; }
+    .ts-wrapper.multi .ts-control { 
+      background: transparent !important; border: none !important; 
+      border-bottom: 1px solid transparent !important; border-radius: 0 !important; 
+      padding: 6px 0 !important; height: 34px !important; box-shadow: none !important; 
+      cursor: pointer !important; overflow: hidden; 
+    }
+    .ts-wrapper.multi.focus .ts-control { border-bottom: 1px solid var(--leng) !important; }
+    .ts-wrapper.multi .ts-control > div.item { display: none !important; }
+    .ts-control input { color: var(--text) !important; font-size: 0.85rem; font-family: var(--font); }
+    .ts-wrapper.multi:not(.focus) .ts-control input::placeholder { color: transparent !important; }
+
+    .ts-dropdown { background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; color: var(--text) !important; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; margin-top: 4px; }
     .ts-dropdown .active { background: rgba(56,189,248,0.1) !important; color: var(--text) !important; }
-    .ts-dropdown .option input[type="checkbox"] { margin-right: 10px; accent-color: var(--leng); cursor: pointer; }
 
-    /* KPIs */
+    .btn-clear-text { 
+      background: transparent; border: none; color: var(--text-muted); 
+      font-family: var(--font); font-size: 0.8rem; font-weight: 800; 
+      cursor: pointer; padding: 6px 0; transition: color 0.2s; 
+      text-transform: uppercase; margin-left: auto;
+    }
+    .btn-clear-text:hover { color: var(--red); }
+
+    /* Bandeja de Filtros Activos */
+    .active-filters-tray { display: block; padding-top: 0.4rem; }
+    .filter-group-tag { display: inline-flex; align-items: center; margin: 0 0.5rem 0.5rem 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .filter-group-label { padding: 4px 8px; font-size: 0.65rem; font-weight: 800; color: var(--leng); background: rgba(56,189,248,0.05); border-right: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+    .filter-group-label:hover { background: var(--red); color: white; }
+    .filter-value-tag { padding: 4px 10px; font-size: 0.75rem; color: var(--text); cursor: pointer; transition: 0.2s; display: flex; align-items: center; border-right: 1px solid var(--border); }
+    .filter-value-tag:last-child { border-right: none; }
+    .filter-value-tag:hover { background: rgba(248,113,113,0.15); color: var(--red); }
+
+    /* KPIs y Gráficos */
     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
     .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; overflow: hidden; }
     .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--kpi-c); opacity: 0.5; }
-    .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
-    .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; line-height: 1; color: var(--kpi-c); }
-    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; font-family: var(--font); }
+    .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; color: var(--kpi-c); }
+    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; }
 
-    /* Gráficos */
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; }
-    .chart-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.1rem; flex-shrink: 0; }
-    .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
-    .chart-title span { color: var(--text); font-size: 0.8rem; display: block; margin-top: 0.15rem; text-transform: none; font-weight: 600;}
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; position: relative; }
+    .chart-header { display: flex; justify-content: space-between; margin-bottom: 1.1rem; }
+    .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .chart-title span { color: var(--text); font-size: 0.85rem; display: block; margin-top: 0.15rem; text-transform: none; }
     .chart-wrap { position: relative; flex: 1; min-height: 0; }
     .full-width { grid-column: 1 / -1; }
 
-    /* Controles y Estados Vacíos */
-    .chart-actions { display: flex; gap: 0.5rem; align-items: center; }
-    .btn-export { background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--text-muted); cursor: pointer; padding: 0.3rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-    .btn-export:hover { color: var(--text); border-color: var(--border); background: var(--surface-2); }
+    .btn-export { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 0.3rem; }
+    .btn-export:hover { color: var(--text); }
+    .empty-overlay { position: absolute; inset: 0; background: var(--surface); display: none; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); border-radius: 8px; border: 1px dashed var(--border); z-index: 10;}
     
-    .empty-overlay { position: absolute; inset: 0; background: var(--surface); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem; border-radius: 8px; z-index: 10; text-align: center; padding: 2rem; border: 1px dashed var(--border); }
-    .empty-icon { font-size: 1.5rem; opacity: 0.5; }
-    
-    .empty-state-premium { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem; text-align: center; background: var(--surface-2); border-radius: 8px; border: 1px dashed var(--border); margin-top: 1rem; }
+    .empty-state-premium { 
+      display: flex; flex-direction: column; align-items: center; justify-content: center; 
+      padding: 4rem; text-align: center; background: var(--surface-2); border-radius: 8px; 
+      border: 1px dashed var(--border);
+    }
 
     @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
   </style>
@@ -105,161 +119,83 @@
 
 <div id="loading">
   <div class="loader"></div>
-  <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); letter-spacing: 0.04em;">Cargando datos DIA&hellip;</p>
+  <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">Cargando Sistema DIA...</p>
 </div>
 
 <div class="sticky-top-section">
   <header class="header">
-    <div style="display: flex; align-items: center; gap: 1rem;">
-      <img src="logo3.png" alt="Logo Institucional" style="height: 55px; width: auto; object-fit: contain; border-radius: 4px;">    
+    <div class="header-info">
+      <img src="logo3.png" alt="Logo" style="height: 55px; width: auto; object-fit: contain;">    
       <div>
-        <div style="font-size: 1rem; font-weight: 800; letter-spacing: -.025em;">Dashboard resultados DIA</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem;">SLEP Del Pino</div>
+        <div style="font-size: 1rem; font-weight: 800;">Dashboard resultados DIA</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">SLEP Del Pino</div>
       </div>
     </div>
+    <div id="active-filters-tray" class="active-filters-tray" style="display: none;"></div>
   </header>
 
   <div class="filter-bar">
-    <div class="filter-group" style="flex: 0.5;">
-      <span class="filter-label">Año</span>
-      <select id="f-agno" multiple placeholder="Todos"></select>
-    </div>
-    <div class="filter-group" style="flex: 0.7;">
-      <span class="filter-label">Etapa</span>
-      <select id="f-etapa" multiple placeholder="Todas"></select>
-    </div>
-    <div class="filter-group" style="flex: 0.6;">
-      <span class="filter-label">Nivel</span>
-      <select id="f-nivel" multiple placeholder="Todos"></select>
-    </div>
-    <div class="filter-group" style="flex: 2.5;">
-      <span class="filter-label">Establecimiento (RBD)</span>
-      <select id="f-rbd" multiple placeholder="Buscar..."></select>
-    </div>
-    <div class="filter-group" style="flex: 0.5;">
-      <span class="filter-label">Curso</span>
-      <select id="f-curso" multiple placeholder="Ej: 1C, 1B..."></select>
-    </div>
-    <div class="filter-group" style="flex: 1.2;">
-      <span class="filter-label">Ejes</span>
-      <select id="f-eje" multiple placeholder="Todos"></select>
-    </div>
-    <button class="btn-clear" id="btn-clear">
-      <svg width="12" height="12" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Limpiar
-    </button>
+    <div class="filter-group" style="flex: 0.5;" data-label="AÑO ▾"><select id="f-agno" multiple placeholder="Buscar año..."></select></div>
+    <div class="filter-group" style="flex: 0.7;" data-label="ETAPA ▾"><select id="f-etapa" multiple placeholder="Buscar etapa..."></select></div>
+    <div class="filter-group" style="flex: 0.6;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Buscar nivel..."></select></div>
+    <div class="filter-group" style="flex: 2.5;" data-label="COLEGIO ▾"><select id="f-rbd" multiple placeholder="Buscar colegio..."></select></div>
+    <div class="filter-group" style="flex: 0.5;" data-label="CURSO ▾"><select id="f-curso" multiple placeholder="Buscar curso..."></select></div>
+    <div class="filter-group" style="flex: 1.5;" data-label="EJES ▾"><select id="f-eje" multiple placeholder="Buscar eje..."></select></div>
+    <button class="btn-clear-text" id="btn-clear">Limpiar Filtros</button>
   </div>
 </div>
 
 <main class="main" id="dashboard" style="display:none;">
-  
   <div class="kpi-grid">
-    <div class="kpi" style="--kpi-c: var(--text)">
-      <div class="kpi-label">Promedio General</div>
-      <div class="kpi-val" id="kpi-global">—</div>
-      <div class="kpi-sub" id="kpi-global-sub">— registros</div>
-    </div>
-    <div class="kpi" style="--kpi-c: var(--leng)">
-      <div class="kpi-label">Promedio Lenguaje</div>
-      <div class="kpi-val" id="kpi-leng">—</div>
-      <div class="kpi-sub" id="kpi-leng-sub">— registros</div>
-    </div>
-    <div class="kpi" style="--kpi-c: var(--mate)">
-      <div class="kpi-label">Promedio Matemática</div>
-      <div class="kpi-val" id="kpi-mate">—</div>
-      <div class="kpi-sub" id="kpi-mate-sub">— registros</div>
-    </div>
-    <div class="kpi" style="--kpi-c: var(--purple)">
-      <div class="kpi-label">Evaluaciones</div>
-      <div class="kpi-val" id="kpi-eval">—</div>
-      <div class="kpi-sub" id="kpi-eval-sub">Establecimientos filtrados</div>
-    </div>
+    <div class="kpi" style="--kpi-c: var(--text)"><div class="kpi-label">Promedio General</div><div class="kpi-val" id="kpi-global">—</div><div class="kpi-sub">De todos los establecimientos</div></div>
+    <div class="kpi" style="--kpi-c: var(--leng)"><div class="kpi-label">Lectura</div><div class="kpi-val" id="kpi-leng">—</div><div class="kpi-sub">Promedio asignatura</div></div>
+    <div class="kpi" style="--kpi-c: var(--mate)"><div class="kpi-label">Matemática</div><div class="kpi-val" id="kpi-mate">—</div><div class="kpi-sub">Promedio asignatura</div></div>
+    <div class="kpi" style="--kpi-c: var(--purple)"><div class="kpi-label">Evaluaciones</div><div class="kpi-val" id="kpi-eval">—</div><div class="kpi-sub" id="kpi-eval-sub">Casos procesados</div></div>
   </div>
 
   <div class="charts-grid">
-    <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">Evolución General<span>Lenguaje</span></div>
-        <button class="btn-export" onclick="exportChart('leng-evo', 'Evolucion_Lenguaje')" title="Descargar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </button>
-      </div>
-      <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-leng-evo"><span class="empty-icon">📊</span>No hay datos</div>
-        <canvas id="canvas-leng-evo"></canvas>
-      </div>
-    </div>
-    
-    <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">Evolución General<span>Matemática</span></div>
-        <button class="btn-export" onclick="exportChart('mate-evo', 'Evolucion_Matematica')" title="Descargar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </button>
-      </div>
-      <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-mate-evo"><span class="empty-icon">📊</span>No hay datos</div>
-        <canvas id="canvas-mate-evo"></canvas>
-      </div>
+    <div class="chart-card"><div class="chart-header"><div class="chart-title">Evolución<span>Lectura</span></div></div><div class="chart-wrap"><div class="empty-overlay" id="empty-leng-evo">Sin datos</div><canvas id="canvas-leng-evo"></canvas></div></div>
+    <div class="chart-card"><div class="chart-header"><div class="chart-title">Evolución<span>Matemática</span></div></div><div class="chart-wrap"><div class="empty-overlay" id="empty-mate-evo">Sin datos</div><canvas id="canvas-mate-evo"></canvas></div></div>
+    <div class="chart-card"><div class="chart-header"><div class="chart-title">Ejes Temáticos<span>Lectura</span></div></div><div class="chart-wrap"><div class="empty-overlay" id="empty-leng-ejes">Sin datos</div><canvas id="canvas-leng-ejes"></canvas></div></div>
+    <div class="chart-card"><div class="chart-header"><div class="chart-title">Ejes Temáticos<span>Matemática</span></div></div><div class="chart-wrap"><div class="empty-overlay" id="empty-mate-ejes">Sin datos</div><canvas id="canvas-mate-ejes"></canvas></div></div>
+
+    <div class="full-width" id="msg-colegio" class="empty-state-premium" style="grid-column: 1 / -1;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; color: var(--leng);">
+        <path d="M3 21h18"></path><path d="M9 8h1"></path><path d="M9 12h1"></path><path d="M9 16h1"></path><path d="M14 8h1"></path><path d="M14 12h1"></path><path d="M14 16h1"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
+      </svg>
+      <h3 style="color: var(--text); font-size: 1.1rem; margin-bottom: 0.25rem;">Selecciona un Establecimiento</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 400px;">Filtra uno o más RBD en la barra superior para activar el desglose por cursos y el ranking comparativo.</p>
     </div>
 
-    <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">Trayectoria por Eje<span>Lenguaje</span></div>
-        <button class="btn-export" onclick="exportChart('leng-ejes', 'Ejes_Lenguaje')" title="Descargar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </button>
-      </div>
-      <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-leng-ejes"><span class="empty-icon">📈</span>No hay datos</div>
-        <canvas id="canvas-leng-ejes"></canvas>
-      </div>
-    </div>
-    
-    <div class="chart-card">
-      <div class="chart-header">
-        <div class="chart-title">Trayectoria por Eje<span>Matemática</span></div>
-        <button class="btn-export" onclick="exportChart('mate-ejes', 'Ejes_Matematica')" title="Descargar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        </button>
-      </div>
-      <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-mate-ejes"><span class="empty-icon">📈</span>No hay datos</div>
-        <canvas id="canvas-mate-ejes"></canvas>
-      </div>
-    </div>
-
-    <div class="chart-card full-width">
+    <div class="chart-card full-width" id="card-curso-evo" style="display: none;">
       <div class="chart-header" style="align-items: center;">
-        <div class="chart-title">Desglose Institucional<span>Análisis Comparativo por Curso</span></div>
-        <div class="chart-actions">
-          <div style="display: flex; gap: 0.4rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border); margin-right: 1rem;">
-            <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lenguaje</button>
-            <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button>
-          </div>
-          <button class="btn-export" onclick="exportChart('curso-evo', 'Comparativo_Cursos')" title="Descargar">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
+        <div class="chart-title">Análisis Comparativo por Curso</div>
+        <div style="display: flex; gap: 0.5rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px;">
+          <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lectura</button>
+          <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button>
         </div>
       </div>
-      <div id="msg-colegio" class="empty-state-premium">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; color: var(--leng);">
-          <path d="M3 21h18"></path><path d="M9 8h1"></path><path d="M9 12h1"></path><path d="M9 16h1"></path><path d="M14 8h1"></path><path d="M14 12h1"></path><path d="M14 16h1"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
-        </svg>
-        <h3 style="color: var(--text); font-size: 1.1rem; margin-bottom: 0.25rem;">Selecciona un Establecimiento</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 400px;">Filtra un RBD en la barra superior para activar el análisis interno de sus cursos.</p>
-      </div>
-      <div class="chart-wrap" id="wrap-curso-evo" style="display: none;">
-        <div class="empty-overlay" id="empty-curso-evo"><span class="empty-icon">🏫</span>No hay datos</div>
+      <div class="chart-wrap" style="min-height: 300px;">
+        <div class="empty-overlay" id="empty-curso-evo">Sin datos para la selección actual</div>
         <canvas id="canvas-curso-evo"></canvas>
       </div>
     </div>
+
+    <div class="chart-card full-width" id="card-rbd-ranking" style="display: none;">
+      <div class="chart-header">
+        <div class="chart-title">Ranking de Establecimientos Seleccionados<span>Compara el rendimiento general entre los colegios filtrados.</span></div>
+      </div>
+      <div class="chart-wrap" style="min-height: 250px;">
+        <div class="empty-overlay" id="empty-rbd-ranking">Sin datos para la selección actual</div>
+        <canvas id="canvas-rbd-ranking"></canvas>
+      </div>
+    </div>
+
   </div>
 </main>
 
 <script>
-// --- CONFIGURACIÓN ---
-const UMBRAL_LOGRO = 0.6; // 60%
+const UMBRAL_LOGRO = 0.6;
 let DATA_RAW = null;
 let charts = {};
 let ts = {};
@@ -268,343 +204,251 @@ const COLORS = ['#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', '#fbbf24'
 const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
 let currentAsigFilter = 'Lenguaje';
 
+const FILTER_NAMES = { agno: 'AÑO', etapa: 'ETAPA', nivel: 'NIVEL', rbd: 'RBD', curso: 'CURSO', eje: 'EJE' };
+
 async function init() {
   try {
     const res = await fetch('datos.json');
     DATA_RAW = await res.json();
-    setupFiltersClean();
+    setupFiltersStable();
     initCharts();
-    updateDashboard(); 
-    
+    update();
     document.getElementById('loading').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
-  } catch (e) {
-    console.error(e);
-    alert("Error cargando datos.json. Revisa consola.");
-  }
+  } catch (e) { console.error(e); }
 }
 
-// ─── REESCRITURA TOTAL: FILTROS A PRUEBA DE BALAS ───
-function setupFiltersClean() {
+function setupFiltersStable() {
   const config = {
-    plugins: ['remove_button', 'checkbox_options'],
+    plugins: ['checkbox_options'],
     maxOptions: 50,
-    hideSelected: false,
-    closeAfterSelect: false,
-    sortField: [{field: '$order'}], // Respeta el orden de inserción (Alfabético natural)
-    render: { item: function(data, escape) { return `<div>${escape(data.text)}</div>`; } },
-    onChange: () => updateDashboard()
+    closeAfterSelect: false, 
+    sortField: [{field: '$order'}],
+    onChange: () => update()
   };
 
-  ts.agno = new TomSelect('#f-agno', config);
-  ts.etapa = new TomSelect('#f-etapa', config); 
-  ts.rbd = new TomSelect('#f-rbd', config);
-  ts.nivel = new TomSelect('#f-nivel', config);
-  ts.curso = new TomSelect('#f-curso', config);
-  ts.eje = new TomSelect('#f-eje', config);
+  ['agno', 'etapa', 'rbd', 'nivel', 'curso', 'eje'].forEach(k => {
+    ts[k] = new TomSelect(`#f-${k}`, config);
+    const mapData = DATA_RAW.maps[I[k.toUpperCase()]];
+    mapData.forEach((text, index) => {
+      if (text && text.trim() !== '') ts[k].addOption({ value: String(index), text: text });
+    });
+  });
 
-  // Llenar todo con las opciones iniciales
-  populateDropdownAll(ts.agno, DATA_RAW.maps[I.AGNO]);
-  populateDropdownAll(ts.etapa, DATA_RAW.maps[I.ETAPA]);
-  populateDropdownAll(ts.rbd, DATA_RAW.maps[I.RBD]);
-  populateDropdownAll(ts.nivel, DATA_RAW.maps[I.NIVEL]);
-  populateDropdownAll(ts.curso, DATA_RAW.maps[I.CURSO]);
-  populateDropdownAll(ts.eje, DATA_RAW.maps[I.EJE]);
-
-  // Botón Limpiar: Vacía todo silenciosamente y dispara 1 sola actualización
   document.getElementById('btn-clear').onclick = () => {
-    Object.values(ts).forEach(t => t.setValue([], true)); 
-    updateDashboard();
+    Object.values(ts).forEach(t => t.clear(true));
+    update();
   };
 }
 
-// Función auxiliar para llenar el desplegable garantizando el formato de Texto
-function populateDropdownAll(tsInstance, mapArray) {
-  tsInstance.clearOptions();
-  const options = [];
-  
-  mapArray.forEach((text, index) => {
-    if (text && text.trim() !== '') {
-      options.push({ value: String(index), text: text });
+function renderActiveFiltersTray() {
+  const tray = document.getElementById('active-filters-tray');
+  tray.innerHTML = ''; 
+  let hasFilters = false;
+
+  Object.keys(ts).forEach(key => {
+    const selectedValues = ts[key].getValue();
+    if (selectedValues.length > 0) {
+      hasFilters = true;
+      
+      const groupContainer = document.createElement('div');
+      groupContainer.className = 'filter-group-tag';
+      
+      const label = document.createElement('span');
+      label.className = 'filter-group-label';
+      label.innerText = `${FILTER_NAMES[key]}`;
+      label.title = `Limpiar todos los filtros de ${FILTER_NAMES[key]}`;
+      label.onclick = () => { ts[key].clear(true); update(); };
+      groupContainer.appendChild(label);
+
+      selectedValues.forEach(val => {
+        const valTag = document.createElement('span');
+        valTag.className = 'filter-value-tag';
+        valTag.innerText = ts[key].options[val].text;
+        valTag.title = "Clic para quitar";
+        valTag.onclick = () => { ts[key].removeItem(val); }; 
+        groupContainer.appendChild(valTag);
+      });
+
+      tray.appendChild(groupContainer);
     }
   });
 
-  // Ordenamiento humano real (1, 2, 10, A, B...)
-  options.sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
-  
-  options.forEach(opt => tsInstance.addOption(opt));
+  tray.style.display = hasFilters ? 'block' : 'none';
 }
 
-// Actualiza las opciones de los hijos SIN borrar lo que el usuario ya seleccionó
-function updateChildDropdown(tsInstance, mapArray, validIndicesSet) {
-  const currentSelections = tsInstance.getValue(); // Extraer lo que el usuario tiene marcado (Array de Strings)
-  tsInstance.clearOptions(); // Limpiar lista
-  
-  const options = [];
-  mapArray.forEach((text, index) => {
-    const valStr = String(index);
-    // CRUCIAL: Agregar si es válido OR si ya lo tiene seleccionado
-    if (validIndicesSet.has(index) || currentSelections.includes(valStr)) {
-      if (text && text.trim() !== '') {
-        options.push({ value: valStr, text: text });
-      }
-    }
-  });
+function update() {
+  const filters = {};
+  Object.keys(ts).forEach(k => filters[k] = ts[k].getValue());
 
-  options.sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
-  options.forEach(opt => tsInstance.addOption(opt));
-  
-  // Devolver las marcas visuales (Tags) sin disparar un evento en bucle
-  tsInstance.setValue(currentSelections, true); 
-}
+  renderActiveFiltersTray();
 
-// ─── MOTOR DE DATOS ───
-function updateDashboard() {
-  // 1. Obtener filtros actuales y pasarlos a números para que coincidan con la BD cruda
-  const fAgno = ts.agno.getValue().map(Number);
-  const fEtapa = ts.etapa.getValue().map(Number);
-  const fRbd = ts.rbd.getValue().map(Number);
-  const fNivel = ts.nivel.getValue().map(Number);
-  const fCurso = ts.curso.getValue().map(Number);
-  const fEje = ts.eje.getValue().map(Number);
-
-  // 2. PASO 1: Determinar qué opciones deben verse en los filtros hijos
-  const validNiveles = new Set();
-  const validCursos = new Set();
-  const validEjes = new Set();
-
-  DATA_RAW.rows.forEach(r => {
-    const pAgno = fAgno.length === 0 || fAgno.includes(r[I.AGNO]);
-    const pEtapa = fEtapa.length === 0 || fEtapa.includes(r[I.ETAPA]);
-    const pRbd = fRbd.length === 0 || fRbd.includes(r[I.RBD]);
-    // Las opciones disponibles para los hijos dependen SÓLO de los padres seleccionados
-    if (pAgno && pEtapa && pRbd) {
-      validNiveles.add(r[I.NIVEL]);
-      validCursos.add(r[I.CURSO]);
-      validEjes.add(r[I.EJE]);
-    }
-  });
-
-  // Refrescar desplegables hijos con seguridad
-  updateChildDropdown(ts.nivel, DATA_RAW.maps[I.NIVEL], validNiveles);
-  updateChildDropdown(ts.curso, DATA_RAW.maps[I.CURSO], validCursos);
-  updateChildDropdown(ts.eje, DATA_RAW.maps[I.EJE], validEjes);
-
-  // 3. PASO 2: Calcular toda la data aplicando los 6 filtros al mismo tiempo
   const res = {
-    kpi: { sum: 0, count: 0, lengSum: 0, lengC: 0, mateSum: 0, mateC: 0, rbds: new Set() },
-    evo: { Lenguaje: {}, Matemática: {} },
-    ejes: { Lenguaje: {}, Matemática: {} },
-    cursos: {}
+    kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() },
+    evo: { Lenguaje: {}, Matemática: {} }, ejes: { Lenguaje: {}, Matemática: {} }, 
+    cursos: {}, rbdsRanking: {}
   };
 
   DATA_RAW.rows.forEach(r => {
-    // Si la fila no pasa TODOS los filtros, la ignoramos completamente
-    if (fAgno.length > 0 && !fAgno.includes(r[I.AGNO])) return;
-    if (fEtapa.length > 0 && !fEtapa.includes(r[I.ETAPA])) return;
-    if (fRbd.length > 0 && !fRbd.includes(r[I.RBD])) return;
-    if (fNivel.length > 0 && !fNivel.includes(r[I.NIVEL])) return;
-    if (fCurso.length > 0 && !fCurso.includes(r[I.CURSO])) return;
-    if (fEje.length > 0 && !fEje.includes(r[I.EJE])) return;
+    if (filters.agno.length && !filters.agno.includes(String(r[I.AGNO]))) return;
+    if (filters.etapa.length && !filters.etapa.includes(String(r[I.ETAPA]))) return;
+    if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
+    if (filters.nivel.length && !filters.nivel.includes(String(r[I.NIVEL]))) return;
+    if (filters.curso.length && !filters.curso.includes(String(r[I.CURSO]))) return;
+    if (filters.eje.length && !filters.eje.includes(String(r[I.EJE]))) return;
 
-    // Si pasó todo, la sumamos a la estadística global
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
     const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
     const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
+    const rbdV = DATA_RAW.maps[I.RBD][r[I.RBD]];
     const p = r[I.PUNTAJE];
-    const etapaIdx = STAGES.indexOf(etapaV);
-    
-    if (etapaIdx === -1) return;
+    const stIdx = STAGES.indexOf(etapaV);
+    if (stIdx === -1) return;
 
     res.kpi.sum += p; res.kpi.count++;
     res.kpi.rbds.add(r[I.RBD]);
-    if (asigV === 'Lenguaje') { res.kpi.lengSum += p; res.kpi.lengC++; }
-    if (asigV === 'Matemática') { res.kpi.mateSum += p; res.kpi.mateC++; }
+    if (asigV === 'Lenguaje') { res.kpi.lSum += p; res.kpi.lC++; }
+    else if (asigV === 'Matemática') { res.kpi.mSum += p; res.kpi.mC++; }
 
-    if (asigV === 'Lenguaje' || asigV === 'Matemática') {
-      if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      res.evo[asigV][agnoV][etapaIdx][0] += p;
-      res.evo[asigV][agnoV][etapaIdx][1]++;
+    if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+    res.evo[asigV][agnoV][stIdx][0] += p; res.evo[asigV][agnoV][stIdx][1]++;
 
-      const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
-      if (ejeV && ejeV.trim() !== "") {
-        if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
-        if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-        res.ejes[asigV][ejeV][agnoV][etapaIdx][0] += p;
-        res.ejes[asigV][ejeV][agnoV][etapaIdx][1]++;
-      }
+    const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
+    if (ejeV) {
+      if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
+      if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+      res.ejes[asigV][ejeV][agnoV][stIdx][0] += p; res.ejes[asigV][ejeV][agnoV][stIdx][1]++;
     }
 
-    if (fRbd.length > 0 && asigV === currentAsigFilter) {
-      const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
-      if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
-      if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      res.cursos[cursoV][agnoV][etapaIdx][0] += p;
-      res.cursos[cursoV][agnoV][etapaIdx][1]++;
+    if (!res.rbdsRanking[rbdV]) res.rbdsRanking[rbdV] = [0,0, r[I.RBD]];
+    res.rbdsRanking[rbdV][0] += p; res.rbdsRanking[rbdV][1]++;
+
+    if (filters.rbd.length && asigV === currentAsigFilter) {
+      const cV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
+      if (!res.cursos[cV]) res.cursos[cV] = {};
+      if (!res.cursos[cV][agnoV]) res.cursos[cV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+      res.cursos[cV][agnoV][stIdx][0] += p; res.cursos[cV][agnoV][stIdx][1]++;
     }
   });
 
-  // 4. PASO 3: Dibujar la interfaz
   const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
-
   document.getElementById('kpi-global').innerText = f(res.kpi.sum, res.kpi.count);
-  document.getElementById('kpi-leng').innerText = f(res.kpi.lengSum, res.kpi.lengC);
-  document.getElementById('kpi-mate').innerText = f(res.kpi.mateSum, res.kpi.mateC);
-  document.getElementById('kpi-eval').innerText = res.kpi.count.toLocaleString('es-CL'); 
-
-  document.getElementById('kpi-global-sub').innerText = 'De todas las evaluaciones';
-  document.getElementById('kpi-leng-sub').innerText = 'Evaluaciones de lenguaje';
-  document.getElementById('kpi-mate-sub').innerText = 'Evaluaciones de matemática';
+  document.getElementById('kpi-leng').innerText = f(res.kpi.lSum, res.kpi.lC);
+  document.getElementById('kpi-mate').innerText = f(res.kpi.mSum, res.kpi.mC);
+  document.getElementById('kpi-eval').innerText = res.kpi.count.toLocaleString('es-CL');
   document.getElementById('kpi-eval-sub').innerText = `${res.kpi.rbds.size} establecimientos filtrados`;
 
-  updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, varColor('--leng'));
-  updateLineChart(charts['mate-evo'], res.evo.Matemática, true, varColor('--mate'));
+  updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, '#38bdf8');
+  updateLineChart(charts['mate-evo'], res.evo.Matemática, true, '#fb923c');
   updateLineChart(charts['leng-ejes'], res.ejes.Lenguaje, false);
   updateLineChart(charts['mate-ejes'], res.ejes.Matemática, false);
 
-  if (fRbd.length > 0) {
+  // Lógica combinada: Ocultar o mostrar los gráficos inferiores
+  if (filters.rbd.length > 0) {
     document.getElementById('msg-colegio').style.display = 'none';
-    document.getElementById('wrap-curso-evo').style.display = 'block';
+    
+    document.getElementById('card-curso-evo').style.display = 'flex';
+    document.getElementById('card-rbd-ranking').style.display = 'flex';
+    
     updateLineChart(charts['curso-evo'], res.cursos, false);
+    updateRBDRanking(charts['rbd-ranking'], res.rbdsRanking);
   } else {
     document.getElementById('msg-colegio').style.display = 'flex';
-    document.getElementById('wrap-curso-evo').style.display = 'none';
+    
+    document.getElementById('card-curso-evo').style.display = 'none';
+    document.getElementById('card-rbd-ranking').style.display = 'none';
   }
 }
 
-// ─── GRÁFICOS Y UTILIDADES ───
-const exportBackgroundPlugin = {
-  id: 'customCanvasBackgroundColor',
-  beforeDraw: (chart) => {
-    const {ctx} = chart;
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-over';
-    ctx.fillStyle = '#161b22';
-    ctx.fillRect(0, 0, chart.width, chart.height);
-    ctx.restore();
-  }
-};
+function updateRBDRanking(chart, dataObj) {
+  const sorted = Object.entries(dataObj)
+    .map(([name, d]) => ({ name, val: d[0]/d[1], id: d[2] }))
+    .sort((a,b) => b.val - a.val);
+  
+  chart.data.labels = sorted.map(i => i.name.substring(0, 40));
+  chart.data.datasets = [{
+    data: sorted.map(i => i.val),
+    backgroundColor: sorted.map(i => i.val >= UMBRAL_LOGRO ? 'rgba(52, 211, 153, 0.4)' : 'rgba(248, 113, 113, 0.4)'),
+    borderColor: sorted.map(i => i.val >= UMBRAL_LOGRO ? '#34d399' : '#f87171'),
+    borderWidth: 1, borderRadius: 4,
+    ids: sorted.map(i => i.id) 
+  }];
+  
+  const emptyDiv = document.getElementById('empty-rbd-ranking');
+  if (emptyDiv) emptyDiv.style.display = sorted.length ? 'none' : 'flex';
+  chart.update();
+}
 
 function initCharts() {
-  const lineChartOptions = () => ({
+  const lineOpt = () => ({
     responsive: true, maintainAspectRatio: false,
-    animation: { duration: 400 },
-    scales: {
-      y: { beginAtZero: false, grace: '10%', ticks: { callback: v => { if (v > 1) return '100%'; if (v < 0) return '0%'; return (v * 100).toFixed(0) + '%'; } }, grid: { color: '#21262d', drawBorder: false } },
-      x: { grid: { display: false } }
-    },
-    plugins: {
-      legend: { 
-        position: 'bottom', 
-        labels: { 
-          usePointStyle: true, boxWidth: 8, color: '#7d8590', font: { family: 'Archivo', size: 11 },
-          filter: function(item, chart) { return !item.text.includes('Umbral'); }
-        },
-        onHover: function(e) { e.native.target.style.cursor = 'pointer'; },
-        onLeave: function(e) { e.native.target.style.cursor = 'default'; }
-      },
-      tooltip: {
-        backgroundColor: '#1c2128', borderColor: '#30363d', borderWidth: 1, padding: 10, cornerRadius: 6,
-        itemSort: (a, b) => b.parsed.y - a.parsed.y,
-        callbacks: { label: ctx => ` ${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(1)}%` }
-      }
-    }
+    scales: { y: { grace: '10%', ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d' } }, x: { grid: { display: false } } },
+    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, color: '#7d8590', filter: (it) => !it.text.includes('Umbral') } }, tooltip: { itemSort: (a, b) => b.parsed.y - a.parsed.y } }
   });
 
   ['leng-evo', 'mate-evo', 'leng-ejes', 'mate-ejes', 'curso-evo'].forEach(id => {
-    charts[id] = new Chart(document.getElementById(`canvas-${id}`), { 
-      type: 'line', data: { labels: STAGES, datasets: [] }, 
-      options: lineChartOptions(), plugins: [exportBackgroundPlugin] 
-    });
+    charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt() });
+  });
+
+  charts['rbd-ranking'] = new Chart(document.getElementById('canvas-rbd-ranking'), {
+    type: 'bar', data: { labels: [], datasets: [] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` Promedio: ${(ctx.parsed.x * 100).toFixed(1)}%` } } },
+      scales: { x: { max: 1, ticks: { callback: v => (v*100)+'%' }, grid: { color: '#21262d' } }, y: { ticks: { color: '#7d8590', font: { size: 10 } } } }
+    }
   });
 }
 
 function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
   const hiddenStates = {};
-  chart.data.datasets.forEach((ds, i) => {
-    const meta = chart.getDatasetMeta(i);
-    hiddenStates[ds.label] = meta.hidden === true || (meta.hidden === null && ds.hidden);
-  });
-
+  chart.data.datasets.forEach((ds, i) => hiddenStates[ds.label] = chart.getDatasetMeta(i).hidden);
   chart.data.datasets = [];
   let colorIdx = 0;
-  
+
   Object.keys(dataObj).sort().forEach(groupKey => {
     const isEvo = (groupKey === '2025' || groupKey === '2026');
-    const groupColor = isSingleColor ? forcedColor : COLORS[colorIdx % COLORS.length];
-    
+    const color = isSingleColor ? forcedColor : COLORS[colorIdx % COLORS.length];
     if (isEvo) {
-       chart.data.datasets.push(createDataset(groupKey, dataObj[groupKey], groupColor, groupKey === '2026', hiddenStates[groupKey]));
+      chart.data.datasets.push(createDS(groupKey, dataObj[groupKey], color, groupKey === '2026', hiddenStates[groupKey]));
     } else {
-       Object.keys(dataObj[groupKey]).sort().forEach(agno => {
-         const label = `${groupKey} (${agno})`;
-         chart.data.datasets.push(createDataset(label, dataObj[groupKey][agno], groupColor, agno === '2026', hiddenStates[label]));
-       });
-       colorIdx++;
+      Object.keys(dataObj[groupKey]).sort().forEach(agno => {
+        const label = `${groupKey} (${agno})`;
+        chart.data.datasets.push(createDS(label, dataObj[groupKey][agno], color, agno === '2026', hiddenStates[label]));
+      });
+      colorIdx++;
     }
   });
 
-  chart.data.datasets.push({
-    label: `Umbral ${Math.round(UMBRAL_LOGRO * 100)}%`,
-    data: STAGES.map(() => UMBRAL_LOGRO),
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderDash: [5, 5],
-    borderWidth: 2,
-    pointRadius: 0,
-    pointHoverRadius: 0,
-    fill: false,
-    tension: 0,
-    hidden: false
-  });
-
-  let hasValidData = chart.data.datasets.some(ds => ds.label.includes('Umbral') ? false : ds.data.some(val => val !== null));
-  const chartId = chart.canvas.id.replace('canvas-', '');
-  const emptyDiv = document.getElementById(`empty-${chartId}`);
-  if (emptyDiv) emptyDiv.style.display = hasValidData ? 'none' : 'flex';
-
+  chart.data.datasets.push({ label: 'Umbral 60%', data: Array(3).fill(UMBRAL_LOGRO), borderColor: '#ffffff33', borderDash: [5,5], pointRadius: 0, fill: false });
+  
+  const emptyDiv = document.getElementById(`empty-${chart.canvas.id.replace('canvas-', '')}`);
+  if (emptyDiv) emptyDiv.style.display = chart.data.datasets.length > 1 ? 'none' : 'flex';
   chart.update();
 }
 
-function createDataset(label, points, color, isDashed, isHidden) {
+function createDS(label, points, color, isDashed, isHidden) {
   return {
-    label: label,
-    data: points.map(d => d[1] > 0 ? d[0] / d[1] : null),
-    borderColor: color,
-    borderDash: isDashed ? [5, 5] : [],
-    backgroundColor: color + '22',
-    fill: !isDashed && label.length <= 4,
-    borderWidth: 2.5,
-    pointStyle: isDashed ? 'triangle' : 'circle',
-    pointRadius: isDashed ? 5 : 4,
-    pointHoverRadius: isDashed ? 8 : 6,
-    tension: 0.38,
-    hidden: isHidden === true
+    label, data: points.map(d => d[1] > 0 ? d[0] / d[1] : null), borderColor: color,
+    borderDash: isDashed ? [5, 5] : [], backgroundColor: color + '22', fill: !isDashed && label.length <= 4,
+    pointStyle: isDashed ? 'triangle' : 'circle', pointRadius: isDashed ? 5 : 4, tension: 0.3, hidden: isHidden
   };
 }
-
-function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-
-window.exportChart = function(chartId, fileName) {
-  const chartInstance = charts[chartId];
-  if (!chartInstance) return;
-  const link = document.createElement('a');
-  link.href = chartInstance.toBase64Image();
-  link.download = `${fileName}.png`;
-  link.click();
-};
 
 document.querySelectorAll('.btn-toggle').forEach(btn => {
   btn.onclick = (e) => {
     document.querySelectorAll('.btn-toggle').forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; });
-    e.target.classList.add('active');
-    e.target.style.background = e.target.dataset.asig === 'Lenguaje' ? 'var(--leng)' : 'var(--mate)';
-    currentAsigFilter = e.target.dataset.asig;
-    updateDashboard();
+    e.target.classList.add('active'); e.target.style.background = e.target.dataset.asig === 'Lenguaje' ? 'var(--leng)' : 'var(--mate)';
+    currentAsigFilter = e.target.dataset.asig; update();
   };
 });
 
+window.exportChart = (id, name) => {
+  const link = document.createElement('a');
+  link.href = charts[id].toBase64Image(); link.download = `${name}.png`; link.click();
+};
+
 init();
 </script>
-
 </body>
 </html>
