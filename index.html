@@ -33,7 +33,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; }
 
-    /* --- NUEVO: Contenedor Sticky para Header y Filtros --- */
+    /* Bloque Sticky Superior */
     .sticky-top-section {
       position: sticky;
       top: 0;
@@ -51,7 +51,7 @@
     .loader { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--leng); border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Filtros (Modificados para integrarse en el header) */
+    /* Filtros */
     .filter-bar { padding: 0.5rem 2rem 0 2rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
     .filter-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 150px; }
     .filter-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
@@ -149,6 +149,7 @@
     </button>
   </div>
 </div>
+
 <main class="main" id="dashboard" style="display:none;">
   
   <div class="kpi-grid">
@@ -300,10 +301,10 @@ function setupFilters() {
   ts.eje = new TomSelect('#f-eje', config);
   ts.curso = new TomSelect('#f-curso', config);
 
-  // REVERSIÓN: Se eliminó el "applyMapping" para cargar los datos crudos ordenados.
+  // Aseguramos que los valores internos sean Strings para evitar bugs con TomSelect
   const populateTopLevel = (tsInstance, mapData) => {
     const options = mapData
-      .map((text, index) => ({ value: index, text: text }))
+      .map((text, index) => ({ value: String(index), text: text }))
       .filter(opt => opt.text && opt.text.trim() !== '')
       .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
     options.forEach(opt => tsInstance.addOption(opt));
@@ -339,19 +340,29 @@ function aggregate() {
   for (let i = 0; i < DATA_RAW.rows.length; i++) {
     const r = DATA_RAW.rows[i];
     
+    // 1. Filtros Globales Base
     const passAgno = fAgno.length === 0 || fAgno.includes(r[I.AGNO]);
     const passEtapa = fEtapa.length === 0 || fEtapa.includes(r[I.ETAPA]);
     const passRbd = fRbd.length === 0 || fRbd.includes(r[I.RBD]);
 
     if (!passAgno || !passEtapa || !passRbd) continue;
 
+    // 2. Filtro de Nivel Integrado
     res.validNiveles.add(r[I.NIVEL]);
     const passNivel = fNivel.length === 0 || fNivel.includes(r[I.NIVEL]);
     if (!passNivel) continue;
 
+    // 3. Filtro de Curso (Ahora es 100% Global)
     res.validCursos.add(r[I.CURSO]);
-    res.validEjes.add(r[I.EJE]);
+    const passCurso = fCurso.length === 0 || fCurso.includes(r[I.CURSO]);
+    if (!passCurso) continue;
 
+    // 4. Filtro de Eje (Ahora es 100% Global)
+    res.validEjes.add(r[I.EJE]);
+    const passEje = fEje.length === 0 || fEje.includes(r[I.EJE]);
+    if (!passEje) continue;
+
+    // --- CÁLCULOS PRINCIPALES ---
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
     const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
     const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
@@ -360,11 +371,13 @@ function aggregate() {
     
     if (etapaIdx === -1) continue;
 
+    // Llenar KPIs (Como el filtro es global, esto ya respeta los cursos y ejes elegidos)
     res.kpi.sum += p; res.kpi.count++;
     res.kpi.rbds.add(r[I.RBD]);
     if (asigV === 'Lenguaje') { res.kpi.lengSum += p; res.kpi.lengC++; }
     if (asigV === 'Matemática') { res.kpi.mateSum += p; res.kpi.mateC++; }
 
+    // Llenar Gráficos
     if (asigV === 'Lenguaje' || asigV === 'Matemática') {
       if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
       res.evo[asigV][agnoV][etapaIdx][0] += p;
@@ -372,23 +385,19 @@ function aggregate() {
 
       const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
       if (ejeV && ejeV.trim() !== "") {
-        if (fEje.length === 0 || fEje.includes(r[I.EJE])) {
-          if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
-          if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-          res.ejes[asigV][ejeV][agnoV][etapaIdx][0] += p;
-          res.ejes[asigV][ejeV][agnoV][etapaIdx][1]++;
-        }
+        if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
+        if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+        res.ejes[asigV][ejeV][agnoV][etapaIdx][0] += p;
+        res.ejes[asigV][ejeV][agnoV][etapaIdx][1]++;
       }
     }
 
     if (fRbd.length > 0 && asigV === currentAsigFilter) {
-      if (fCurso.length === 0 || fCurso.includes(r[I.CURSO])) {
-        const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
-        if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
-        if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-        res.cursos[cursoV][agnoV][etapaIdx][0] += p;
-        res.cursos[cursoV][agnoV][etapaIdx][1]++;
-      }
+      const cursoV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
+      if (!res.cursos[cursoV]) res.cursos[cursoV] = {};
+      if (!res.cursos[cursoV][agnoV]) res.cursos[cursoV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+      res.cursos[cursoV][agnoV][etapaIdx][0] += p;
+      res.cursos[cursoV][agnoV][etapaIdx][1]++;
     }
   }
   return res;
@@ -397,11 +406,11 @@ function aggregate() {
 function updateCascadingTS(tsInstance, mapData, validSet, currentItems) {
   tsInstance.clearOptions();
   const options = mapData
-    .map((text, index) => ({ value: index, text: text }))
-    .filter(opt => validSet.has(opt.value) && opt.text && opt.text.trim() !== '')
+    .map((text, index) => ({ value: String(index), text: text, idx: index }))
+    .filter(opt => validSet.has(opt.idx) && opt.text && opt.text.trim() !== '')
     .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
   
-  options.forEach(opt => tsInstance.addOption(opt));
+  options.forEach(opt => tsInstance.addOption({value: opt.value, text: opt.text}));
   tsInstance.setValue(currentItems, true); 
 }
 
@@ -445,7 +454,6 @@ function initCharts() {
     }
   });
 
-  // REVERSIÓN: Solo se inicializan los gráficos de línea
   ['leng-evo', 'mate-evo', 'leng-ejes', 'mate-ejes', 'curso-evo'].forEach(id => {
     charts[id] = new Chart(document.getElementById(`canvas-${id}`), { 
       type: 'line', data: { labels: STAGES, datasets: [] }, 
