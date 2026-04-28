@@ -55,6 +55,7 @@
     .filter-bar { padding: 0.5rem 2rem 0 2rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
     .filter-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 150px; }
     .filter-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+    
     .btn-clear { background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); font-family: var(--font); font-size: 0.84rem; padding: 0.42rem 0.9rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 0.35rem; height: 38px; }
     .btn-clear:hover { color: var(--text); border-color: var(--border-2); background: var(--surface-2); }
 
@@ -133,7 +134,7 @@
     </div>
     <div class="filter-group" style="flex: 2.5;">
       <span class="filter-label">Establecimiento (RBD)</span>
-      <select id="f-rbd" multiple placeholder="Buscar por nombre o RBD..."></select>
+      <select id="f-rbd" multiple placeholder="Buscar..."></select>
     </div>
     <div class="filter-group" style="flex: 0.5;">
       <span class="filter-label">Curso</span>
@@ -179,12 +180,12 @@
     <div class="chart-card">
       <div class="chart-header">
         <div class="chart-title">Evolución General<span>Lenguaje</span></div>
-        <button class="btn-export" onclick="exportChart('leng-evo', 'Evolucion_Lenguaje')" title="Descargar Gráfico">
+        <button class="btn-export" onclick="exportChart('leng-evo', 'Evolucion_Lenguaje')" title="Descargar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         </button>
       </div>
       <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-leng-evo"><span class="empty-icon">📊</span>No hay datos para esta selección</div>
+        <div class="empty-overlay" id="empty-leng-evo"><span class="empty-icon">📊</span>No hay datos</div>
         <canvas id="canvas-leng-evo"></canvas>
       </div>
     </div>
@@ -192,38 +193,38 @@
     <div class="chart-card">
       <div class="chart-header">
         <div class="chart-title">Evolución General<span>Matemática</span></div>
-        <button class="btn-export" onclick="exportChart('mate-evo', 'Evolucion_Matematica')" title="Descargar Gráfico">
+        <button class="btn-export" onclick="exportChart('mate-evo', 'Evolucion_Matematica')" title="Descargar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         </button>
       </div>
       <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-mate-evo"><span class="empty-icon">📊</span>No hay datos para esta selección</div>
+        <div class="empty-overlay" id="empty-mate-evo"><span class="empty-icon">📊</span>No hay datos</div>
         <canvas id="canvas-mate-evo"></canvas>
       </div>
     </div>
 
     <div class="chart-card">
       <div class="chart-header">
-        <div class="chart-title">Trayectoria por Eje (Líneas)<span>Lenguaje</span></div>
-        <button class="btn-export" onclick="exportChart('leng-ejes', 'Ejes_Lineas_Lenguaje')" title="Descargar Gráfico">
+        <div class="chart-title">Trayectoria por Eje<span>Lenguaje</span></div>
+        <button class="btn-export" onclick="exportChart('leng-ejes', 'Ejes_Lenguaje')" title="Descargar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         </button>
       </div>
       <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-leng-ejes"><span class="empty-icon">📈</span>No hay datos para esta selección</div>
+        <div class="empty-overlay" id="empty-leng-ejes"><span class="empty-icon">📈</span>No hay datos</div>
         <canvas id="canvas-leng-ejes"></canvas>
       </div>
     </div>
     
     <div class="chart-card">
       <div class="chart-header">
-        <div class="chart-title">Trayectoria por Eje (Líneas)<span>Matemática</span></div>
-        <button class="btn-export" onclick="exportChart('mate-ejes', 'Ejes_Lineas_Matematica')" title="Descargar Gráfico">
+        <div class="chart-title">Trayectoria por Eje<span>Matemática</span></div>
+        <button class="btn-export" onclick="exportChart('mate-ejes', 'Ejes_Matematica')" title="Descargar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         </button>
       </div>
       <div class="chart-wrap">
-        <div class="empty-overlay" id="empty-mate-ejes"><span class="empty-icon">📈</span>No hay datos para esta selección</div>
+        <div class="empty-overlay" id="empty-mate-ejes"><span class="empty-icon">📈</span>No hay datos</div>
         <canvas id="canvas-mate-ejes"></canvas>
       </div>
     </div>
@@ -236,7 +237,7 @@
             <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lenguaje</button>
             <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button>
           </div>
-          <button class="btn-export" onclick="exportChart('curso-evo', 'Comparativo_Cursos')" title="Descargar Gráfico">
+          <button class="btn-export" onclick="exportChart('curso-evo', 'Comparativo_Cursos')" title="Descargar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
         </div>
@@ -246,10 +247,10 @@
           <path d="M3 21h18"></path><path d="M9 8h1"></path><path d="M9 12h1"></path><path d="M9 16h1"></path><path d="M14 8h1"></path><path d="M14 12h1"></path><path d="M14 16h1"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
         </svg>
         <h3 style="color: var(--text); font-size: 1.1rem; margin-bottom: 0.25rem;">Selecciona un Establecimiento</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 400px;">Filtra un RBD en la barra superior para activar el análisis comparativo interno de sus cursos.</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 400px;">Filtra un RBD en la barra superior para activar el análisis interno de sus cursos.</p>
       </div>
       <div class="chart-wrap" id="wrap-curso-evo" style="display: none;">
-        <div class="empty-overlay" id="empty-curso-evo"><span class="empty-icon">🏫</span>No hay datos para esta selección</div>
+        <div class="empty-overlay" id="empty-curso-evo"><span class="empty-icon">🏫</span>No hay datos</div>
         <canvas id="canvas-curso-evo"></canvas>
       </div>
     </div>
@@ -257,133 +258,169 @@
 </main>
 
 <script>
-// --- CONFIGURACIÓN PRINCIPAL ---
-const UMBRAL_LOGRO = 0.6; // Cambia este valor para subir o bajar la línea de referencia (Ej: 0.6 = 60%)
-
+// --- CONFIGURACIÓN ---
+const UMBRAL_LOGRO = 0.6; // 60%
 let DATA_RAW = null;
 let charts = {};
+let ts = {};
 const STAGES = ['Diagnóstico', 'Intermedio', 'Cierre'];
 const COLORS = ['#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', '#fbbf24', '#2dd4bf', '#818cf8'];
 const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
+let currentAsigFilter = 'Lenguaje';
 
 async function init() {
   try {
     const res = await fetch('datos.json');
     DATA_RAW = await res.json();
-    setupFilters();
+    setupFiltersClean();
     initCharts();
-    update(); 
+    updateDashboard(); 
     
     document.getElementById('loading').style.display = 'none';
     document.getElementById('dashboard').style.display = 'flex';
   } catch (e) {
     console.error(e);
-    alert("Error al cargar datos.json. Revisa la consola.");
+    alert("Error cargando datos.json. Revisa consola.");
   }
 }
 
-let ts = {};
-// REESCRITURA LIMPIA: Configuración estandarizada para todos los filtros
-function setupFilters() {
+// ─── REESCRITURA TOTAL: FILTROS A PRUEBA DE BALAS ───
+function setupFiltersClean() {
   const config = {
     plugins: ['remove_button', 'checkbox_options'],
     maxOptions: 50,
     hideSelected: false,
     closeAfterSelect: false,
-    sortField: [{field: '$order'}],
+    sortField: [{field: '$order'}], // Respeta el orden de inserción (Alfabético natural)
     render: { item: function(data, escape) { return `<div>${escape(data.text)}</div>`; } },
-    onChange: () => update()
+    onChange: () => updateDashboard()
   };
 
-  // Inicializar todas las instancias
   ts.agno = new TomSelect('#f-agno', config);
   ts.etapa = new TomSelect('#f-etapa', config); 
-  ts.nivel = new TomSelect('#f-nivel', config);
   ts.rbd = new TomSelect('#f-rbd', config);
-  ts.eje = new TomSelect('#f-eje', config);
+  ts.nivel = new TomSelect('#f-nivel', config);
   ts.curso = new TomSelect('#f-curso', config);
+  ts.eje = new TomSelect('#f-eje', config);
 
-  // REESCRITURA LIMPIA: Estandarización estricta de valores a TEXTO (String)
-  // Esto garantiza que TomSelect reconozca la selección y dibuje los tags correctamente.
-  const populateTopLevel = (tsInstance, mapData) => {
-    tsInstance.clearOptions();
-    const options = mapData
-      .map((text, index) => ({ value: String(index), text: String(text) })) // Forzar String en valor y texto
-      .filter(opt => opt.text && opt.text.trim() !== '')
-      .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
-    options.forEach(opt => tsInstance.addOption(opt));
-  };
+  // Llenar todo con las opciones iniciales
+  populateDropdownAll(ts.agno, DATA_RAW.maps[I.AGNO]);
+  populateDropdownAll(ts.etapa, DATA_RAW.maps[I.ETAPA]);
+  populateDropdownAll(ts.rbd, DATA_RAW.maps[I.RBD]);
+  populateDropdownAll(ts.nivel, DATA_RAW.maps[I.NIVEL]);
+  populateDropdownAll(ts.curso, DATA_RAW.maps[I.CURSO]);
+  populateDropdownAll(ts.eje, DATA_RAW.maps[I.EJE]);
 
-  populateTopLevel(ts.agno, DATA_RAW.maps[I.AGNO]);
-  populateTopLevel(ts.etapa, DATA_RAW.maps[I.ETAPA]); 
-  populateTopLevel(ts.rbd, DATA_RAW.maps[I.RBD]);
-
+  // Botón Limpiar: Vacía todo silenciosamente y dispara 1 sola actualización
   document.getElementById('btn-clear').onclick = () => {
-    Object.values(ts).forEach(t => t.clear());
+    Object.values(ts).forEach(t => t.setValue([], true)); 
+    updateDashboard();
   };
 }
 
-function aggregate() {
-  // Extraer ítems como Texto (String) de TomSelect
-  const fAgnoRaw = ts.agno.items;
-  const fEtapaRaw = ts.etapa.items; 
-  const fNivelRaw = ts.nivel.items;
-  const fRbdRaw = ts.rbd.items;
-  const fEjeRaw = ts.eje.items;
-  const fCursoRaw = ts.curso.items;
+// Función auxiliar para llenar el desplegable garantizando el formato de Texto
+function populateDropdownAll(tsInstance, mapArray) {
+  tsInstance.clearOptions();
+  const options = [];
+  
+  mapArray.forEach((text, index) => {
+    if (text && text.trim() !== '') {
+      options.push({ value: String(index), text: text });
+    }
+  });
 
-  // REESCRITURA LIMPIA: Convertir a Número SOLO para comparar contra DATA_RAW.rows
-  // Esto mantiene la lógica de datos correcta y la interfaz visual funcionando.
-  const fAgno = fAgnoRaw.map(Number);
-  const fEtapa = fEtapaRaw.map(Number);
-  const fNivel = fNivelRaw.map(Number);
-  const fRbd = fRbdRaw.map(Number);
-  const fEje = fEjeRaw.map(Number);
-  const fCurso = fCursoRaw.map(Number);
+  // Ordenamiento humano real (1, 2, 10, A, B...)
+  options.sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
+  
+  options.forEach(opt => tsInstance.addOption(opt));
+}
 
+// Actualiza las opciones de los hijos SIN borrar lo que el usuario ya seleccionó
+function updateChildDropdown(tsInstance, mapArray, validIndicesSet) {
+  const currentSelections = tsInstance.getValue(); // Extraer lo que el usuario tiene marcado (Array de Strings)
+  tsInstance.clearOptions(); // Limpiar lista
+  
+  const options = [];
+  mapArray.forEach((text, index) => {
+    const valStr = String(index);
+    // CRUCIAL: Agregar si es válido OR si ya lo tiene seleccionado
+    if (validIndicesSet.has(index) || currentSelections.includes(valStr)) {
+      if (text && text.trim() !== '') {
+        options.push({ value: valStr, text: text });
+      }
+    }
+  });
+
+  options.sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
+  options.forEach(opt => tsInstance.addOption(opt));
+  
+  // Devolver las marcas visuales (Tags) sin disparar un evento en bucle
+  tsInstance.setValue(currentSelections, true); 
+}
+
+// ─── MOTOR DE DATOS ───
+function updateDashboard() {
+  // 1. Obtener filtros actuales y pasarlos a números para que coincidan con la BD cruda
+  const fAgno = ts.agno.getValue().map(Number);
+  const fEtapa = ts.etapa.getValue().map(Number);
+  const fRbd = ts.rbd.getValue().map(Number);
+  const fNivel = ts.nivel.getValue().map(Number);
+  const fCurso = ts.curso.getValue().map(Number);
+  const fEje = ts.eje.getValue().map(Number);
+
+  // 2. PASO 1: Determinar qué opciones deben verse en los filtros hijos
+  const validNiveles = new Set();
+  const validCursos = new Set();
+  const validEjes = new Set();
+
+  DATA_RAW.rows.forEach(r => {
+    const pAgno = fAgno.length === 0 || fAgno.includes(r[I.AGNO]);
+    const pEtapa = fEtapa.length === 0 || fEtapa.includes(r[I.ETAPA]);
+    const pRbd = fRbd.length === 0 || fRbd.includes(r[I.RBD]);
+    // Las opciones disponibles para los hijos dependen SÓLO de los padres seleccionados
+    if (pAgno && pEtapa && pRbd) {
+      validNiveles.add(r[I.NIVEL]);
+      validCursos.add(r[I.CURSO]);
+      validEjes.add(r[I.EJE]);
+    }
+  });
+
+  // Refrescar desplegables hijos con seguridad
+  updateChildDropdown(ts.nivel, DATA_RAW.maps[I.NIVEL], validNiveles);
+  updateChildDropdown(ts.curso, DATA_RAW.maps[I.CURSO], validCursos);
+  updateChildDropdown(ts.eje, DATA_RAW.maps[I.EJE], validEjes);
+
+  // 3. PASO 2: Calcular toda la data aplicando los 6 filtros al mismo tiempo
   const res = {
     kpi: { sum: 0, count: 0, lengSum: 0, lengC: 0, mateSum: 0, mateC: 0, rbds: new Set() },
     evo: { Lenguaje: {}, Matemática: {} },
     ejes: { Lenguaje: {}, Matemática: {} },
-    cursos: {},
-    validNiveles: new Set(),
-    validCursos: new Set(),
-    validEjes: new Set()
+    cursos: {}
   };
 
-  for (let i = 0; i < DATA_RAW.rows.length; i++) {
-    const r = DATA_RAW.rows[i];
-    
-    // Comparaciones numéricas puras contra la base de datos
-    if (fAgno.length > 0 && !fAgno.includes(r[I.AGNO])) continue;
-    if (fEtapa.length > 0 && !fEtapa.includes(r[I.ETAPA])) continue;
-    if (fRbd.length > 0 && !fRbd.includes(r[I.RBD])) continue;
+  DATA_RAW.rows.forEach(r => {
+    // Si la fila no pasa TODOS los filtros, la ignoramos completamente
+    if (fAgno.length > 0 && !fAgno.includes(r[I.AGNO])) return;
+    if (fEtapa.length > 0 && !fEtapa.includes(r[I.ETAPA])) return;
+    if (fRbd.length > 0 && !fRbd.includes(r[I.RBD])) return;
+    if (fNivel.length > 0 && !fNivel.includes(r[I.NIVEL])) return;
+    if (fCurso.length > 0 && !fCurso.includes(r[I.CURSO])) return;
+    if (fEje.length > 0 && !fEje.includes(r[I.EJE])) return;
 
-    res.validNiveles.add(r[I.NIVEL]);
-    if (fNivel.length > 0 && !fNivel.includes(r[I.NIVEL])) continue;
-
-    res.validCursos.add(r[I.CURSO]);
-    if (fCurso.length > 0 && !fCurso.includes(r[I.CURSO])) continue;
-
-    res.validEjes.add(r[I.EJE]);
-    if (fEje.length > 0 && !fEje.includes(r[I.EJE])) continue;
-
-    // --- CÁLCULOS ---
+    // Si pasó todo, la sumamos a la estadística global
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
     const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
     const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
     const p = r[I.PUNTAJE];
     const etapaIdx = STAGES.indexOf(etapaV);
     
-    if (etapaIdx === -1) continue;
+    if (etapaIdx === -1) return;
 
-    // KPIs
     res.kpi.sum += p; res.kpi.count++;
     res.kpi.rbds.add(r[I.RBD]);
     if (asigV === 'Lenguaje') { res.kpi.lengSum += p; res.kpi.lengC++; }
     if (asigV === 'Matemática') { res.kpi.mateSum += p; res.kpi.mateC++; }
 
-    // Gráficos
     if (asigV === 'Lenguaje' || asigV === 'Matemática') {
       if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
       res.evo[asigV][agnoV][etapaIdx][0] += p;
@@ -405,25 +442,37 @@ function aggregate() {
       res.cursos[cursoV][agnoV][etapaIdx][0] += p;
       res.cursos[cursoV][agnoV][etapaIdx][1]++;
     }
+  });
+
+  // 4. PASO 3: Dibujar la interfaz
+  const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
+
+  document.getElementById('kpi-global').innerText = f(res.kpi.sum, res.kpi.count);
+  document.getElementById('kpi-leng').innerText = f(res.kpi.lengSum, res.kpi.lengC);
+  document.getElementById('kpi-mate').innerText = f(res.kpi.mateSum, res.kpi.mateC);
+  document.getElementById('kpi-eval').innerText = res.kpi.count.toLocaleString('es-CL'); 
+
+  document.getElementById('kpi-global-sub').innerText = 'De todas las evaluaciones';
+  document.getElementById('kpi-leng-sub').innerText = 'Evaluaciones de lenguaje';
+  document.getElementById('kpi-mate-sub').innerText = 'Evaluaciones de matemática';
+  document.getElementById('kpi-eval-sub').innerText = `${res.kpi.rbds.size} establecimientos filtrados`;
+
+  updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, varColor('--leng'));
+  updateLineChart(charts['mate-evo'], res.evo.Matemática, true, varColor('--mate'));
+  updateLineChart(charts['leng-ejes'], res.ejes.Lenguaje, false);
+  updateLineChart(charts['mate-ejes'], res.ejes.Matemática, false);
+
+  if (fRbd.length > 0) {
+    document.getElementById('msg-colegio').style.display = 'none';
+    document.getElementById('wrap-curso-evo').style.display = 'block';
+    updateLineChart(charts['curso-evo'], res.cursos, false);
+  } else {
+    document.getElementById('msg-colegio').style.display = 'flex';
+    document.getElementById('wrap-curso-evo').style.display = 'none';
   }
-  return res;
 }
 
-// REESCRITURA LIMPIA: Estandarización de cascada a Texto (String)
-function updateCascadingTS(tsInstance, mapData, validSet, currentItems) {
-  tsInstance.clearOptions();
-  const options = mapData
-    .map((text, index) => ({ value: String(index), text: String(text), idx: index })) // Forzar String
-    .filter(opt => validSet.has(opt.idx) && opt.text && opt.text.trim() !== '')
-    .sort((a, b) => String(a.text).localeCompare(String(b.text), 'es', { numeric: true, sensitivity: 'base' }));
-  
-  options.forEach(opt => tsInstance.addOption({value: opt.value, text: opt.text}));
-  // currentItems ya son strings provenientes de ts.items, pasarlos directamente
-  tsInstance.setValue(currentItems, true); 
-}
-
-let currentAsigFilter = 'Lenguaje';
-
+// ─── GRÁFICOS Y UTILIDADES ───
 const exportBackgroundPlugin = {
   id: 'customCanvasBackgroundColor',
   beforeDraw: (chart) => {
@@ -468,40 +517,6 @@ function initCharts() {
       options: lineChartOptions(), plugins: [exportBackgroundPlugin] 
     });
   });
-}
-
-function update() {
-  const data = aggregate();
-  
-  updateCascadingTS(ts.nivel, DATA_RAW.maps[I.NIVEL], data.validNiveles, ts.nivel.items);
-  updateCascadingTS(ts.curso, DATA_RAW.maps[I.CURSO], data.validCursos, ts.curso.items);
-  updateCascadingTS(ts.eje, DATA_RAW.maps[I.EJE], data.validEjes, ts.eje.items);
-
-  const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
-
-  document.getElementById('kpi-global').innerText = f(data.kpi.sum, data.kpi.count);
-  document.getElementById('kpi-leng').innerText = f(data.kpi.lengSum, data.kpi.lengC);
-  document.getElementById('kpi-mate').innerText = f(data.kpi.mateSum, data.kpi.mateC);
-  document.getElementById('kpi-eval').innerText = data.kpi.count.toLocaleString('es-CL'); 
-
-  document.getElementById('kpi-global-sub').innerText = 'De todas las evaluaciones';
-  document.getElementById('kpi-leng-sub').innerText = 'Evaluaciones de lenguaje';
-  document.getElementById('kpi-mate-sub').innerText = 'Evaluaciones de matemática';
-  document.getElementById('kpi-eval-sub').innerText = `${data.kpi.rbds.size} establecimientos filtrados`;
-
-  updateLineChart(charts['leng-evo'], data.evo.Lenguaje, true, varColor('--leng'));
-  updateLineChart(charts['mate-evo'], data.evo.Matemática, true, varColor('--mate'));
-  updateLineChart(charts['leng-ejes'], data.ejes.Lenguaje, false);
-  updateLineChart(charts['mate-ejes'], data.ejes.Matemática, false);
-
-  if (ts.rbd.items.length > 0) {
-    document.getElementById('msg-colegio').style.display = 'none';
-    document.getElementById('wrap-curso-evo').style.display = 'block';
-    updateLineChart(charts['curso-evo'], data.cursos, false);
-  } else {
-    document.getElementById('msg-colegio').style.display = 'flex';
-    document.getElementById('wrap-curso-evo').style.display = 'none';
-  }
 }
 
 function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
@@ -584,7 +599,7 @@ document.querySelectorAll('.btn-toggle').forEach(btn => {
     e.target.classList.add('active');
     e.target.style.background = e.target.dataset.asig === 'Lenguaje' ? 'var(--leng)' : 'var(--mate)';
     currentAsigFilter = e.target.dataset.asig;
-    update();
+    updateDashboard();
   };
 });
 
