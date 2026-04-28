@@ -82,7 +82,7 @@
 
     /* Gráficos */
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-    .chart-block { display: flex; flex-direction: column; }
+    .chart-block { display: flex; flex-direction: column; gap: 0.7rem; }
     .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; position: relative; }
     .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; }
     .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
@@ -92,28 +92,37 @@
 
     .empty-state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; text-align: center; background: var(--surface-2); border-radius: 8px; border: 1px dashed var(--border); height: 100%; }
 
-    /* --- TARJETAS DE VARIACIÓN SEPARADAS DEL GRÁFICO --- */
-    .variation-container {
-      display: flex; flex-wrap: wrap; gap: 0.5rem;
-      margin-top: 0.6rem; /* Separación del bloque de gráfico arriba */
+    /* --- NUEVO DISEÑO DE TABLA PARA LAS VARIACIONES --- */
+    .var-table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1rem;
+      overflow-x: auto;
     }
-    .variation-container:empty { display: none; }
+    .var-table-title {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; letter-spacing: 0.05em;
+    }
+    .var-table {
+      width: 100%; border-collapse: collapse; text-align: left;
+    }
+    .var-table th {
+      color: var(--text-muted); font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      padding: 6px 8px; border-bottom: 1px solid var(--border);
+    }
+    .var-table td {
+      padding: 8px; font-size: 0.8rem; border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+    }
+    .var-table tr:last-child td { border-bottom: none; }
     
     .var-badge {
-      font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;
-      display: flex; align-items: center; gap: 4px;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 3px 6px; border-radius: 4px; font-family: var(--mono); font-weight: bold; font-size: 0.72rem; min-width: 55px;
     }
-    .var-badge span { color: var(--text-muted); }
-    .var-badge b { font-family: var(--mono); font-weight: bold; }
-    
-    .var-badge.up { background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); }
-    .var-badge.up b { color: #34d399; }
-    
-    .var-badge.down { background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.3); }
-    .var-badge.down b { color: #f87171; }
-    
-    .var-badge.neutral { background: var(--surface-2); border: 1px solid var(--border); }
-    .var-badge.neutral b { color: var(--text); }
+    .var-badge.up { background: rgba(52, 211, 153, 0.1); color: #34d399; }
+    .var-badge.down { background: rgba(248, 113, 113, 0.1); color: #f87171; }
+    .var-badge.neutral { background: var(--surface-2); color: var(--text-muted); }
+    .var-badge.empty { color: var(--text-muted); background: transparent; font-weight: normal;}
 
     @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
   </style>
@@ -164,7 +173,7 @@
         </div>
         <div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div>
       </div>
-      <div id="var-leng-evo" class="variation-container"></div>
+      <div id="var-leng-evo"></div>
     </div>
     
     <div class="chart-block">
@@ -174,7 +183,7 @@
         </div>
         <div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div>
       </div>
-      <div id="var-mate-evo" class="variation-container"></div>
+      <div id="var-mate-evo"></div>
     </div>
     
     <div class="chart-block">
@@ -184,7 +193,7 @@
         </div>
         <div class="chart-wrap"><canvas id="canvas-leng-ejes"></canvas></div>
       </div>
-      <div id="var-leng-ejes" class="variation-container"></div>
+      <div id="var-leng-ejes"></div>
     </div>
     
     <div class="chart-block">
@@ -194,7 +203,7 @@
         </div>
         <div class="chart-wrap"><canvas id="canvas-mate-ejes"></canvas></div>
       </div>
-      <div id="var-mate-ejes" class="variation-container"></div>
+      <div id="var-mate-ejes"></div>
     </div>
 
     <div class="chart-card full-width" id="card-curso-evo">
@@ -367,10 +376,11 @@ function update() {
   updateLineChart(charts['leng-ejes'], res.ejes.Lenguaje, false);
   updateLineChart(charts['mate-ejes'], res.ejes.Matemática, false);
 
-  renderVariations(res.evo.Lenguaje, 'var-leng-evo', false);
-  renderVariations(res.evo.Matemática, 'var-mate-evo', false);
-  renderVariations(res.ejes.Lenguaje, 'var-leng-ejes', true);
-  renderVariations(res.ejes.Matemática, 'var-mate-ejes', true);
+  // NUEVO: Renderizado de Tablas de Variación
+  renderVariationsTable(res.evo.Lenguaje, 'var-leng-evo', false);
+  renderVariationsTable(res.evo.Matemática, 'var-mate-evo', false);
+  renderVariationsTable(res.ejes.Lenguaje, 'var-leng-ejes', true);
+  renderVariationsTable(res.ejes.Matemática, 'var-mate-ejes', true);
 
   const hasRBD = filters.rbd.length > 0;
   document.getElementById('overlay-curso').style.display = hasRBD ? 'none' : 'flex';
@@ -384,56 +394,85 @@ function update() {
   }
 }
 
-function renderVariations(dataObj, elementId, isEjes) {
+// FUNCIÓN MATRICIAL: Crea una tabla con las diferencias de 2026 vs 2025
+function renderVariationsTable(dataObj, elementId, isEjes) {
   const container = document.getElementById(elementId);
   if (!container) return;
-  container.innerHTML = '';
-  
-  let html = '';
 
+  // Verificamos si hay datos de ambos años para poder comparar
+  let hasComparisonData = false;
   if (!isEjes) {
-    if (dataObj['2025'] && dataObj['2026']) {
-      STAGES.forEach((stage, idx) => {
-        const c25 = dataObj['2025'][idx][1];
-        const c26 = dataObj['2026'][idx][1];
-        if (c25 > 0 && c26 > 0) {
-          const v25 = dataObj['2025'][idx][0] / c25;
-          const v26 = dataObj['2026'][idx][0] / c26;
-          const diff = (v26 - v25) * 100;
-          html += createVariationBadge(stage, diff);
-        }
-      });
-    }
+    if (dataObj['2025'] && dataObj['2026']) hasComparisonData = true;
   } else {
     Object.keys(dataObj).forEach(eje => {
+      if (dataObj[eje]['2025'] && dataObj[eje]['2026']) hasComparisonData = true;
+    });
+  }
+
+  // Si no hay datos de 2026 para comparar con 2025, limpiamos y salimos
+  if (!hasComparisonData) {
+    container.innerHTML = '';
+    return;
+  }
+
+  let html = `
+    <div class="var-table-wrapper">
+      <div class="var-table-title">Variación vs Año Anterior (2026 vs 2025)</div>
+      <table class="var-table">
+        <thead>
+          <tr>
+            <th>${isEjes ? 'Eje Temático' : 'Asignatura'}</th>
+            <th>Diagnóstico</th>
+            <th>Intermedio</th>
+            <th>Cierre</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  if (!isEjes) {
+    html += `<tr><td>Promedio General</td>`;
+    STAGES.forEach((stage, idx) => {
+      html += `<td>${getVariationCell(dataObj, idx)}</td>`;
+    });
+    html += `</tr>`;
+  } else {
+    Object.keys(dataObj).sort().forEach(eje => {
       if (dataObj[eje]['2025'] && dataObj[eje]['2026']) {
+        html += `<tr><td>${eje}</td>`;
         STAGES.forEach((stage, idx) => {
-          const c25 = dataObj[eje]['2025'][idx][1];
-          const c26 = dataObj[eje]['2026'][idx][1];
-          if (c25 > 0 && c26 > 0) {
-            const v25 = dataObj[eje]['2025'][idx][0] / c25;
-            const v26 = dataObj[eje]['2026'][idx][0] / c26;
-            const diff = (v26 - v25) * 100;
-            html += createVariationBadge(`${eje} (${stage})`, diff);
-          }
+          html += `<td>${getVariationCell(dataObj[eje], idx)}</td>`;
         });
+        html += `</tr>`;
       }
     });
   }
 
+  html += `</tbody></table></div>`;
   container.innerHTML = html;
 }
 
-function createVariationBadge(label, diff) {
-  // Revertido a formato de punto decimal normal (ej: 3.5%)
-  const valStr = Math.abs(diff).toFixed(1);
+// Calcula la celda individual y retorna el "tag" de color
+function getVariationCell(node, idx) {
+  if (!node['2025'] || !node['2026']) return `<span class="var-badge empty">—</span>`;
+  const c25 = node['2025'][idx][1];
+  const c26 = node['2026'][idx][1];
   
-  if (diff > 0) {
-    return `<div class="var-badge up"><span>${label}:</span> <b>aumentó ↑ ${valStr}%</b></div>`;
-  } else if (diff < 0) {
-    return `<div class="var-badge down"><span>${label}:</span> <b>disminuyó ↓ ${valStr}%</b></div>`;
+  if (c25 === 0 || c26 === 0) return `<span class="var-badge empty">—</span>`;
+
+  const v25 = node['2025'][idx][0] / c25;
+  const v26 = node['2026'][idx][0] / c26;
+  const diff = (v26 - v25) * 100;
+
+  const valStr = Math.abs(diff).toFixed(1);
+
+  // Consideramos una variación significativa si es mayor a 0.1%
+  if (diff > 0.1) {
+    return `<span class="var-badge up">↑ ${valStr}%</span>`;
+  } else if (diff < -0.1) {
+    return `<span class="var-badge down">↓ ${valStr}%</span>`;
   } else {
-    return `<div class="var-badge neutral"><span>${label}:</span> <b>se mantuvo igual</b></div>`;
+    return `<span class="var-badge neutral">= 0.0%</span>`;
   }
 }
 
