@@ -380,25 +380,30 @@ function updateRBDRanking(chart, dataObj) {
 }
 
 function initCharts() {
-  const lineOpt = () => ({
+const lineOpt = () => ({
     responsive: true, maintainAspectRatio: false,
-    scales: { y: { grace: '10%', ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d' } }, x: { grid: { display: false } } },
-    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, color: '#7d8590', filter: (it) => !it.text.includes('Umbral') } }, tooltip: { itemSort: (a, b) => b.parsed.y - a.parsed.y } }
-  });
-
-  ['leng-evo', 'mate-evo', 'leng-ejes', 'mate-ejes', 'curso-evo'].forEach(id => {
-    charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt() });
-  });
-
-  charts['rbd-ranking'] = new Chart(document.getElementById('canvas-rbd-ranking'), {
-    type: 'bar', data: { labels: [], datasets: [] },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` Promedio: ${(ctx.parsed.x * 100).toFixed(1)}%` } } },
-      scales: { x: { max: 1, ticks: { callback: v => (v*100)+'%' }, grid: { color: '#21262d' } }, y: { ticks: { color: '#7d8590', font: { size: 10 } } } }
+    scales: { 
+      y: { grace: '10%', ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d' } }, 
+      x: { grid: { display: false } } 
+    },
+    plugins: { 
+      legend: { position: 'bottom', labels: { usePointStyle: true, color: '#7d8590' } },
+      // NUEVO: Configuramos el Tooltip para que multiplique por 100 y agregue el %
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) label += ': ';
+            if (context.parsed.y !== null) {
+              // toFixed(1) muestra un decimal (ej: 55.4%). Si prefieres números enteros, pon toFixed(0)
+              label += (context.parsed.y * 100).toFixed(1) + '%';
+            }
+            return label;
+          }
+        }
+      }
     }
   });
-}
 
 function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
   const hiddenStates = {};
