@@ -263,16 +263,51 @@ async function init() {
 }
 
 function setupFiltersStable() {
-  const config = {
-    plugins: ['checkbox_options'], maxOptions: 50, closeAfterSelect: false, 
-    sortField: [{field: '$order'}], onChange: () => update()
+  // 1. ORDEN ESTRICTO SOLO PARA ETAPA Y NIVEL
+  const customOrder = {
+    etapa: ['Diagnóstico', 'Intermedio', 'Cierre'],
+    nivel: ['1', '2', '3', '4', '5', '6', '7', '8', 'I', 'II']
   };
 
   ['agno', 'etapa', 'rbd', 'nivel', 'curso', 'eje'].forEach(k => {
+    
+    // Por defecto: orden alfabético puro (Sirve perfecto para Año, Ejes y Cursos)
+    let sortRules = [{field: 'text', direction: 'asc'}]; 
+
+    if (customOrder[k]) {
+      // Si es Etapa o Nivel, usa el arreglo manual de arriba
+      sortRules = [{field: 'custom_index', direction: 'asc'}];
+    } else if (k === 'rbd') {
+      // Para colegios, ordena numéricamente por el RBD que está al inicio
+      sortRules = [{field: 'num_index', direction: 'asc'}];
+    }
+
+    const config = {
+      plugins: ['checkbox_options'], 
+      maxOptions: 250, 
+      closeAfterSelect: false, 
+      sortField: sortRules,
+      onChange: () => update()
+    };
+
     ts[k] = new TomSelect(`#f-${k}`, config);
     const mapData = DATA_RAW.maps[I[k.toUpperCase()]];
+    
     mapData.forEach((text, index) => {
-      if (text && text.trim() !== '') ts[k].addOption({ value: String(index), text: text });
+      if (text && text.trim() !== '') {
+        let itemData = { value: String(index), text: text };
+        
+        // Extraemos y asignamos el valor de ordenamiento según corresponda
+        if (customOrder[k]) {
+          let pos = customOrder[k].indexOf(text);
+          itemData.custom_index = pos !== -1 ? pos : 999; 
+        } else if (k === 'rbd') {
+          let match = text.match(/^\d+/);
+          itemData.num_index = match ? parseInt(match[0], 10) : 999999;
+        }
+        
+        ts[k].addOption(itemData);
+      }
     });
   });
 
