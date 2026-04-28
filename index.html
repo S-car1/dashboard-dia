@@ -82,18 +82,40 @@
 
     /* Gráficos */
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .chart-block { display: flex; flex-direction: column; }
     .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; position: relative; }
-    .chart-header { display: flex; justify-content: space-between; margin-bottom: 1.1rem; }
+    .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; }
     .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
     .chart-title span { color: var(--text); font-size: 0.85rem; display: block; margin-top: 0.15rem; text-transform: none; }
     .chart-wrap { position: relative; flex: 1; min-height: 0; }
     .full-width { grid-column: 1 / -1; }
 
-    .empty-state-container { 
-      display: flex; flex-direction: column; align-items: center; justify-content: center; 
-      padding: 3rem; text-align: center; background: var(--surface-2); border-radius: 8px; 
-      border: 1px dashed var(--border); height: 100%;
+    .empty-state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; text-align: center; background: var(--surface-2); border-radius: 8px; border: 1px dashed var(--border); height: 100%; }
+
+    /* --- TARJETAS DE VARIACIÓN SEPARADAS DEL GRÁFICO --- */
+    .variation-container {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-top: 0.6rem; /* Separación del bloque de gráfico arriba */
     }
+    .variation-container:empty { display: none; }
+    
+    .var-badge {
+      font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .var-badge span { color: var(--text-muted); }
+    .var-badge b { font-family: var(--mono); font-weight: bold; }
+    
+    .var-badge.up { background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); }
+    .var-badge.up b { color: #34d399; }
+    
+    .var-badge.down { background: rgba(248, 113, 113, 0.08); border: 1px solid rgba(248, 113, 113, 0.3); }
+    .var-badge.down b { color: #f87171; }
+    
+    .var-badge.neutral { background: var(--surface-2); border: 1px solid var(--border); }
+    .var-badge.neutral b { color: var(--text); }
+
+    @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
 <body>
@@ -135,10 +157,45 @@
   </div>
 
   <div class="charts-grid">
-    <div class="chart-card"><div class="chart-header"><div class="chart-title">Evolución<span>Lectura</span></div></div><div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div></div>
-    <div class="chart-card"><div class="chart-header"><div class="chart-title">Evolución<span>Matemática</span></div></div><div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div></div>
-    <div class="chart-card"><div class="chart-header"><div class="chart-title">Ejes Temáticos<span>Lectura</span></div></div><div class="chart-wrap"><canvas id="canvas-leng-ejes"></canvas></div></div>
-    <div class="chart-card"><div class="chart-header"><div class="chart-title">Ejes Temáticos<span>Matemática</span></div></div><div class="chart-wrap"><canvas id="canvas-mate-ejes"></canvas></div></div>
+    <div class="chart-block">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Evolución<span>Lectura</span></div>
+        </div>
+        <div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div>
+      </div>
+      <div id="var-leng-evo" class="variation-container"></div>
+    </div>
+    
+    <div class="chart-block">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Evolución<span>Matemática</span></div>
+        </div>
+        <div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div>
+      </div>
+      <div id="var-mate-evo" class="variation-container"></div>
+    </div>
+    
+    <div class="chart-block">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Ejes Temáticos<span>Lectura</span></div>
+        </div>
+        <div class="chart-wrap"><canvas id="canvas-leng-ejes"></canvas></div>
+      </div>
+      <div id="var-leng-ejes" class="variation-container"></div>
+    </div>
+    
+    <div class="chart-block">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Ejes Temáticos<span>Matemática</span></div>
+        </div>
+        <div class="chart-wrap"><canvas id="canvas-mate-ejes"></canvas></div>
+      </div>
+      <div id="var-mate-ejes" class="variation-container"></div>
+    </div>
 
     <div class="chart-card full-width" id="card-curso-evo">
       <div class="chart-header" style="align-items: center;">
@@ -305,13 +362,16 @@ function update() {
   document.getElementById('kpi-eval').innerText = res.kpi.count.toLocaleString('es-CL');
   document.getElementById('kpi-eval-sub').innerText = `${res.kpi.rbds.size} establecimientos filtrados`;
 
-  // Renderizado
   updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, '#38bdf8');
   updateLineChart(charts['mate-evo'], res.evo.Matemática, true, '#fb923c');
   updateLineChart(charts['leng-ejes'], res.ejes.Lenguaje, false);
   updateLineChart(charts['mate-ejes'], res.ejes.Matemática, false);
 
-  // Toggle de visualización para tarjetas inferiores
+  renderVariations(res.evo.Lenguaje, 'var-leng-evo', false);
+  renderVariations(res.evo.Matemática, 'var-mate-evo', false);
+  renderVariations(res.ejes.Lenguaje, 'var-leng-ejes', true);
+  renderVariations(res.ejes.Matemática, 'var-mate-ejes', true);
+
   const hasRBD = filters.rbd.length > 0;
   document.getElementById('overlay-curso').style.display = hasRBD ? 'none' : 'flex';
   document.getElementById('canvas-curso-evo').style.display = hasRBD ? 'block' : 'none';
@@ -324,14 +384,70 @@ function update() {
   }
 }
 
+function renderVariations(dataObj, elementId, isEjes) {
+  const container = document.getElementById(elementId);
+  if (!container) return;
+  container.innerHTML = '';
+  
+  let html = '';
+
+  if (!isEjes) {
+    if (dataObj['2025'] && dataObj['2026']) {
+      STAGES.forEach((stage, idx) => {
+        const c25 = dataObj['2025'][idx][1];
+        const c26 = dataObj['2026'][idx][1];
+        if (c25 > 0 && c26 > 0) {
+          const v25 = dataObj['2025'][idx][0] / c25;
+          const v26 = dataObj['2026'][idx][0] / c26;
+          const diff = (v26 - v25) * 100;
+          html += createVariationBadge(stage, diff);
+        }
+      });
+    }
+  } else {
+    Object.keys(dataObj).forEach(eje => {
+      if (dataObj[eje]['2025'] && dataObj[eje]['2026']) {
+        STAGES.forEach((stage, idx) => {
+          const c25 = dataObj[eje]['2025'][idx][1];
+          const c26 = dataObj[eje]['2026'][idx][1];
+          if (c25 > 0 && c26 > 0) {
+            const v25 = dataObj[eje]['2025'][idx][0] / c25;
+            const v26 = dataObj[eje]['2026'][idx][0] / c26;
+            const diff = (v26 - v25) * 100;
+            html += createVariationBadge(`${eje} (${stage})`, diff);
+          }
+        });
+      }
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+function createVariationBadge(label, diff) {
+  // Revertido a formato de punto decimal normal (ej: 3.5%)
+  const valStr = Math.abs(diff).toFixed(1);
+  
+  if (diff > 0) {
+    return `<div class="var-badge up"><span>${label}:</span> <b>aumentó ↑ ${valStr}%</b></div>`;
+  } else if (diff < 0) {
+    return `<div class="var-badge down"><span>${label}:</span> <b>disminuyó ↓ ${valStr}%</b></div>`;
+  } else {
+    return `<div class="var-badge neutral"><span>${label}:</span> <b>se mantuvo igual</b></div>`;
+  }
+}
+
 function updateRBDRanking(chart, dataObj) {
   const sorted = Object.entries(dataObj).map(([name, d]) => ({ name, val: d[0]/d[1], id: d[2] })).sort((a,b) => b.val - a.val);
   chart.data.labels = sorted.map(i => i.name.substring(0, 40));
+  
   chart.data.datasets = [{
     data: sorted.map(i => i.val),
-    backgroundColor: sorted.map(i => i.val >= UMBRAL_LOGRO ? 'rgba(52, 211, 153, 0.4)' : 'rgba(248, 113, 113, 0.4)'),
-    borderColor: sorted.map(i => i.val >= UMBRAL_LOGRO ? '#34d399' : '#f87171'),
-    borderWidth: 1, borderRadius: 4, ids: sorted.map(i => i.id) 
+    backgroundColor: 'rgba(56, 189, 248, 0.4)',
+    borderColor: '#38bdf8',
+    borderWidth: 1, 
+    borderRadius: 4, 
+    ids: sorted.map(i => i.id) 
   }];
   chart.update();
 }
@@ -341,12 +457,12 @@ function initCharts() {
     responsive: true, maintainAspectRatio: false,
     scales: { y: { grace: '10%', ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d' } }, x: { grid: { display: false } } },
     plugins: { 
-      legend: { position: 'bottom', labels: { usePointStyle: true, color: '#7d8590' } },
+      legend: { position: 'bottom', labels: { usePointStyle: true, color: '#7d8590', filter: (it) => !it.text.includes('Umbral') } },
       tooltip: {
         callbacks: {
           label: function(context) {
             let label = context.dataset.label || '';
-            if (label) label += ': ';
+            if (label && !label.includes('Umbral')) label += ': ';
             if (context.parsed.y !== null) {
               label += (context.parsed.y * 100).toFixed(1) + '%';
             }
@@ -385,6 +501,18 @@ function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
       colorIdx++;
     }
   });
+  
+  chart.data.datasets.push({ 
+    label: 'Umbral 60%', 
+    data: Array(3).fill(UMBRAL_LOGRO), 
+    borderColor: 'transparent', 
+    borderWidth: 0,
+    pointRadius: 0, 
+    hitRadius: 0,
+    hoverRadius: 0,
+    fill: false 
+  });
+  
   chart.update();
 }
 
