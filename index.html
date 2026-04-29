@@ -92,7 +92,7 @@
 
     .empty-state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; text-align: center; background: var(--surface-2); border-radius: 8px; border: 1px dashed var(--border); height: 100%; }
 
-    /* --- NUEVO DISEÑO DE TABLA PARA LAS VARIACIONES --- */
+    /* --- TABLA PARA LAS VARIACIONES --- */
     .var-table-wrapper {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -222,19 +222,6 @@
         <canvas id="canvas-curso-evo" style="display:none;"></canvas>
       </div>
     </div>
-
-    <div class="chart-card full-width" id="card-rbd-ranking">
-      <div class="chart-header">
-        <div class="chart-title">Ranking de Establecimientos</div>
-      </div>
-      <div class="chart-wrap" style="min-height: 250px;">
-        <div id="overlay-ranking" class="empty-state-container">
-           <h3>Selecciona un Establecimiento</h3>
-           <p>Filtra uno o más RBDs para ver el ranking comparativo.</p>
-        </div>
-        <canvas id="canvas-rbd-ranking" style="display:none;"></canvas>
-      </div>
-    </div>
   </div>
 </main>
 
@@ -263,21 +250,16 @@ async function init() {
 }
 
 function setupFiltersStable() {
-  // 1. ORDEN ESTRICTO SOLO PARA ETAPA
   const customOrder = {
     etapa: ['Diagnóstico', 'Intermedio', 'Cierre']
   };
 
   ['agno', 'etapa', 'rbd', 'nivel', 'curso', 'eje'].forEach(k => {
-    
-    // Por defecto: orden alfabético puro (Sirve perfecto para Año, Ejes y Cursos)
     let sortRules = [{field: 'text', direction: 'asc'}]; 
 
     if (customOrder[k]) {
-      // Si es Etapa, usa el arreglo manual de arriba
       sortRules = [{field: 'custom_index', direction: 'asc'}];
     } else if (k === 'rbd' || k === 'nivel') {
-      // Colegios y Niveles: primero por número inicial, luego alfabético para desempatar (Ej: I° Medio, II° Medio)
       sortRules = [
         {field: 'num_index', direction: 'asc'},
         {field: 'text', direction: 'asc'}
@@ -299,7 +281,6 @@ function setupFiltersStable() {
       if (text && text.trim() !== '') {
         let itemData = { value: String(index), text: text };
         
-        // Extraemos y asignamos el valor de ordenamiento según corresponda
         if (customOrder[k]) {
           let pos = customOrder[k].indexOf(text);
           itemData.custom_index = pos !== -1 ? pos : 999; 
@@ -318,6 +299,7 @@ function setupFiltersStable() {
     update();
   };
 }
+
 function renderActiveFiltersTray() {
   const tray = document.getElementById('active-filters-tray');
   tray.innerHTML = ''; 
@@ -355,7 +337,7 @@ function update() {
   const res = {
     kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() },
     evo: { Lenguaje: {}, Matemática: {} }, ejes: { Lenguaje: {}, Matemática: {} }, 
-    cursos: {}, rbdsRanking: {}
+    cursos: {}
   };
 
   DATA_RAW.rows.forEach(r => {
@@ -369,7 +351,6 @@ function update() {
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
     const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
     const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
-    const rbdV = DATA_RAW.maps[I.RBD][r[I.RBD]];
     const p = r[I.PUNTAJE];
     const stIdx = STAGES.indexOf(etapaV);
     if (stIdx === -1) return;
@@ -388,9 +369,6 @@ function update() {
       if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
       res.ejes[asigV][ejeV][agnoV][stIdx][0] += p; res.ejes[asigV][ejeV][agnoV][stIdx][1]++;
     }
-
-    if (!res.rbdsRanking[rbdV]) res.rbdsRanking[rbdV] = [0,0, r[I.RBD]];
-    res.rbdsRanking[rbdV][0] += p; res.rbdsRanking[rbdV][1]++;
 
     if (filters.rbd.length && asigV === currentAsigFilter) {
       const cV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
@@ -412,7 +390,6 @@ function update() {
   updateLineChart(charts['leng-ejes'], res.ejes.Lenguaje, false);
   updateLineChart(charts['mate-ejes'], res.ejes.Matemática, false);
 
-  // NUEVO: Renderizado de Tablas de Variación
   renderVariationsTable(res.evo.Lenguaje, 'var-leng-evo', false);
   renderVariationsTable(res.evo.Matemática, 'var-mate-evo', false);
   renderVariationsTable(res.ejes.Lenguaje, 'var-leng-ejes', true);
@@ -421,21 +398,16 @@ function update() {
   const hasRBD = filters.rbd.length > 0;
   document.getElementById('overlay-curso').style.display = hasRBD ? 'none' : 'flex';
   document.getElementById('canvas-curso-evo').style.display = hasRBD ? 'block' : 'none';
-  document.getElementById('overlay-ranking').style.display = hasRBD ? 'none' : 'flex';
-  document.getElementById('canvas-rbd-ranking').style.display = hasRBD ? 'block' : 'none';
 
   if (hasRBD) {
     updateLineChart(charts['curso-evo'], res.cursos, false);
-    updateRBDRanking(charts['rbd-ranking'], res.rbdsRanking);
   }
 }
 
-// FUNCIÓN MATRICIAL: Crea una tabla con las diferencias de 2026 vs 2025
 function renderVariationsTable(dataObj, elementId, isEjes) {
   const container = document.getElementById(elementId);
   if (!container) return;
 
-  // Verificamos si hay datos de ambos años para poder comparar
   let hasComparisonData = false;
   if (!isEjes) {
     if (dataObj['2025'] && dataObj['2026']) hasComparisonData = true;
@@ -445,7 +417,6 @@ function renderVariationsTable(dataObj, elementId, isEjes) {
     });
   }
 
-  // Si no hay datos de 2026 para comparar con 2025, limpiamos y salimos
   if (!hasComparisonData) {
     container.innerHTML = '';
     return;
@@ -488,7 +459,6 @@ function renderVariationsTable(dataObj, elementId, isEjes) {
   container.innerHTML = html;
 }
 
-// Calcula la celda individual y retorna el "tag" de color
 function getVariationCell(node, idx) {
   if (!node['2025'] || !node['2026']) return `<span class="var-badge empty">—</span>`;
   const c25 = node['2025'][idx][1];
@@ -502,7 +472,6 @@ function getVariationCell(node, idx) {
 
   const valStr = Math.abs(diff).toFixed(1);
 
-  // Consideramos una variación significativa si es mayor a 0.1%
   if (diff > 0.1) {
     return `<span class="var-badge up">↑ ${valStr}%</span>`;
   } else if (diff < -0.1) {
@@ -510,21 +479,6 @@ function getVariationCell(node, idx) {
   } else {
     return `<span class="var-badge neutral">= 0.0%</span>`;
   }
-}
-
-function updateRBDRanking(chart, dataObj) {
-  const sorted = Object.entries(dataObj).map(([name, d]) => ({ name, val: d[0]/d[1], id: d[2] })).sort((a,b) => b.val - a.val);
-  chart.data.labels = sorted.map(i => i.name.substring(0, 40));
-  
-  chart.data.datasets = [{
-    data: sorted.map(i => i.val),
-    backgroundColor: 'rgba(56, 189, 248, 0.4)',
-    borderColor: '#38bdf8',
-    borderWidth: 1, 
-    borderRadius: 4, 
-    ids: sorted.map(i => i.id) 
-  }];
-  chart.update();
 }
 
 function initCharts() {
@@ -549,18 +503,6 @@ function initCharts() {
   });
   ['leng-evo', 'mate-evo', 'leng-ejes', 'mate-ejes', 'curso-evo'].forEach(id => {
     charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt() });
-  });
-  charts['rbd-ranking'] = new Chart(document.getElementById('canvas-rbd-ranking'), {
-    type: 'bar', data: { labels: [], datasets: [] },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      onClick: (e, elements) => { if (elements.length > 0) ts.rbd.setValue([String(charts['rbd-ranking'].data.datasets[0].ids[elements[0].index])]); },
-      plugins: { 
-        legend: { display: false }, 
-        tooltip: { callbacks: { label: ctx => ` Promedio: ${(ctx.parsed.x * 100).toFixed(1)}%` } } 
-      },
-      scales: { x: { max: 1, ticks: { callback: v => (v*100)+'%' }, grid: { color: '#21262d' } }, y: { ticks: { color: '#7d8590', font: { size: 10 } } } }
-    }
   });
 }
 
