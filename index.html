@@ -22,119 +22,135 @@
       --font:       'Archivo', sans-serif; --mono:       'JetBrains Mono', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; overflow-x: hidden; }
 
-    .sticky-top-section {
-      position: sticky; top: 0; z-index: 1000;
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4); padding-bottom: 1rem;
+    /* PANTALLA DE LOGIN */
+    #login-overlay {
+      position: fixed; inset: 0; background: var(--bg); z-index: 5000;
+      display: flex; align-items: center; justify-content: center; padding: 2rem;
     }
-    
+    .login-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+      padding: 2.5rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .login-card img { height: 60px; margin-bottom: 1.5rem; }
+    .login-card h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .login-card p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem; }
+    .input-group { text-align: left; margin-bottom: 1.2rem; }
+    .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+    .input-group input {
+      width: 100%; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.8rem; color: var(--text); font-family: var(--font); outline: none; transition: 0.2s;
+    }
+    .input-group input:focus { border-color: var(--leng); box-shadow: 0 0 0 2px rgba(56,189,248,0.1); }
+    .btn-login {
+      width: 100%; background: var(--leng); color: var(--bg); border: none; border-radius: 8px;
+      padding: 0.9rem; font-weight: 800; cursor: pointer; transition: 0.2s; margin-top: 1rem;
+    }
+    .btn-login:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    #login-error { color: var(--red); font-size: 0.8rem; margin-top: 1rem; display: none; font-weight: 600; }
+
+    /* DASHBOARD */
+    .sticky-top-section { position: sticky; top: 0; z-index: 1000; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
     .header { padding: 1rem 2rem 0.5rem 2rem; display: block; }
     .header::after { content: ""; display: table; clear: both; }
     .header-info { float: left; display: flex; align-items: center; gap: 1rem; margin-right: 2rem; margin-bottom: 0.5rem; }
-
-    .main { max-width: 1560px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    .filter-bar { padding: 0.5rem 2rem 0.8rem 2rem; display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; clear: both; }
     
-    #loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
-    .loader { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--leng); border-radius: 50%; animation: spin .7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .filter-bar { padding: 0.5rem 2rem 0 2rem; display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; clear: both; }
     .filter-group { position: relative; }
-    .filter-group::before {
-      content: attr(data-label); position: absolute; left: 0; top: 8px; font-size: 0.85rem; font-weight: 800; color: var(--text-muted);
-      pointer-events: none; transition: color 0.2s; z-index: 10; letter-spacing: 0.05em;
-    }
+    
+    .filter-group::before { content: attr(data-label); position: absolute; left: 0; top: 8px; font-size: 0.85rem; font-weight: 800; color: var(--text-muted); pointer-events: none; transition: opacity 0.2s, color 0.2s; z-index: 10; letter-spacing: 0.05em; }
     .filter-group:hover::before { color: var(--text); }
     .filter-group:focus-within::before { opacity: 0; }
 
-    .ts-wrapper.multi .ts-control { 
-      background: transparent !important; border: none !important; border-bottom: 1px solid transparent !important; 
-      padding: 6px 0 !important; height: 34px !important; box-shadow: none !important; cursor: pointer !important; overflow: hidden; 
-    }
+    .tabs-nav { position: relative; background: var(--bg); padding: 0 2rem; display: flex; justify-content: center; gap: 3rem; border-bottom: 1px solid var(--border); }
+    .tab-btn { background: transparent; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.85rem; font-weight: 700; padding: 1rem 0; cursor: pointer; position: relative; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; }
+    .tab-btn.active { color: var(--leng); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--leng); }
+
+    .slep-toggle-wrapper { position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.8rem; }
+    .slep-toggle-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; transition: 0.3s; }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-2); border: 1px solid var(--border); transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: rgba(56, 189, 248, 0.15); border-color: var(--leng); }
+    input:checked + .slider:before { transform: translateX(20px); background-color: var(--leng); }
+
+    .main { max-width: 1560px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    .ts-wrapper.multi .ts-control { background: transparent !important; border: none !important; border-bottom: 1px solid transparent !important; padding: 6px 0 !important; height: 34px !important; box-shadow: none !important; cursor: pointer !important; overflow: hidden; }
     .ts-wrapper.multi.focus .ts-control { border-bottom: 1px solid var(--leng) !important; }
     .ts-wrapper.multi .ts-control > div.item { display: none !important; }
-    .ts-control input { color: var(--text) !important; font-size: 0.85rem; font-family: var(--font); }
+    .ts-control input { color: var(--text) !important; font-size: 0.85rem; }
     .ts-wrapper.multi:not(.focus) .ts-control input::placeholder { color: transparent !important; }
-
-    .ts-dropdown { background: var(--surface-2) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; color: var(--text) !important; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; margin-top: 4px; }
-    .ts-dropdown .active { background: rgba(56,189,248,0.1) !important; color: var(--text) !important; }
-
-    .btn-clear-text { background: transparent; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.8rem; font-weight: 800; cursor: pointer; padding: 6px 0; transition: color 0.2s; text-transform: uppercase; margin-left: auto; }
-    .btn-clear-text:hover { color: var(--red); }
+    .ts-dropdown { background: var(--surface-2) !important; border: 1px solid var(--border) !important; color: var(--text) !important; z-index: 2000; }
+    .btn-clear-text { background: transparent; border: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 800; cursor: pointer; margin-left: auto; text-transform: uppercase; }
 
     .active-filters-tray { display: block; padding-top: 0.4rem; }
     .filter-group-tag { display: inline-flex; align-items: center; margin: 0 0.5rem 0.5rem 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-    .filter-group-label { padding: 4px 8px; font-size: 0.65rem; font-weight: 800; color: var(--leng); background: rgba(56,189,248,0.05); border-right: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
-    .filter-group-label:hover { background: var(--red); color: white; }
-    .filter-value-tag { padding: 4px 10px; font-size: 0.75rem; color: var(--text); cursor: pointer; transition: 0.2s; display: flex; align-items: center; border-right: 1px solid var(--border); }
-    .filter-value-tag:last-child { border-right: none; }
-    .filter-value-tag:hover { background: rgba(248,113,113,0.15); color: var(--red); }
+    .filter-group-label { padding: 4px 8px; font-size: 0.65rem; font-weight: 800; color: var(--leng); background: rgba(56,189,248,0.05); border-right: 1px solid var(--border); cursor: pointer; }
+    .filter-value-tag { padding: 4px 10px; font-size: 0.75rem; color: var(--text); cursor: pointer; display: flex; align-items: center; border-right: 1px solid var(--border); }
 
-    /* KPIs */
     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; overflow: hidden; }
+    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; }
     .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--kpi-c); opacity: 0.5; }
     .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
     .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; color: var(--kpi-c); }
-    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; }
 
-    /* Gráficos */
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
     .chart-block { display: flex; flex-direction: column; gap: 0.7rem; }
-    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; position: relative; }
-    .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; }
+    .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; flex-wrap: wrap; gap: 1rem; }
     .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
     .chart-title span { color: var(--text); font-size: 0.85rem; display: block; margin-top: 0.15rem; text-transform: none; }
     .chart-wrap { position: relative; flex: 1; min-height: 0; }
     .full-width { grid-column: 1 / -1; }
 
+    .master-eje-tray { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .master-eje-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+    .master-eje-card.active { border-color: var(--leng); color: var(--text); background: rgba(56, 189, 248, 0.05); }
+    .color-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot-c); }
+    .year-ref-label { font-size: 0.7rem; color: var(--text-muted); font-family: var(--mono); margin-top: 0.3rem; }
     .empty-state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; text-align: center; background: var(--surface-2); border-radius: 8px; border: 1px dashed var(--border); height: 100%; }
 
-    /* --- TABLA PARA LAS VARIACIONES --- */
-    .var-table-wrapper {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 1rem;
-      overflow-x: auto;
-    }
-    .var-table-title {
-      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; letter-spacing: 0.05em;
-    }
-    .var-table {
-      width: 100%; border-collapse: collapse; text-align: left;
-    }
-    .var-table th {
-      color: var(--text-muted); font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-      padding: 6px 8px; border-bottom: 1px solid var(--border);
-    }
-    .var-table td {
-      padding: 8px; font-size: 0.8rem; border-bottom: 1px solid rgba(48, 54, 61, 0.5);
-    }
-    .var-table tr:last-child td { border-bottom: none; }
-    
-    .var-badge {
-      display: inline-flex; align-items: center; justify-content: center;
-      padding: 3px 6px; border-radius: 4px; font-family: var(--mono); font-weight: bold; font-size: 0.72rem; min-width: 55px;
-    }
+    .var-table-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem; margin-top: 0.5rem; }
+    .var-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .var-table th { color: var(--text-muted); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    .var-table td { padding: 8px; font-size: 0.8rem; border-bottom: 1px solid rgba(48, 54, 61, 0.5); }
+    .var-badge { display: inline-flex; align-items: center; justify-content: center; padding: 3px 6px; border-radius: 4px; font-family: var(--mono); font-weight: bold; font-size: 0.72rem; min-width: 55px; }
     .var-badge.up { background: rgba(52, 211, 153, 0.1); color: #34d399; }
     .var-badge.down { background: rgba(248, 113, 113, 0.1); color: #f87171; }
     .var-badge.neutral { background: var(--surface-2); color: var(--text-muted); }
-    .var-badge.empty { color: var(--text-muted); background: transparent; font-weight: normal;}
+    .var-badge.empty { background: transparent; color: var(--text-muted); }
 
     @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
 <body>
 
-<div id="loading">
-  <div class="loader"></div>
-  <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">Cargando Sistema DIA...</p>
+<div id="login-overlay">
+  <div class="login-card">
+    <img src="logo3.png" alt="Logo SLEP">
+    <h2>Acceso Directivo</h2>
+    <p>Ingresa tu usuario y contraseña para visualizar los resultados DIA.</p>
+    
+    <div class="input-group">
+      <label>USUARIO</label>
+      <input type="text" id="login-user" placeholder="RBD">
+    </div>
+    
+    <div class="input-group">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••">
+    </div>
+    
+    <button class="btn-login" onclick="handleLogin()">Ingresar al Sistema</button>
+    <div id="login-error">Credenciales incorrectas</div>
+  </div>
 </div>
 
-<div class="sticky-top-section">
+<div class="sticky-top-section" id="navbar" style="display:none;">
   <header class="header">
     <div class="header-info">
       <img src="logo3.png" alt="Logo" style="height: 55px; width: auto; object-fit: contain;">    
@@ -143,84 +159,89 @@
         <div style="font-size: 0.75rem; color: var(--text-muted);">SLEP Del Pino</div>
       </div>
     </div>
-    <div id="active-filters-tray" class="active-filters-tray" style="display: none;"></div>
+    <div id="active-filters-tray" class="active-filters-tray" style="display: none; float: right;"></div>
   </header>
 
   <div class="filter-bar">
-    <div class="filter-group" style="flex: 0.5;" data-label="AÑO ▾"><select id="f-agno" multiple placeholder="Buscar año..."></select></div>
-    <div class="filter-group" style="flex: 0.7;" data-label="ETAPA ▾"><select id="f-etapa" multiple placeholder="Buscar etapa..."></select></div>
-    <div class="filter-group" style="flex: 0.6;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Buscar nivel..."></select></div>
-    <div class="filter-group" style="flex: 2.5;" data-label="ESTABLECIMIENTO ▾"><select id="f-rbd" multiple placeholder="Buscar establecimiento..."></select></div>
-    <div class="filter-group" style="flex: 0.5;" data-label="CURSO ▾"><select id="f-curso" multiple placeholder="Buscar curso..."></select></div>
-    <div class="filter-group" style="flex: 1.5;" data-label="EJES ▾"><select id="f-eje" multiple placeholder="Buscar eje..."></select></div>
+    <div class="filter-group" style="flex: 0.6;" data-label="AÑO ▾"><select id="f-agno" multiple placeholder="Año..."></select></div>
+    <div class="filter-group" style="flex: 0.8;" data-label="ETAPA ▾"><select id="f-etapa" multiple placeholder="Etapa..."></select></div>
+    <div class="filter-group" style="flex: 0.8;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Nivel..."></select></div>
+    <div class="filter-group" style="flex: 0.8;" data-label="CURSO ▾"><select id="f-curso" multiple placeholder="Curso..."></select></div>
+    
+    <div class="filter-group" id="group-rbd" style="flex: 2.5;" data-label="COLEGIO ▾"><select id="f-rbd" multiple placeholder="Buscar colegio..."></select></div>
+    
+    <div id="static-rbd-container" class="filter-group" style="display:none; flex: 2.5;">
+      <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid var(--leng); border-radius: 8px; padding: 0 12px; height: 34px; display: flex; align-items: center; overflow: hidden;">
+        <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-right: 8px; letter-spacing: 0.05em;">COLEGIO:</span>
+        <span id="static-rbd-text" style="font-size: 0.85rem; font-weight: 700; color: var(--leng); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+      </div>
+    </div>
+    
     <button class="btn-clear-text" id="btn-clear">Limpiar Filtros</button>
   </div>
+
+  <nav class="tabs-nav">
+    <button class="tab-btn active" onclick="showTab('tab-general', event)">Visión General</button>
+    <button class="tab-btn" onclick="showTab('tab-ejes', event)">Análisis por Ejes</button>
+    <div class="slep-toggle-wrapper">
+      <span class="slep-toggle-label" id="slep-label-text">Comparar SLEP</span>
+      <label class="switch">
+        <input type="checkbox" id="slep-toggle" onchange="toggleSlep()">
+        <span class="slider round"></span>
+      </label>
+    </div>
+  </nav>
 </div>
 
 <main class="main" id="dashboard" style="display:none;">
-  <div class="kpi-grid">
-    <div class="kpi" style="--kpi-c: var(--text)"><div class="kpi-label">Promedio General</div><div class="kpi-val" id="kpi-global">—</div><div class="kpi-sub">De todos los establecimientos</div></div>
-    <div class="kpi" style="--kpi-c: var(--leng)"><div class="kpi-label">Lectura</div><div class="kpi-val" id="kpi-leng">—</div><div class="kpi-sub">Promedio asignatura</div></div>
-    <div class="kpi" style="--kpi-c: var(--mate)"><div class="kpi-label">Matemática</div><div class="kpi-val" id="kpi-mate">—</div><div class="kpi-sub">Promedio asignatura</div></div>
-    <div class="kpi" style="--kpi-c: var(--purple)"><div class="kpi-label">Evaluaciones</div><div class="kpi-val" id="kpi-eval">—</div><div class="kpi-sub" id="kpi-eval-sub">Casos procesados</div></div>
+  <div id="tab-general" class="tab-content">
+    <div class="kpi-grid" style="margin-bottom: 1.5rem;">
+      <div class="kpi" style="--kpi-c: var(--text)"><div class="kpi-label">Promedio General</div><div class="kpi-val" id="kpi-global">—</div></div>
+      <div class="kpi" style="--kpi-c: var(--leng)"><div class="kpi-label">Lectura</div><div class="kpi-val" id="kpi-leng">—</div></div>
+      <div class="kpi" style="--kpi-c: var(--mate)"><div class="kpi-label">Matemática</div><div class="kpi-val" id="kpi-mate">—</div></div>
+      <div class="kpi" style="--kpi-c: var(--purple)"><div class="kpi-label">Evaluaciones</div><div class="kpi-val" id="kpi-eval">—</div></div>
+    </div>
+    
+    <div class="charts-grid">
+      <div class="chart-block">
+        <div class="chart-card">
+          <div class="chart-header"><div class="chart-title">Evolución<span>Lectura</span></div></div>
+          <div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div>
+        </div>
+        <div id="var-leng-evo"></div>
+      </div>
+      
+      <div class="chart-block">
+        <div class="chart-card">
+          <div class="chart-header"><div class="chart-title">Evolución<span>Matemática</span></div></div>
+          <div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div>
+        </div>
+        <div id="var-mate-evo"></div>
+      </div>
+      
+      <div class="chart-block full-width"><div class="chart-card"><div class="chart-header" style="align-items: center;"><div class="chart-title">Análisis Comparativo por Curso</div><div style="display: flex; gap: 0.5rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px;"><button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lectura</button><button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button></div></div><div class="chart-wrap" style="min-height: 300px;"><div id="overlay-curso" class="empty-state-container"><h3>Selecciona un Establecimiento</h3><p>Filtra un RBD arriba para ver el desglose por cursos.</p></div><canvas id="canvas-curso-evo" style="display:none;"></canvas></div></div></div>
+    </div>
   </div>
 
-  <div class="charts-grid">
-    <div class="chart-block">
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-title">Evolución<span>Lectura</span></div>
+  <div id="tab-ejes" class="tab-content" style="display:none;">
+    <div class="charts-grid" style="grid-template-columns: 1fr;">
+      
+      <div class="chart-block">
+        <div class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">Ejes Temáticos<span>Lectura</span></div><div class="year-ref-label">○ 2025  |  △ 2026</div></div><div id="master-leng-tray" class="master-eje-tray"></div></div>
+          <div class="chart-wrap" style="min-height: 600px;"><canvas id="canvas-leng-ejes"></canvas></div>
         </div>
-        <div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div>
+        <div id="var-leng-ejes"></div>
       </div>
-      <div id="var-leng-evo"></div>
-    </div>
-    
-    <div class="chart-block">
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-title">Evolución<span>Matemática</span></div>
+      
+      <div class="chart-block">
+        <div class="chart-card">
+          <div class="chart-header"><div><div class="chart-title">Ejes Temáticos<span>Matemática</span></div><div class="year-ref-label">○ 2025  |  △ 2026</div></div><div id="master-mate-tray" class="master-eje-tray"></div></div>
+          <div class="chart-wrap" style="min-height: 600px;"><canvas id="canvas-mate-ejes"></canvas></div>
         </div>
-        <div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div>
+        <div id="var-mate-ejes"></div>
       </div>
-      <div id="var-mate-evo"></div>
-    </div>
-    
-    <div class="chart-block">
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-title">Ejes Temáticos<span>Lectura</span></div>
-        </div>
-        <div class="chart-wrap"><canvas id="canvas-leng-ejes"></canvas></div>
-      </div>
-      <div id="var-leng-ejes"></div>
-    </div>
-    
-    <div class="chart-block">
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-title">Ejes Temáticos<span>Matemática</span></div>
-        </div>
-        <div class="chart-wrap"><canvas id="canvas-mate-ejes"></canvas></div>
-      </div>
-      <div id="var-mate-ejes"></div>
-    </div>
 
-    <div class="chart-card full-width" id="card-curso-evo">
-      <div class="chart-header" style="align-items: center;">
-        <div class="chart-title">Análisis Comparativo por Curso</div>
-        <div style="display: flex; gap: 0.5rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px;">
-          <button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lectura</button>
-          <button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button>
-        </div>
-      </div>
-      <div class="chart-wrap" style="min-height: 300px;">
-        <div id="overlay-curso" class="empty-state-container">
-           <h3>Selecciona un Establecimiento</h3>
-           <p>Filtra un RBD arriba para ver el desglose por cursos.</p>
-        </div>
-        <canvas id="canvas-curso-evo" style="display:none;"></canvas>
-      </div>
     </div>
   </div>
 </main>
@@ -234,142 +255,167 @@ const STAGES = ['Diagnóstico', 'Intermedio', 'Cierre'];
 const COLORS = ['#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', '#fbbf24', '#2dd4bf', '#818cf8'];
 const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
 let currentAsigFilter = 'Lenguaje';
+let showSlep = false;
+let activeEjes = { Lenguaje: new Set(), Matemática: new Set() };
+let IS_ADMIN = false;
+let SESSION_RBD = null;
 
-const FILTER_NAMES = { agno: 'AÑO', etapa: 'ETAPA', nivel: 'NIVEL', rbd: 'RBD', curso: 'CURSO', eje: 'EJE' };
-
-async function init() {
+async function initData() {
   try {
     const res = await fetch('datos.json');
     DATA_RAW = await res.json();
     setupFiltersStable();
     initCharts();
-    update();
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'flex';
   } catch (e) { console.error(e); }
 }
 
-function setupFiltersStable() {
-  const customOrder = {
-    etapa: ['Diagnóstico', 'Intermedio', 'Cierre']
-  };
+function handleLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  const errorEl = document.getElementById('login-error');
 
-  ['agno', 'etapa', 'rbd', 'nivel', 'curso', 'eje'].forEach(k => {
-    let sortRules = [{field: 'text', direction: 'asc'}]; 
+  if (user === 'admin' && pass === 'satp2026') {
+    IS_ADMIN = true;
+    startDashboard();
+    return;
+  }
 
-    if (customOrder[k]) {
-      sortRules = [{field: 'custom_index', direction: 'asc'}];
-    } else if (k === 'rbd' || k === 'nivel') {
-      sortRules = [
-        {field: 'num_index', direction: 'asc'},
-        {field: 'text', direction: 'asc'}
-      ];
+  const rbdNum = parseInt(user, 10);
+  if (!isNaN(rbdNum) && pass === String((rbdNum * 2) + 30)) {
+    const rbdFound = DATA_RAW.maps[I.RBD].some(text => text.startsWith(user));
+    if (rbdFound) {
+      IS_ADMIN = false;
+      SESSION_RBD = user;
+      startDashboard();
+      return;
     }
+  }
 
-    const config = {
-      plugins: ['checkbox_options'], 
-      maxOptions: 250, 
-      closeAfterSelect: false, 
-      sortField: sortRules,
-      onChange: () => update()
-    };
+  errorEl.style.display = 'block';
+}
 
-    ts[k] = new TomSelect(`#f-${k}`, config);
-    const mapData = DATA_RAW.maps[I[k.toUpperCase()]];
-    
-    mapData.forEach((text, index) => {
+function startDashboard() {
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('navbar').style.display = 'block';
+  document.getElementById('dashboard').style.display = 'block';
+
+  if (!IS_ADMIN && SESSION_RBD) {
+    const rbdId = DATA_RAW.maps[I.RBD].findIndex(text => text.startsWith(SESSION_RBD));
+    if (rbdId !== -1) {
+      ts.rbd.setValue([String(rbdId)]);
+      document.getElementById('group-rbd').style.display = 'none';
+      document.getElementById('static-rbd-container').style.display = 'block';
+      document.getElementById('static-rbd-text').innerText = DATA_RAW.maps[I.RBD][rbdId];
+      document.getElementById('static-rbd-text').title = DATA_RAW.maps[I.RBD][rbdId];
+    }
+  }
+  update();
+}
+
+function showTab(tabId, e) {
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).style.display = 'block';
+  if(e) e.currentTarget.classList.add('active');
+}
+
+function toggleSlep() {
+  showSlep = document.getElementById('slep-toggle').checked;
+  document.getElementById('slep-label-text').style.color = showSlep ? 'var(--leng)' : 'var(--text-muted)';
+  update();
+}
+
+function setupFiltersStable() {
+  const customOrder = { etapa: ['Diagnóstico', 'Intermedio', 'Cierre'] };
+  ['agno', 'etapa', 'nivel', 'curso', 'rbd'].forEach(k => {
+    let sortRules = [{field: 'text', direction: 'asc'}]; 
+    if (customOrder[k]) sortRules = [{field: 'custom_index', direction: 'asc'}];
+    else if (k === 'rbd' || k === 'nivel') sortRules = [ {field: 'num_index', direction: 'asc'}, {field: 'text', direction: 'asc'} ];
+    ts[k] = new TomSelect(`#f-${k}`, { plugins: ['checkbox_options'], maxOptions: 300, closeAfterSelect: false, sortField: sortRules, onChange: () => update() });
+    DATA_RAW.maps[I[k.toUpperCase()]].forEach((text, index) => {
       if (text && text.trim() !== '') {
         let itemData = { value: String(index), text: text };
-        
-        if (customOrder[k]) {
-          let pos = customOrder[k].indexOf(text);
-          itemData.custom_index = pos !== -1 ? pos : 999; 
-        } else if (k === 'rbd' || k === 'nivel') {
-          let match = text.match(/^\d+/);
-          itemData.num_index = match ? parseInt(match[0], 10) : 999999;
-        }
-        
+        if (customOrder[k]) itemData.custom_index = customOrder[k].indexOf(text) !== -1 ? customOrder[k].indexOf(text) : 999; 
+        else if (k === 'rbd' || k === 'nivel') { let m = text.match(/^\d+/); itemData.num_index = m ? parseInt(m[0], 10) : 999999; }
         ts[k].addOption(itemData);
       }
     });
   });
 
-  document.getElementById('btn-clear').onclick = () => {
-    Object.values(ts).forEach(t => t.clear(true));
-    update();
+  document.getElementById('btn-clear').onclick = () => { 
+    Object.keys(ts).forEach(k => {
+      if (!IS_ADMIN && k === 'rbd') return; 
+      ts[k].clear(true); 
+    });
+    activeEjes = { Lenguaje: new Set(), Matemática: new Set() };
+    document.getElementById('master-leng-tray').innerHTML = '';
+    document.getElementById('master-mate-tray').innerHTML = '';
+    update(); 
   };
 }
 
 function renderActiveFiltersTray() {
   const tray = document.getElementById('active-filters-tray');
-  tray.innerHTML = ''; 
-  let hasFilters = false;
-
+  tray.innerHTML = ''; let hasFilters = false;
   Object.keys(ts).forEach(key => {
-    const selectedValues = ts[key].getValue();
-    if (selectedValues.length > 0) {
+    const selected = ts[key].getValue();
+    if (selected.length > 0) {
+      if (!IS_ADMIN && key === 'rbd') return; 
       hasFilters = true;
-      const groupContainer = document.createElement('div');
-      groupContainer.className = 'filter-group-tag';
-      const label = document.createElement('span');
-      label.className = 'filter-group-label';
-      label.innerText = `${FILTER_NAMES[key]}`;
+      const group = document.createElement('div'); group.className = 'filter-group-tag';
+      const label = document.createElement('span'); label.className = 'filter-group-label'; label.innerText = key.toUpperCase();
       label.onclick = () => { ts[key].clear(true); update(); };
-      groupContainer.appendChild(label);
-      selectedValues.forEach(val => {
-        const valTag = document.createElement('span');
-        valTag.className = 'filter-value-tag';
-        valTag.innerText = ts[key].options[val].text;
-        valTag.onclick = () => { ts[key].removeItem(val); }; 
-        groupContainer.appendChild(valTag);
+      group.appendChild(label);
+      selected.forEach(val => {
+        const tag = document.createElement('span'); tag.className = 'filter-value-tag'; tag.innerText = ts[key].options[val].text;
+        tag.onclick = () => { ts[key].removeItem(val); }; group.appendChild(tag);
       });
-      tray.appendChild(groupContainer);
+      tray.appendChild(group);
     }
   });
   tray.style.display = hasFilters ? 'block' : 'none';
 }
 
 function update() {
-  const filters = {};
-  Object.keys(ts).forEach(k => filters[k] = ts[k].getValue());
+  const filters = {}; Object.keys(ts).forEach(k => filters[k] = ts[k].getValue());
   renderActiveFiltersTray();
-
-  const res = {
-    kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() },
-    evo: { Lenguaje: {}, Matemática: {} }, ejes: { Lenguaje: {}, Matemática: {} }, 
-    cursos: {}
-  };
+  const res = { kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() }, evo: { Lenguaje: {}, Matemática: {} }, ejes: { Lenguaje: {}, Matemática: {} }, cursos: {} };
+  const slep = { evo: { Lenguaje: {}, Matemática: {} }, ejes: { Lenguaje: {}, Matemática: {} }, niveles: {} };
 
   DATA_RAW.rows.forEach(r => {
     if (filters.agno.length && !filters.agno.includes(String(r[I.AGNO]))) return;
     if (filters.etapa.length && !filters.etapa.includes(String(r[I.ETAPA]))) return;
-    if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
     if (filters.nivel.length && !filters.nivel.includes(String(r[I.NIVEL]))) return;
     if (filters.curso.length && !filters.curso.includes(String(r[I.CURSO]))) return;
-    if (filters.eje.length && !filters.eje.includes(String(r[I.EJE]))) return;
 
-    const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]];
-    const etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]];
-    const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
-    const p = r[I.PUNTAJE];
-    const stIdx = STAGES.indexOf(etapaV);
+    const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]], etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]], asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]], p = r[I.PUNTAJE], stIdx = STAGES.indexOf(etapaV);
     if (stIdx === -1) return;
 
-    res.kpi.sum += p; res.kpi.count++;
-    res.kpi.rbds.add(r[I.RBD]);
-    if (asigV === 'Lenguaje') { res.kpi.lSum += p; res.kpi.lC++; }
-    else if (asigV === 'Matemática') { res.kpi.mSum += p; res.kpi.mC++; }
+    if (!slep.evo[asigV][agnoV]) slep.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+    slep.evo[asigV][agnoV][stIdx][0] += p; slep.evo[asigV][agnoV][stIdx][1]++;
+    const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
+    if (ejeV) {
+      if (!slep.ejes[asigV][ejeV]) slep.ejes[asigV][ejeV] = {};
+      if (!slep.ejes[asigV][ejeV][agnoV]) slep.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+      slep.ejes[asigV][ejeV][agnoV][stIdx][0] += p; slep.ejes[asigV][ejeV][agnoV][stIdx][1]++;
+    }
+    if (asigV === currentAsigFilter) {
+      const nV = DATA_RAW.maps[I.NIVEL][r[I.NIVEL]];
+      if (!slep.niveles[nV]) slep.niveles[nV] = {};
+      if (!slep.niveles[nV][agnoV]) slep.niveles[nV][agnoV] = Array.from({length: 3}, () => [0, 0]);
+      slep.niveles[nV][agnoV][stIdx][0] += p; slep.niveles[nV][agnoV][stIdx][1]++;
+    }
 
+    if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
+    res.kpi.sum += p; res.kpi.count++; res.kpi.rbds.add(r[I.RBD]);
+    if (asigV === 'Lenguaje') { res.kpi.lSum += p; res.kpi.lC++; } else if (asigV === 'Matemática') { res.kpi.mSum += p; res.kpi.mC++; }
     if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
     res.evo[asigV][agnoV][stIdx][0] += p; res.evo[asigV][agnoV][stIdx][1]++;
-
-    const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
     if (ejeV) {
       if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
       if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
       res.ejes[asigV][ejeV][agnoV][stIdx][0] += p; res.ejes[asigV][ejeV][agnoV][stIdx][1]++;
     }
-
     if (filters.rbd.length && asigV === currentAsigFilter) {
       const cV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
       if (!res.cursos[cV]) res.cursos[cV] = {};
@@ -383,162 +429,114 @@ function update() {
   document.getElementById('kpi-leng').innerText = f(res.kpi.lSum, res.kpi.lC);
   document.getElementById('kpi-mate').innerText = f(res.kpi.mSum, res.kpi.mC);
   document.getElementById('kpi-eval').innerText = res.kpi.count.toLocaleString('es-CL');
-  document.getElementById('kpi-eval-sub').innerText = `${res.kpi.rbds.size} establecimientos filtrados`;
 
-  updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, '#38bdf8');
-  updateLineChart(charts['mate-evo'], res.evo.Matemática, true, '#fb923c');
-  updateLineChart(charts['leng-ejes'], res.ejes.Lenguaje, false);
-  updateLineChart(charts['mate-ejes'], res.ejes.Matemática, false);
+  const hasRBD = filters.rbd.length > 0;
+  const sData = hasRBD && showSlep;
+  
+  updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, '#38bdf8', sData ? slep.evo.Lenguaje : null);
+  updateLineChart(charts['mate-evo'], res.evo.Matemática, true, '#fb923c', sData ? slep.evo.Matemática : null);
+  updateLineChart(charts['leng-ejes'], filterEjes(res.ejes.Lenguaje, 'Lenguaje'), false, null, sData ? filterEjes(slep.ejes.Lenguaje, 'Lenguaje') : null);
+  updateLineChart(charts['mate-ejes'], filterEjes(res.ejes.Matemática, 'Matemática'), false, null, sData ? filterEjes(slep.ejes.Matemática, 'Matemática') : null);
+  
+  renderEjeMasterCards(res.ejes.Lenguaje, 'master-leng-tray', 'Lenguaje');
+  renderEjeMasterCards(res.ejes.Matemática, 'master-mate-tray', 'Matemática');
 
   renderVariationsTable(res.evo.Lenguaje, 'var-leng-evo', false);
   renderVariationsTable(res.evo.Matemática, 'var-mate-evo', false);
-  renderVariationsTable(res.ejes.Lenguaje, 'var-leng-ejes', true);
-  renderVariationsTable(res.ejes.Matemática, 'var-mate-ejes', true);
+  renderVariationsTable(filterEjes(res.ejes.Lenguaje, 'Lenguaje'), 'var-leng-ejes', true);
+  renderVariationsTable(filterEjes(res.ejes.Matemática, 'Matemática'), 'var-mate-ejes', true);
 
-  const hasRBD = filters.rbd.length > 0;
   document.getElementById('overlay-curso').style.display = hasRBD ? 'none' : 'flex';
   document.getElementById('canvas-curso-evo').style.display = hasRBD ? 'block' : 'none';
+  if (hasRBD) updateLineChart(charts['curso-evo'], res.cursos, false, null, sData ? slep.niveles : null);
+}
 
-  if (hasRBD) {
-    updateLineChart(charts['curso-evo'], res.cursos, false);
-  }
+function filterEjes(dataObj, asig) {
+  if (activeEjes[asig].size === 0) return dataObj;
+  let f = {}; activeEjes[asig].forEach(e => { if (dataObj[e]) f[e] = dataObj[e]; }); return f;
+}
+
+function renderEjeMasterCards(dataObj, trayId, asig) {
+  const tray = document.getElementById(trayId);
+  const keys = Object.keys(dataObj).sort();
+  if (tray.children.length === keys.length) return; 
+  tray.innerHTML = '';
+  keys.forEach((eje, idx) => {
+    const card = document.createElement('div');
+    card.className = 'master-eje-card active';
+    card.innerHTML = `<div class="color-dot" style="--dot-c: ${COLORS[idx % COLORS.length]}"></div>${eje}`;
+    if (activeEjes[asig].size === 0) keys.forEach(k => activeEjes[asig].add(k));
+    card.onclick = () => {
+      if (activeEjes[asig].has(eje)) { activeEjes[asig].delete(eje); card.classList.remove('active'); }
+      else { activeEjes[asig].add(eje); card.classList.add('active'); }
+      update();
+    };
+    tray.appendChild(card);
+  });
+}
+
+function updateLineChart(chart, dataObj, isSingle, forcedColor = null, slepObj = null) {
+  chart.data.datasets = [];
+  let colorIdx = 0;
+  Object.keys(dataObj).sort().forEach(groupKey => {
+    const isEvo = (groupKey === '2025' || groupKey === '2026'), color = isSingle ? forcedColor : COLORS[colorIdx % COLORS.length];
+    if (isEvo) {
+      chart.data.datasets.push(createDS(groupKey, dataObj[groupKey], color, groupKey === '2026'));
+      if (slepObj && slepObj[groupKey]) chart.data.datasets.push(createDS(`SLEP ${groupKey}`, slepObj[groupKey], color, groupKey === '2026', true));
+    } else {
+      Object.keys(dataObj[groupKey]).sort().forEach(agno => {
+        chart.data.datasets.push(createDS(`${groupKey} (${agno})`, dataObj[groupKey][agno], color, agno === '2026'));
+        if (slepObj && slepObj[groupKey] && slepObj[groupKey][agno]) chart.data.datasets.push(createDS(`SLEP ${groupKey} (${agno})`, slepObj[groupKey][agno], color, agno === '2026', true));
+      });
+      colorIdx++;
+    }
+  });
+  chart.data.datasets.push({ label: 'Umbral 60%', data: Array(3).fill(UMBRAL_LOGRO), borderColor: 'transparent', borderWidth: 0, pointRadius: 0, fill: false });
+  chart.update();
+}
+
+function createDS(label, points, color, isDashed, isSlep = false) {
+  const finalColor = isSlep ? color + '66' : color; 
+  return { label, data: points.map(d => d[1] > 0 ? d[0] / d[1] : null), borderColor: finalColor, borderDash: isDashed ? [5, 5] : [], backgroundColor: isSlep ? 'transparent' : finalColor + '22', borderWidth: isSlep ? 1.5 : 3, fill: !isDashed && !isSlep && label.length <= 4, pointStyle: isDashed ? 'triangle' : 'circle', pointRadius: isSlep ? 2 : (isDashed ? 5 : 4), tension: 0.3 };
 }
 
 function renderVariationsTable(dataObj, elementId, isEjes) {
   const container = document.getElementById(elementId);
   if (!container) return;
+  let hasComp = false;
+  if (!isEjes) { if (dataObj['2025'] && dataObj['2026']) hasComp = true; } 
+  else { Object.keys(dataObj).forEach(e => { if (dataObj[e]['2025'] && dataObj[e]['2026']) hasComp = true; }); }
+  if (!hasComp) { container.innerHTML = ''; return; }
 
-  let hasComparisonData = false;
-  if (!isEjes) {
-    if (dataObj['2025'] && dataObj['2026']) hasComparisonData = true;
-  } else {
-    Object.keys(dataObj).forEach(eje => {
-      if (dataObj[eje]['2025'] && dataObj[eje]['2026']) hasComparisonData = true;
-    });
-  }
-
-  if (!hasComparisonData) {
-    container.innerHTML = '';
-    return;
-  }
-
-  let html = `
-    <div class="var-table-wrapper">
-      <div class="var-table-title">Variación vs Año Anterior (2026 vs 2025)</div>
-      <table class="var-table">
-        <thead>
-          <tr>
-            <th>${isEjes ? 'Eje Temático' : 'Asignatura'}</th>
-            <th>Diagnóstico</th>
-            <th>Intermedio</th>
-            <th>Cierre</th>
-          </tr>
-        </thead>
-        <tbody>
-  `;
-
+  let html = `<div class="var-table-wrapper"><div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); margin-bottom:0.5rem;">VARIACIÓN 2026 VS 2025</div><table class="var-table"><thead><tr><th>${isEjes ? 'Eje' : 'Asignatura'}</th><th>Diagnóstico</th><th>Intermedio</th><th>Cierre</th></tr></thead><tbody>`;
   if (!isEjes) {
     html += `<tr><td>Promedio General</td>`;
-    STAGES.forEach((stage, idx) => {
-      html += `<td>${getVariationCell(dataObj, idx)}</td>`;
-    });
+    STAGES.forEach((s, idx) => html += `<td>${getVariationCell(dataObj, idx)}</td>`);
     html += `</tr>`;
   } else {
-    Object.keys(dataObj).sort().forEach(eje => {
-      if (dataObj[eje]['2025'] && dataObj[eje]['2026']) {
-        html += `<tr><td>${eje}</td>`;
-        STAGES.forEach((stage, idx) => {
-          html += `<td>${getVariationCell(dataObj[eje], idx)}</td>`;
-        });
+    Object.keys(dataObj).sort().forEach(e => {
+      if (dataObj[e]['2025'] && dataObj[e][ '2026']) {
+        html += `<tr><td>${e}</td>`;
+        STAGES.forEach((s, idx) => html += `<td>${getVariationCell(dataObj[e], idx)}</td>`);
         html += `</tr>`;
       }
     });
   }
-
-  html += `</tbody></table></div>`;
-  container.innerHTML = html;
+  container.innerHTML = html + `</tbody></table></div>`;
 }
 
 function getVariationCell(node, idx) {
-  if (!node['2025'] || !node['2026']) return `<span class="var-badge empty">—</span>`;
-  const c25 = node['2025'][idx][1];
-  const c26 = node['2026'][idx][1];
-  
-  if (c25 === 0 || c26 === 0) return `<span class="var-badge empty">—</span>`;
-
-  const v25 = node['2025'][idx][0] / c25;
-  const v26 = node['2026'][idx][0] / c26;
-  const diff = (v26 - v25) * 100;
-
-  const valStr = Math.abs(diff).toFixed(1);
-
-  if (diff > 0.1) {
-    return `<span class="var-badge up">↑ ${valStr}%</span>`;
-  } else if (diff < -0.1) {
-    return `<span class="var-badge down">↓ ${valStr}%</span>`;
-  } else {
-    return `<span class="var-badge neutral">= 0.0%</span>`;
-  }
+  if (!node['2025'] || !node['2026'] || node['2025'][idx][1] === 0 || node['2026'][idx][1] === 0) return `<span class="var-badge empty">—</span>`;
+  const diff = ((node['2026'][idx][0]/node['2026'][idx][1]) - (node['2025'][idx][0]/node['2025'][idx][1])) * 100;
+  if (diff > 0.1) return `<span class="var-badge up">↑ ${diff.toFixed(1)}%</span>`;
+  if (diff < -0.1) return `<span class="var-badge down">↓ ${Math.abs(diff).toFixed(1)}%</span>`;
+  return `<span class="var-badge neutral">= 0.0%</span>`;
 }
 
 function initCharts() {
-  const lineOpt = () => ({
-    responsive: true, maintainAspectRatio: false,
-    scales: { y: { grace: '10%', ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d' } }, x: { grid: { display: false } } },
-    plugins: { 
-      legend: { position: 'bottom', labels: { usePointStyle: true, color: '#7d8590', filter: (it) => !it.text.includes('Umbral') } },
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            let label = context.dataset.label || '';
-            if (label && !label.includes('Umbral')) label += ': ';
-            if (context.parsed.y !== null) {
-              label += (context.parsed.y * 100).toFixed(1) + '%';
-            }
-            return label;
-          }
-        }
-      }
-    }
-  });
-  ['leng-evo', 'mate-evo', 'leng-ejes', 'mate-ejes', 'curso-evo'].forEach(id => {
-    charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt() });
-  });
-}
-
-function updateLineChart(chart, dataObj, isSingleColor, forcedColor = null) {
-  chart.data.datasets = [];
-  let colorIdx = 0;
-  Object.keys(dataObj).sort().forEach(groupKey => {
-    const isEvo = (groupKey === '2025' || groupKey === '2026');
-    const color = isSingleColor ? forcedColor : COLORS[colorIdx % COLORS.length];
-    if (isEvo) chart.data.datasets.push(createDS(groupKey, dataObj[groupKey], color, groupKey === '2026'));
-    else {
-      Object.keys(dataObj[groupKey]).sort().forEach(agno => chart.data.datasets.push(createDS(`${groupKey} (${agno})`, dataObj[groupKey][agno], color, agno === '2026')));
-      colorIdx++;
-    }
-  });
-  
-  chart.data.datasets.push({ 
-    label: 'Umbral 60%', 
-    data: Array(3).fill(UMBRAL_LOGRO), 
-    borderColor: 'transparent', 
-    borderWidth: 0,
-    pointRadius: 0, 
-    hitRadius: 0,
-    hoverRadius: 0,
-    fill: false 
-  });
-  
-  chart.update();
-}
-
-function createDS(label, points, color, isDashed) {
-  return {
-    label, data: points.map(d => d[1] > 0 ? d[0] / d[1] : null), borderColor: color,
-    borderDash: isDashed ? [5, 5] : [], backgroundColor: color + '22', fill: !isDashed && label.length <= 4,
-    pointStyle: isDashed ? 'triangle' : 'circle', pointRadius: isDashed ? 5 : 4, tension: 0.3
-  };
+  const lineOpt = (showLegend) => ({ responsive: true, maintainAspectRatio: false, scales: { y: { grace: '10%', ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d' } }, x: { grid: { display: false } } }, plugins: { legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: '#7d8590', filter: (it) => !it.text.includes('Umbral') && !(it.text.includes('SLEP')) } }, tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } } } });
+  ['leng-evo', 'mate-evo', 'curso-evo'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(true) }); });
+  ['leng-ejes', 'mate-ejes'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(false) }); });
 }
 
 document.querySelectorAll('.btn-toggle').forEach(btn => {
@@ -549,7 +547,7 @@ document.querySelectorAll('.btn-toggle').forEach(btn => {
   };
 });
 
-init();
+initData();
 </script>
 </body>
 </html>
