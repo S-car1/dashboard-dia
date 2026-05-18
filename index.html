@@ -132,7 +132,7 @@
 <div id="login-overlay">
   <div class="login-card">
     <img src="logo3.png" alt="Logo SLEP">
-    <h2>Acceso Directivo</h2>
+    <h2>Acceso Unidad Educativa</h2>
     <p>Ingresa tu usuario y contraseña para visualizar los resultados DIA.</p>
     
     <div class="input-group">
@@ -168,11 +168,11 @@
     <div class="filter-group" style="flex: 0.8;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Nivel..."></select></div>
     <div class="filter-group" style="flex: 0.8;" data-label="CURSO ▾"><select id="f-curso" multiple placeholder="Curso..."></select></div>
     
-    <div class="filter-group" id="group-rbd" style="flex: 2.5;" data-label="COLEGIO ▾"><select id="f-rbd" multiple placeholder="Buscar colegio..."></select></div>
+    <div class="filter-group" id="group-rbd" style="flex: 2.5;" data-label="UNIDAD EDUCATIVA ▾"><select id="f-rbd" multiple placeholder="Buscar unidad educativa..."></select></div>
     
     <div id="static-rbd-container" class="filter-group" style="display:none; flex: 2.5;">
       <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid var(--leng); border-radius: 8px; padding: 0 12px; height: 34px; display: flex; align-items: center; overflow: hidden;">
-        <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-right: 8px; letter-spacing: 0.05em;">COLEGIO:</span>
+        <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-right: 8px; letter-spacing: 0.05em;">UNIDAD EDUCATIVA:</span>
         <span id="static-rbd-text" style="font-size: 0.85rem; font-weight: 700; color: var(--leng); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
       </div>
     </div>
@@ -274,9 +274,9 @@ function handleLogin() {
   const pass = document.getElementById('login-pass').value.trim();
   const errorEl = document.getElementById('login-error');
 
-  if (user === 'admin' && pass === 'satp2026') {
+  if (user === 'admin' && pass === 'slep2026') {
     IS_ADMIN = true;
-    registrarAcceso(user);
+    registrarAcceso(user); // NUEVO
     startDashboard();
     return;
   }
@@ -287,7 +287,7 @@ function handleLogin() {
     if (rbdFound) {
       IS_ADMIN = false;
       SESSION_RBD = user;
-      registrarAcceso(user);
+      registrarAcceso(user); // NUEVO
       startDashboard();
       return;
     }
@@ -296,12 +296,12 @@ function handleLogin() {
   errorEl.style.display = 'block';
 }
 
-// Función que envía el registro a Google Sheets silenciosamente
+// NUEVA FUNCIÓN (ÚNICO AÑADIDO)
 function registrarAcceso(usuario) {
   // === AQUÍ DEBES PEGAR TU URL DE GOOGLE APPS SCRIPT ===
-  const scriptURL = 'https://script.google.com/macros/library/d/1Sz9TZvFLj3Gh3bBhV212qiEh_xRryJ_JH1mn1BXZyC6k0xDkU1YkwRLw/1'; 
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxEybK4ERWVNT8uQgLzZ9UwCLmY2wYlMte55huNGwytKpckNs1K7WW9q7GqapWELCPS/exec'; 
   
-  if (scriptURL !== 'https://script.google.com/macros/library/d/1Sz9TZvFLj3Gh3bBhV212qiEh_xRryJ_JH1mn1BXZyC6k0xDkU1YkwRLw/1') {
+  if (scriptURL !== 'TU_URL_AQUI') {
     fetch(`${scriptURL}?usuario=${usuario}`, { mode: 'no-cors' })
       .catch(e => console.log('Error de registro silencioso:', e));
   }
