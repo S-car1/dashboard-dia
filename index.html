@@ -14,15 +14,28 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <style>
+    /* TEMA CLARO POR DEFECTO */
     :root {
+      --bg:         #f6f8fa; --surface:    #ffffff; --surface-2:  #f3f4f6;
+      --border:     #d0d7de; --border-2:   #afb8c1; --text:       #24292f;
+      --text-muted: #57606a; --leng:       #0284c7; --mate:       #ea580c;
+      --total:      #1a7f37; --purple:     #8250df; --red:        #cf222e; --r: 12px;
+      --font:       'Archivo', sans-serif; --mono:       'JetBrains Mono', monospace;
+    }
+
+    /* CONFIGURACIÓN DEL TEMA OSCURO */
+    body.dark-theme {
       --bg:         #0d1117; --surface:    #161b22; --surface-2:  #21262d;
       --border:     #30363d; --border-2:   #3d444d; --text:       #e6edf3;
       --text-muted: #7d8590; --leng:       #38bdf8; --mate:       #fb923c;
-      --total:      #34d399; --purple:     #a78bfa; --red:        #f87171; --r: 12px;
-      --font:       'Archivo', sans-serif; --mono:       'JetBrains Mono', monospace;
+      --total:      #34d399; --purple:     #a78bfa; --red:        #f87171;
     }
+
+    /* 👇 ESTA ES LA LÍNEA MÁGICA (Prueba con 17px o 18px) 👇 */
+    html { font-size: 18px; }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; overflow-x: hidden; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; overflow-x: hidden; transition: background 0.3s, color 0.3s; }
 
     /* PANTALLA DE LOGIN */
     #login-overlay {
@@ -31,9 +44,10 @@
     }
     .login-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
-      padding: 2.5rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      padding: 2.5rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
       text-align: center;
     }
+    body.dark-theme .login-card { box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
     .login-card img { height: 60px; margin-bottom: 1.5rem; }
     .login-card h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; }
     .login-card p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem; }
@@ -45,32 +59,41 @@
     }
     .input-group input:focus { border-color: var(--leng); box-shadow: 0 0 0 2px rgba(56,189,248,0.1); }
     .btn-login {
-      width: 100%; background: var(--leng); color: var(--bg); border: none; border-radius: 8px;
+      width: 100%; background: var(--leng); color: #ffffff; border: none; border-radius: 8px;
       padding: 0.9rem; font-weight: 800; cursor: pointer; transition: 0.2s; margin-top: 1rem;
     }
+    body.dark-theme .btn-login { color: var(--bg); }
     .btn-login:hover { filter: brightness(1.1); transform: translateY(-1px); }
     #login-error { color: var(--red); font-size: 0.8rem; margin-top: 1rem; display: none; font-weight: 600; }
 
     /* DASHBOARD */
-    .sticky-top-section { position: sticky; top: 0; z-index: 1000; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    .sticky-top-section { position: sticky; top: 0; z-index: 1000; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: background 0.3s, border-color 0.3s; }
+    body.dark-theme .sticky-top-section { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
     .header { padding: 1rem 2rem 0.5rem 2rem; display: block; }
     .header::after { content: ""; display: table; clear: both; }
     .header-info { float: left; display: flex; align-items: center; gap: 1rem; margin-right: 2rem; margin-bottom: 0.5rem; }
     .filter-bar { padding: 0.5rem 2rem 0.8rem 2rem; display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; clear: both; }
     
     .filter-group { position: relative; }
-    
     .filter-group::before { content: attr(data-label); position: absolute; left: 0; top: 8px; font-size: 0.85rem; font-weight: 800; color: var(--text-muted); pointer-events: none; transition: opacity 0.2s, color 0.2s; z-index: 10; letter-spacing: 0.05em; }
     .filter-group:hover::before { color: var(--text); }
     .filter-group:focus-within::before { opacity: 0; }
 
-    .tabs-nav { position: relative; background: var(--bg); padding: 0 2rem; display: flex; justify-content: center; gap: 3rem; border-bottom: 1px solid var(--border); }
+    /* BARRA DE NAVEGACIÓN Y MENÚS */
+    .tabs-nav { position: relative; background: var(--bg); padding: 0 2rem; display: flex; justify-content: center; gap: 3rem; border-bottom: 1px solid var(--border); transition: background 0.3s, border-color 0.3s; }
     .tab-btn { background: transparent; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.85rem; font-weight: 700; padding: 1rem 0; cursor: pointer; position: relative; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; }
     .tab-btn.active { color: var(--leng); }
     .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--leng); }
 
+    /* CONTENEDOR ANCLADO A LA IZQUIERDA PARA EL INTERRUPTOR DE TEMA */
+    .theme-toggle-wrapper { position: absolute; left: 2rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.8rem; }
+    .theme-toggle-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; transition: 0.3s; }
+
+    /* CONTENEDOR ANCLADO A LA DERECHA PARA EL COMPARADOR SLEP */
     .slep-toggle-wrapper { position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.8rem; }
     .slep-toggle-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; transition: 0.3s; }
+    
+    /* ESTRUCTURA GENERAL DE LOS INTERRUPTORES (SWITCHES) */
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-2); border: 1px solid var(--border); transition: .4s; border-radius: 34px; }
@@ -93,14 +116,14 @@
     .filter-value-tag { padding: 4px 10px; font-size: 0.75rem; color: var(--text); cursor: pointer; display: flex; align-items: center; border-right: 1px solid var(--border); }
 
     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; }
+    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; transition: background 0.3s, border-color 0.3s; }
     .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--kpi-c); opacity: 0.5; }
     .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
     .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; color: var(--kpi-c); }
 
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
     .chart-block { display: flex; flex-direction: column; gap: 0.7rem; }
-    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; transition: background 0.3s, border-color 0.3s; }
     .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; flex-wrap: wrap; gap: 1rem; }
     .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
     .chart-title span { color: var(--text); font-size: 0.85rem; display: block; margin-top: 0.15rem; text-transform: none; }
@@ -114,13 +137,14 @@
     .year-ref-label { font-size: 0.7rem; color: var(--text-muted); font-family: var(--mono); margin-top: 0.3rem; }
     .empty-state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; text-align: center; background: var(--surface-2); border-radius: 8px; border: 1px dashed var(--border); height: 100%; }
 
-    .var-table-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem; margin-top: 0.5rem; }
+    .var-table-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem; margin-top: 0.5rem; transition: background 0.3s, border-color 0.3s; }
     .var-table { width: 100%; border-collapse: collapse; text-align: left; }
     .var-table th { color: var(--text-muted); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); }
     .var-table td { padding: 8px; font-size: 0.8rem; border-bottom: 1px solid rgba(48, 54, 61, 0.5); }
     .var-badge { display: inline-flex; align-items: center; justify-content: center; padding: 3px 6px; border-radius: 4px; font-family: var(--mono); font-weight: bold; font-size: 0.72rem; min-width: 55px; }
-    .var-badge.up { background: rgba(52, 211, 153, 0.1); color: #34d399; }
-    .var-badge.down { background: rgba(248, 113, 113, 0.1); color: #f87171; }
+    .var-badge.up { background: rgba(52, 211, 153, 0.1); color: #1a7f37; }
+    body.dark-theme .var-badge.up { color: #34d399; }
+    .var-badge.down { background: rgba(248, 113, 113, 0.1); color: var(--red); }
     .var-badge.neutral { background: var(--surface-2); color: var(--text-muted); }
     .var-badge.empty { background: transparent; color: var(--text-muted); }
 
@@ -181,8 +205,17 @@
   </div>
 
   <nav class="tabs-nav">
+    <div class="theme-toggle-wrapper">
+      <span class="theme-toggle-label" id="theme-label-text">Tema Claro</span>
+      <label class="switch">
+        <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
+        <span class="slider round"></span>
+      </label>
+    </div>
+
     <button class="tab-btn active" onclick="showTab('tab-general', event)">Visión General</button>
     <button class="tab-btn" onclick="showTab('tab-ejes', event)">Análisis por Ejes</button>
+    
     <div class="slep-toggle-wrapper">
       <span class="slep-toggle-label" id="slep-label-text">Comparar SLEP</span>
       <label class="switch">
@@ -276,7 +309,7 @@ function handleLogin() {
 
   if (user === 'admin' && pass === 'slep2026') {
     IS_ADMIN = true;
-    registrarAcceso(user); // NUEVO
+    registrarAcceso(user);
     startDashboard();
     return;
   }
@@ -287,7 +320,7 @@ function handleLogin() {
     if (rbdFound) {
       IS_ADMIN = false;
       SESSION_RBD = user;
-      registrarAcceso(user); // NUEVO
+      registrarAcceso(user);
       startDashboard();
       return;
     }
@@ -296,15 +329,49 @@ function handleLogin() {
   errorEl.style.display = 'block';
 }
 
-// NUEVA FUNCIÓN (ÚNICO AÑADIDO)
 function registrarAcceso(usuario) {
-  // === AQUÍ DEBES PEGAR TU URL DE GOOGLE APPS SCRIPT ===
   const scriptURL = 'https://script.google.com/macros/s/AKfycbxEybK4ERWVNT8uQgLzZ9UwCLmY2wYlMte55huNGwytKpckNs1K7WW9q7GqapWELCPS/exec'; 
-  
   if (scriptURL !== 'TU_URL_AQUI') {
     fetch(`${scriptURL}?usuario=${usuario}`, { mode: 'no-cors' })
       .catch(e => console.log('Error de registro silencioso:', e));
   }
+}
+
+function toggleTheme() {
+  const checkbox = document.getElementById('theme-toggle');
+  const labelText = document.getElementById('theme-label-text');
+  
+  if (checkbox.checked) {
+    document.body.classList.add('dark-theme');
+    labelText.innerText = 'Tema Oscuro';
+    labelText.style.color = 'var(--text)';
+  } else {
+    document.body.classList.remove('dark-theme');
+    labelText.innerText = 'Tema Claro';
+    labelText.style.color = 'var(--text-muted)';
+  }
+  applyThemeToCharts();
+}
+
+function applyThemeToCharts() {
+  const isDark = document.body.classList.contains('dark-theme');
+  const gridColor = isDark ? '#21262d' : '#e5e7eb';
+  const textColor = isDark ? '#7d8590' : '#57606a';
+
+  Object.values(charts).forEach(chart => {
+    if (chart.options.scales.x) {
+      chart.options.scales.x.grid.color = gridColor;
+      chart.options.scales.x.ticks.color = textColor;
+    }
+    if (chart.options.scales.y) {
+      chart.options.scales.y.grid.color = gridColor;
+      chart.options.scales.y.ticks.color = textColor;
+    }
+    if (chart.options.plugins.legend) {
+      chart.options.plugins.legend.labels.color = textColor;
+    }
+    chart.update();
+  });
 }
 
 function startDashboard() {
@@ -547,7 +614,23 @@ function getVariationCell(node, idx) {
 }
 
 function initCharts() {
-  const lineOpt = (showLegend) => ({ responsive: true, maintainAspectRatio: false, scales: { y: { grace: '10%', ticks: { callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: '#21262d' } }, x: { grid: { display: false } } }, plugins: { legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: '#7d8590', filter: (it) => !it.text.includes('Umbral') && !(it.text.includes('SLEP')) } }, tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } } } });
+  const lineOpt = (showLegend) => {
+    const isDark = document.body.classList.contains('dark-theme');
+    const gridColor = isDark ? '#21262d' : '#e5e7eb';
+    const textColor = isDark ? '#7d8590' : '#57606a';
+    return { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      scales: { 
+        y: { grace: '10%', ticks: { color: textColor, callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: gridColor } }, 
+        x: { ticks: { color: textColor }, grid: { display: false } } 
+      }, 
+      plugins: { 
+        legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor, filter: (it) => !it.text.includes('Umbral') && !(it.text.includes('SLEP')) } }, 
+        tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } } 
+      } 
+    };
+  };
   ['leng-evo', 'mate-evo', 'curso-evo'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(true) }); });
   ['leng-ejes', 'mate-ejes'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(false) }); });
 }
