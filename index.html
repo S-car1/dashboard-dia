@@ -293,33 +293,8 @@
   </div>
 
   <div id="tab-socio" class="tab-content" style="display:none;">
-    
-    <div class="section-title">1. Evolución Histórica (Líneas)</div>
-    <div class="charts-grid">
-      <div class="chart-block">
-        <div class="chart-card">
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Desarrollo</span></div><div class="year-ref-label">○ 2025  |  △ 2026</div></div>
-            <div id="master-desarrollo-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-desarrollo-ejes"></canvas></div>
-        </div>
-        <div id="var-desarrollo-ejes"></div>
-      </div>
 
-      <div class="chart-block">
-        <div class="chart-card">
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Gestión</span></div><div class="year-ref-label">○ 2025  |  △ 2026</div></div>
-            <div id="master-gestion-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-gestion-ejes"></canvas></div>
-        </div>
-        <div id="var-gestion-ejes"></div>
-      </div>
-    </div>
-
-    <div class="section-title">2. Comparación Temporal (Barras Agrupadas)</div>
+    <div class="section-title">1. Comparación Temporal (Barras Agrupadas)</div>
     <div class="charts-grid">
       <div class="chart-block">
         <div class="chart-card">
@@ -342,7 +317,7 @@
       </div>
     </div>
 
-    <div class="section-title">3. Perfil de Habilidades (Tela de Araña)</div>
+    <div class="section-title">2. Perfil de Habilidades (Tela de Araña)</div>
     <div class="charts-grid">
       <div class="chart-block">
         <div class="chart-card">
@@ -363,7 +338,7 @@
       </div>
     </div>
 
-    <div class="section-title">4. Ranking Última Evaluación (Barras Horizontales)</div>
+    <div class="section-title">3. Ranking Última Evaluación (Barras Horizontales)</div>
     <div class="charts-grid">
       <div class="chart-block">
         <div class="chart-card">
@@ -554,9 +529,6 @@ function setupFiltersStable() {
     activeEjes = { Lenguaje: new Set(), Matemática: new Set(), Desarrollo: new Set(), Gestión: new Set() };
     document.getElementById('master-leng-tray').innerHTML = '';
     document.getElementById('master-mate-tray').innerHTML = '';
-    document.getElementById('master-desarrollo-tray').innerHTML = '';
-    document.getElementById('master-gestion-tray').innerHTML = '';
-    // LIMPIAR TRAY DE BARRAS
     document.getElementById('master-desarrollo-bar-tray').innerHTML = '';
     document.getElementById('master-gestion-bar-tray').innerHTML = '';
     update(); 
@@ -658,28 +630,26 @@ function update() {
   const hasRBD = filters.rbd.length > 0;
   const sData = hasRBD && showSlep;
   
+  // EXTRAEMOS LAS LISTAS MAESTRAS (Para la regla de identidad de colores)
+  const masterLeng = Object.keys(res.ejes.Lenguaje || {}).sort();
+  const masterMate = Object.keys(res.ejes.Matemática || {}).sort();
+  const masterDesarrollo = Object.keys(res.ejes.Desarrollo || {}).sort();
+  const masterGestion = Object.keys(res.ejes.Gestión || {}).sort();
+
   updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, '#38bdf8', sData ? slep.evo.Lenguaje : null);
   updateLineChart(charts['mate-evo'], res.evo.Matemática, true, '#fb923c', sData ? slep.evo.Matemática : null);
-  updateLineChart(charts['leng-ejes'], filterEjes(res.ejes.Lenguaje, 'Lenguaje'), false, null, sData ? filterEjes(slep.ejes.Lenguaje, 'Lenguaje') : null);
-  updateLineChart(charts['mate-ejes'], filterEjes(res.ejes.Matemática, 'Matemática'), false, null, sData ? filterEjes(slep.ejes.Matemática, 'Matemática') : null);
   
-  updateLineChart(charts['desarrollo-ejes'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), false, null, sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null);
-  updateLineChart(charts['gestion-ejes'], filterEjes(res.ejes.Gestión, 'Gestión'), false, null, sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null);
+  updateLineChart(charts['leng-ejes'], filterEjes(res.ejes.Lenguaje, 'Lenguaje'), false, null, sData ? filterEjes(slep.ejes.Lenguaje, 'Lenguaje') : null, masterLeng);
+  updateLineChart(charts['mate-ejes'], filterEjes(res.ejes.Matemática, 'Matemática'), false, null, sData ? filterEjes(slep.ejes.Matemática, 'Matemática') : null, masterMate);
   
-  // BARRAS AGRUPADAS
-  updateSocioBarGrouped(charts['desarrollo-bar'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null);
-  updateSocioBarGrouped(charts['gestion-bar'], filterEjes(res.ejes.Gestión, 'Gestión'), sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null);
+  updateSocioBarGrouped(charts['desarrollo-bar'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null, masterDesarrollo);
+  updateSocioBarGrouped(charts['gestion-bar'], filterEjes(res.ejes.Gestión, 'Gestión'), sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null, masterGestion);
 
   updateSocioEspecial(charts['desarrollo-radar'], charts['desarrollo-hbar'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null);
   updateSocioEspecial(charts['gestion-radar'], charts['gestion-hbar'], filterEjes(res.ejes.Gestión, 'Gestión'), sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null);
 
-  // RENDERIZAR LOS PUNTITOS DE COLORES (NIVEL 1)
   renderEjeMasterCards(res.ejes.Lenguaje, 'master-leng-tray', 'Lenguaje');
   renderEjeMasterCards(res.ejes.Matemática, 'master-mate-tray', 'Matemática');
-  renderEjeMasterCards(res.ejes.Desarrollo, 'master-desarrollo-tray', 'Desarrollo');
-  renderEjeMasterCards(res.ejes.Gestión, 'master-gestion-tray', 'Gestión');
-
-  // NUEVO: RENDERIZAR LOS PUNTITOS DE COLORES PARA LAS BARRAS AGRUPADAS
   renderEjeMasterCards(res.ejes.Desarrollo, 'master-desarrollo-bar-tray', 'Desarrollo');
   renderEjeMasterCards(res.ejes.Gestión, 'master-gestion-bar-tray', 'Gestión');
 
@@ -687,8 +657,6 @@ function update() {
   renderVariationsTable(res.evo.Matemática, 'var-mate-evo', false);
   renderVariationsTable(filterEjes(res.ejes.Lenguaje, 'Lenguaje'), 'var-leng-ejes', true);
   renderVariationsTable(filterEjes(res.ejes.Matemática, 'Matemática'), 'var-mate-ejes', true);
-  renderVariationsTable(filterEjes(res.ejes.Desarrollo, 'Desarrollo'), 'var-desarrollo-ejes', true);
-  renderVariationsTable(filterEjes(res.ejes.Gestión, 'Gestión'), 'var-gestion-ejes', true);
 
   document.getElementById('overlay-curso').style.display = hasRBD ? 'none' : 'flex';
   document.getElementById('canvas-curso-evo').style.display = hasRBD ? 'block' : 'none';
@@ -702,7 +670,7 @@ function filterEjes(dataObj, asig) {
 
 function renderEjeMasterCards(dataObj, trayId, asig) {
   const tray = document.getElementById(trayId);
-  if (!dataObj || !tray) return; // Asegurado para no fallar si no existe
+  if (!dataObj || !tray) return; 
   const keys = Object.keys(dataObj).sort();
   if (tray.children.length === keys.length) return; 
   tray.innerHTML = '';
@@ -720,7 +688,7 @@ function renderEjeMasterCards(dataObj, trayId, asig) {
   });
 }
 
-function updateSocioBarGrouped(chart, dataObj, slepObj) {
+function updateSocioBarGrouped(chart, dataObj, slepObj, masterKeys = null) {
   if (!chart) return;
   chart.data.datasets = [];
   if (!dataObj || Object.keys(dataObj).length === 0) {
@@ -730,7 +698,13 @@ function updateSocioBarGrouped(chart, dataObj, slepObj) {
 
   let colorIdx = 0;
   Object.keys(dataObj).sort().forEach(eje => {
-    const color = COLORS[colorIdx % COLORS.length];
+    // REGLA DE IDENTIDAD DE COLOR
+    let cIdx = colorIdx;
+    if (masterKeys && masterKeys.includes(eje)) {
+        cIdx = masterKeys.indexOf(eje);
+    }
+    const color = COLORS[cIdx % COLORS.length];
+    
     const agnos = Object.keys(dataObj[eje]).sort();
 
     agnos.forEach(agno => {
@@ -886,12 +860,18 @@ function updateSocioEspecial(chartRadar, chartHbar, dataObj, slepObj = null) {
   chartHbar.update();
 }
 
-function updateLineChart(chart, dataObj, isSingle, forcedColor = null, slepObj = null) {
+function updateLineChart(chart, dataObj, isSingle, forcedColor = null, slepObj = null, masterKeys = null) {
   chart.data.datasets = [];
   if (!dataObj) { chart.update(); return; }
   let colorIdx = 0;
   Object.keys(dataObj).sort().forEach(groupKey => {
-    const isEvo = (groupKey === '2025' || groupKey === '2026'), color = isSingle ? forcedColor : COLORS[colorIdx % COLORS.length];
+    // REGLA DE IDENTIDAD DE COLOR
+    let cIdx = colorIdx;
+    if (masterKeys && masterKeys.includes(groupKey)) {
+        cIdx = masterKeys.indexOf(groupKey);
+    }
+    const isEvo = (groupKey === '2025' || groupKey === '2026'), color = isSingle ? forcedColor : COLORS[cIdx % COLORS.length];
+    
     if (isEvo) {
       chart.data.datasets.push(createDS(groupKey, dataObj[groupKey], color, groupKey === '2026'));
       if (slepObj && slepObj[groupKey]) chart.data.datasets.push(createDS(`SLEP ${groupKey}`, slepObj[groupKey], color, groupKey === '2026', true));
@@ -900,8 +880,8 @@ function updateLineChart(chart, dataObj, isSingle, forcedColor = null, slepObj =
         chart.data.datasets.push(createDS(`${groupKey} (${agno})`, dataObj[groupKey][agno], color, agno === '2026'));
         if (slepObj && slepObj[groupKey] && slepObj[groupKey][agno]) chart.data.datasets.push(createDS(`SLEP ${groupKey} (${agno})`, slepObj[groupKey][agno], color, agno === '2026', true));
       });
-      colorIdx++;
     }
+    colorIdx++;
   });
   chart.data.datasets.push({ type: 'line', label: 'Umbral 60%', data: Array(3).fill(UMBRAL_LOGRO), borderColor: 'transparent', borderWidth: 0, pointRadius: 0, fill: false });
   chart.update();
@@ -964,9 +944,6 @@ function initCharts() {
     };
   };
 
-  // =========================================================
-  // NIVEL 2: EL CONTROL MAESTRO DE LA LEYENDA INFERIOR
-  // =========================================================
   const barGroupedOpt = (showLegend) => {
     const isDark = document.body.classList.contains('dark-theme');
     const gridColor = isDark ? '#21262d' : '#e5e7eb';
@@ -984,28 +961,31 @@ function initCharts() {
           position: 'bottom', 
           labels: { 
             color: textColor,
-            // AQUÍ ANULAMOS LOS 6 ELEMENTOS POR DEFECTO Y DEJAMOS SOLO 2 REGLAS UNIVERSALES
             generateLabels: function(chart) {
-              return [
-                {
+              const hasSlep = chart.data.datasets.some(ds => ds.label.includes('SLEP'));
+              
+              const labels = [{
                   text: 'Establecimiento',
-                  fillStyle: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)', // Gris sólido genérico
+                  fillStyle: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
                   strokeStyle: 'transparent',
                   lineWidth: 0,
                   hidden: false
-                },
-                {
+              }];
+
+              if (hasSlep) {
+                labels.push({
                   text: 'Promedio SLEP',
-                  fillStyle: 'transparent', // Sin relleno
-                  strokeStyle: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)', // Borde gris genérico
+                  fillStyle: 'transparent',
+                  strokeStyle: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)',
                   lineWidth: 2,
-                  lineDash: [5, 5], // La magia del borde punteado en la leyenda
+                  lineDash: [5, 5],
                   hidden: false
-                }
-              ];
+                });
+              }
+
+              return labels;
             }
           },
-          // MAGIA EXTRA: Esto permite hacer click en la leyenda genérica y apagar/encender las 3 barras correspondientes a la vez
           onClick: function(e, legendItem, legend) {
             const chart = legend.chart;
             const isSlepClick = legendItem.text === 'Promedio SLEP';
@@ -1067,9 +1047,8 @@ function initCharts() {
   };
 
   ['leng-evo', 'mate-evo', 'curso-evo'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(true) }); });
-  ['leng-ejes', 'mate-ejes', 'desarrollo-ejes', 'gestion-ejes'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(false) }); });
+  ['leng-ejes', 'mate-ejes'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(false) }); });
 
-  // AHORA LAS BARRAS AGRUPADAS USAN NUESTRA NUEVA CONFIGURACIÓN `barGroupedOpt`
   ['desarrollo-bar', 'gestion-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: STAGES, datasets: [] }, options: barGroupedOpt(true) }); });
   ['desarrollo-radar', 'gestion-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
   ['desarrollo-hbar', 'gestion-hbar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: getHbarOpt(true) }); });
