@@ -12,6 +12,8 @@
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 
   <style>
     /* TEMA CLARO POR DEFECTO */
@@ -73,7 +75,7 @@
     .header-info { float: left; display: flex; align-items: center; gap: 1rem; margin-right: 2rem; margin-bottom: 0.5rem; }
     .filter-bar { padding: 0.5rem 2rem 0.8rem 2rem; display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; clear: both; }
     
-    .filter-group { position: relative; }
+    .filter-group { position: relative; transition: opacity 0.3s; }
     .filter-group::before { content: attr(data-label); position: absolute; left: 0; top: 8px; font-size: 0.85rem; font-weight: 800; color: var(--text-muted); pointer-events: none; transition: opacity 0.2s, color 0.2s; z-index: 10; letter-spacing: 0.05em; }
     .filter-group:hover::before { color: var(--text); }
     .filter-group:focus-within::before { opacity: 0; }
@@ -202,7 +204,7 @@
     <div class="filter-group" style="flex: 0.6;" data-label="AÑO ▾"><select id="f-agno" multiple placeholder="Año..."></select></div>
     <div class="filter-group" style="flex: 0.8;" data-label="ETAPA ▾"><select id="f-etapa" multiple placeholder="Etapa..."></select></div>
     <div class="filter-group" style="flex: 0.8;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Nivel..."></select></div>
-    <div class="filter-group" style="flex: 0.8;" data-label="CURSO ▾"><select id="f-curso" multiple placeholder="Curso..."></select></div>
+    <div class="filter-group" id="filter-group-curso" style="flex: 0.8;" data-label="CURSO ▾"><select id="f-curso" multiple placeholder="Curso..."></select></div>
     
     <div class="filter-group" id="group-rbd" style="flex: 2.5;" data-label="UNIDAD EDUCATIVA ▾"><select id="f-rbd" multiple placeholder="Buscar unidad educativa..."></select></div>
     
@@ -228,6 +230,7 @@
     <button class="tab-btn active" onclick="showTab('tab-general', event)">Visión General</button>
     <button class="tab-btn" onclick="showTab('tab-ejes', event)">Análisis por Ejes</button>
     <button class="tab-btn" onclick="showTab('tab-socio', event)">Socioemocional (Piloto)</button>
+    <button class="tab-btn" onclick="showTab('tab-convivencia', event)">Convivencia (Piloto)</button>
     
     <div class="slep-toggle-wrapper">
       <span class="slep-toggle-label" id="slep-label-text">PROMEDIO SLEP</span>
@@ -293,13 +296,12 @@
   </div>
 
   <div id="tab-socio" class="tab-content" style="display:none;">
-
     <div class="section-title">1. Comparación Temporal (Barras Agrupadas)</div>
     <div class="charts-grid">
       <div class="chart-block">
         <div class="chart-card">
           <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Desarrollo (Barras)</span></div><div class="year-ref-label">○ 2025  |  △ 2026</div></div>
+            <div><div class="chart-title">Socioemocional<span>Desarrollo (Barras)</span></div></div>
             <div id="master-desarrollo-bar-tray" class="master-eje-tray"></div>
           </div>
           <div class="chart-wrap"><canvas id="canvas-desarrollo-bar"></canvas></div>
@@ -309,7 +311,7 @@
       <div class="chart-block">
         <div class="chart-card">
           <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Gestión (Barras)</span></div><div class="year-ref-label">○ 2025  |  △ 2026</div></div>
+            <div><div class="chart-title">Socioemocional<span>Gestión (Barras)</span></div></div>
             <div id="master-gestion-bar-tray" class="master-eje-tray"></div>
           </div>
           <div class="chart-wrap"><canvas id="canvas-gestion-bar"></canvas></div>
@@ -358,6 +360,83 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div id="tab-convivencia" class="tab-content" style="display:none;">
+    <div class="section-title">1. Comparación Temporal (Barras Agrupadas)</div>
+    <div class="charts-grid">
+      <div class="chart-block full-width">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Convivencia<span>Promoción universal (Barras)</span></div></div>
+            <div id="master-promocion-bar-tray" class="master-eje-tray"></div>
+          </div>
+          <div class="chart-wrap"><canvas id="canvas-promocion-bar"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-block">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Convivencia<span>Apoyos focalizados (Barras)</span></div></div>
+            <div id="master-apoyos-bar-tray" class="master-eje-tray"></div>
+          </div>
+          <div class="chart-wrap"><canvas id="canvas-apoyos-bar"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-block">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Convivencia<span>Intervenciones de mayor intensidad (Barras)</span></div></div>
+            <div id="master-interv-bar-tray" class="master-eje-tray"></div>
+          </div>
+          <div class="chart-wrap"><canvas id="canvas-interv-bar"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">2. Perfil Holístico de Convivencia (Súper Radar)</div>
+    <div class="charts-grid">
+      <div class="chart-block full-width">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Convivencia<span>Perfil Integrado (Radar Año 2026)</span></div></div>
+          </div>
+          <div class="chart-wrap" style="min-height: 450px;"><canvas id="canvas-convivencia-super-radar"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">3. Ranking Última Evaluación (Barras Horizontales)</div>
+    <div class="charts-grid">
+      <div class="chart-block full-width">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Convivencia<span>Promoción universal (Ranking)</span></div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="canvas-promocion-hbar"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-block">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Convivencia<span>Apoyos focalizados (Ranking)</span></div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="canvas-apoyos-hbar"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-block">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><div class="chart-title">Convivencia<span>Intervenciones de mayor intensidad (Ranking)</span></div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="canvas-interv-hbar"></canvas></div>
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -373,7 +452,12 @@ const COLORS = ['#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', '#fbbf24'
 const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
 let currentAsigFilter = 'Lenguaje';
 let showSlep = false;
-let activeEjes = { Lenguaje: new Set(), Matemática: new Set(), Desarrollo: new Set(), Gestión: new Set() };
+
+let activeEjes = { 
+  Lenguaje: new Set(), Matemática: new Set(), 
+  Desarrollo: new Set(), Gestión: new Set(),
+  'Promoción universal': new Set(), 'Apoyos focalizados': new Set(), 'Intervenciones de mayor intensidad': new Set()
+};
 let IS_ADMIN = false;
 let SESSION_RBD = null;
 
@@ -459,6 +543,9 @@ function applyThemeToCharts() {
     if (chart.options.plugins.legend) {
       chart.options.plugins.legend.labels.color = textColor;
     }
+    if (chart.options.plugins.datalabels) {
+      chart.options.plugins.datalabels.color = textColor;
+    }
     chart.update();
   });
 }
@@ -487,11 +574,23 @@ function showTab(tabId, e) {
   document.getElementById(tabId).style.display = 'block';
   if(e) e.currentTarget.classList.add('active');
 
-  if (tabId === 'tab-socio') {
+  const cursoGroup = document.getElementById('filter-group-curso');
+
+  if (tabId === 'tab-socio' || tabId === 'tab-convivencia') {
     ts['curso'].clear(true); 
     ts['curso'].disable();   
+    if (cursoGroup) {
+      cursoGroup.style.opacity = '0.4';
+      cursoGroup.style.pointerEvents = 'none';
+      cursoGroup.setAttribute('data-label', 'CURSO (No aplica)');
+    }
   } else {
     ts['curso'].enable();    
+    if (cursoGroup) {
+      cursoGroup.style.opacity = '1';
+      cursoGroup.style.pointerEvents = 'auto';
+      cursoGroup.setAttribute('data-label', 'CURSO ▾');
+    }
   }
 }
 
@@ -510,7 +609,7 @@ function setupFiltersStable() {
     ts[k] = new TomSelect(`#f-${k}`, { plugins: ['checkbox_options'], maxOptions: 300, closeAfterSelect: false, sortField: sortRules, onChange: () => update() });
     DATA_RAW.maps[I[k.toUpperCase()]].forEach((text, index) => {
       
-      if (k === 'curso' && text === 'Socioemocional') return;
+      if (k === 'curso' && (text === 'Socioemocional' || text === 'Convivencia')) return;
       
       if (text && text.trim() !== '') {
         let itemData = { value: String(index), text: text };
@@ -526,11 +625,20 @@ function setupFiltersStable() {
       if (!IS_ADMIN && k === 'rbd') return; 
       ts[k].clear(true); 
     });
-    activeEjes = { Lenguaje: new Set(), Matemática: new Set(), Desarrollo: new Set(), Gestión: new Set() };
+    activeEjes = { 
+      Lenguaje: new Set(), Matemática: new Set(), 
+      Desarrollo: new Set(), Gestión: new Set(),
+      'Promoción universal': new Set(), 'Apoyos focalizados': new Set(), 'Intervenciones de mayor intensidad': new Set()
+    };
     document.getElementById('master-leng-tray').innerHTML = '';
     document.getElementById('master-mate-tray').innerHTML = '';
     document.getElementById('master-desarrollo-bar-tray').innerHTML = '';
     document.getElementById('master-gestion-bar-tray').innerHTML = '';
+    
+    document.getElementById('master-promocion-bar-tray').innerHTML = '';
+    document.getElementById('master-apoyos-bar-tray').innerHTML = '';
+    document.getElementById('master-interv-bar-tray').innerHTML = '';
+    
     update(); 
   };
 }
@@ -563,13 +671,13 @@ function update() {
   
   const res = { 
     kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() }, 
-    evo: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {} }, 
-    ejes: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {} }, 
+    evo: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
+    ejes: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
     cursos: {} 
   };
   const slep = { 
-    evo: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {} }, 
-    ejes: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {} }, 
+    evo: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
+    ejes: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
     niveles: {} 
   };
 
@@ -599,7 +707,8 @@ function update() {
 
     if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
     
-    if (asigV !== 'Desarrollo' && asigV !== 'Gestión') {
+    const asignaturasEspeciales = ['Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
+    if (!asignaturasEspeciales.includes(asigV)) {
       res.kpi.sum += p; res.kpi.count++; 
     }
     res.kpi.rbds.add(r[I.RBD]);
@@ -630,11 +739,14 @@ function update() {
   const hasRBD = filters.rbd.length > 0;
   const sData = hasRBD && showSlep;
   
-  // EXTRAEMOS LAS LISTAS MAESTRAS (Para la regla de identidad de colores)
   const masterLeng = Object.keys(res.ejes.Lenguaje || {}).sort();
   const masterMate = Object.keys(res.ejes.Matemática || {}).sort();
   const masterDesarrollo = Object.keys(res.ejes.Desarrollo || {}).sort();
   const masterGestion = Object.keys(res.ejes.Gestión || {}).sort();
+  
+  const masterPromocion = Object.keys(res.ejes['Promoción universal'] || {}).sort();
+  const masterApoyos = Object.keys(res.ejes['Apoyos focalizados'] || {}).sort();
+  const masterInterv = Object.keys(res.ejes['Intervenciones de mayor intensidad'] || {}).sort();
 
   updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, '#38bdf8', sData ? slep.evo.Lenguaje : null);
   updateLineChart(charts['mate-evo'], res.evo.Matemática, true, '#fb923c', sData ? slep.evo.Matemática : null);
@@ -644,19 +756,43 @@ function update() {
   
   updateSocioBarGrouped(charts['desarrollo-bar'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null, masterDesarrollo);
   updateSocioBarGrouped(charts['gestion-bar'], filterEjes(res.ejes.Gestión, 'Gestión'), sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null, masterGestion);
+  
+  updateSocioBarGrouped(charts['promocion-bar'], filterEjes(res.ejes['Promoción universal'], 'Promoción universal'), sData ? filterEjes(slep.ejes['Promoción universal'], 'Promoción universal') : null, masterPromocion);
+  updateSocioBarGrouped(charts['apoyos-bar'], filterEjes(res.ejes['Apoyos focalizados'], 'Apoyos focalizados'), sData ? filterEjes(slep.ejes['Apoyos focalizados'], 'Apoyos focalizados') : null, masterApoyos);
+  updateSocioBarGrouped(charts['interv-bar'], filterEjes(res.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad'), sData ? filterEjes(slep.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad') : null, masterInterv);
 
   updateSocioEspecial(charts['desarrollo-radar'], charts['desarrollo-hbar'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null);
   updateSocioEspecial(charts['gestion-radar'], charts['gestion-hbar'], filterEjes(res.ejes.Gestión, 'Gestión'), sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null);
+
+  updateSocioEspecial(null, charts['promocion-hbar'], filterEjes(res.ejes['Promoción universal'], 'Promoción universal'), sData ? filterEjes(slep.ejes['Promoción universal'], 'Promoción universal') : null);
+  updateSocioEspecial(null, charts['apoyos-hbar'], filterEjes(res.ejes['Apoyos focalizados'], 'Apoyos focalizados'), sData ? filterEjes(slep.ejes['Apoyos focalizados'], 'Apoyos focalizados') : null);
+  updateSocioEspecial(null, charts['interv-hbar'], filterEjes(res.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad'), sData ? filterEjes(slep.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad') : null);
+
+  updateSuperRadarConvivencia(
+      charts['convivencia-super-radar'], 
+      {
+         'Promoción universal': filterEjes(res.ejes['Promoción universal'], 'Promoción universal'),
+         'Apoyos focalizados': filterEjes(res.ejes['Apoyos focalizados'], 'Apoyos focalizados'),
+         'Intervenciones de mayor intensidad': filterEjes(res.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad')
+      },
+      sData ? {
+         'Promoción universal': filterEjes(slep.ejes['Promoción universal'], 'Promoción universal'),
+         'Apoyos focalizados': filterEjes(slep.ejes['Apoyos focalizados'], 'Apoyos focalizados'),
+         'Intervenciones de mayor intensidad': filterEjes(slep.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad')
+      } : null
+  );
 
   renderEjeMasterCards(res.ejes.Lenguaje, 'master-leng-tray', 'Lenguaje');
   renderEjeMasterCards(res.ejes.Matemática, 'master-mate-tray', 'Matemática');
   renderEjeMasterCards(res.ejes.Desarrollo, 'master-desarrollo-bar-tray', 'Desarrollo');
   renderEjeMasterCards(res.ejes.Gestión, 'master-gestion-bar-tray', 'Gestión');
 
+  renderEjeMasterCards(res.ejes['Promoción universal'], 'master-promocion-bar-tray', 'Promoción universal');
+  renderEjeMasterCards(res.ejes['Apoyos focalizados'], 'master-apoyos-bar-tray', 'Apoyos focalizados');
+  renderEjeMasterCards(res.ejes['Intervenciones de mayor intensidad'], 'master-interv-bar-tray', 'Intervenciones de mayor intensidad');
+
   renderVariationsTable(res.evo.Lenguaje, 'var-leng-evo', false);
   renderVariationsTable(res.evo.Matemática, 'var-mate-evo', false);
-  renderVariationsTable(filterEjes(res.ejes.Lenguaje, 'Lenguaje'), 'var-leng-ejes', true);
-  renderVariationsTable(filterEjes(res.ejes.Matemática, 'Matemática'), 'var-mate-ejes', true);
 
   document.getElementById('overlay-curso').style.display = hasRBD ? 'none' : 'flex';
   document.getElementById('canvas-curso-evo').style.display = hasRBD ? 'block' : 'none';
@@ -688,6 +824,88 @@ function renderEjeMasterCards(dataObj, trayId, asig) {
   });
 }
 
+function updateSuperRadarConvivencia(chart, resData, slepData) {
+  if (!chart) return;
+  
+  let latestStageIdx = -1;
+  const subjects = ['Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
+  
+  subjects.forEach(subj => {
+      const dataObj = resData[subj];
+      if (dataObj) {
+          Object.keys(dataObj).forEach(eje => {
+              STAGES.forEach((_, idx) => {
+                  if (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][idx][1] > 0) {
+                      latestStageIdx = Math.max(latestStageIdx, idx);
+                  }
+              });
+          });
+      }
+  });
+
+  if (latestStageIdx === -1) {
+      chart.data.labels = [];
+      chart.data.datasets = [];
+      chart.update();
+      return;
+  }
+
+  let combinedLabels = [];
+  let combinedEscuela = [];
+  let combinedSlep = [];
+
+  subjects.forEach(subj => {
+      const dataObj = resData[subj];
+      if (dataObj) {
+          Object.keys(dataObj).sort().forEach(eje => {
+              combinedLabels.push([eje, `(${subj})`]);
+              
+              let valEsc = 0;
+              if (dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) {
+                  valEsc = dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1];
+              }
+              combinedEscuela.push(valEsc > 0 ? valEsc : null);
+
+              let valSlp = 0;
+              if (slepData && slepData[subj] && slepData[subj][eje] && slepData[subj][eje]['2026'] && slepData[subj][eje]['2026'][latestStageIdx][1] > 0) {
+                  valSlp = slepData[subj][eje]['2026'][latestStageIdx][0] / slepData[subj][eje]['2026'][latestStageIdx][1];
+              }
+              combinedSlep.push(valSlp > 0 ? valSlp : null);
+          });
+      }
+  });
+
+  const baseColor = COLORS[latestStageIdx % COLORS.length];
+
+  let datasets = [];
+  datasets.push({
+      label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
+      data: combinedEscuela,
+      borderColor: baseColor,
+      backgroundColor: baseColor + '33', 
+      borderWidth: 2,
+      pointBackgroundColor: baseColor,
+      pointStyle: 'circle'
+  });
+
+  if (slepData) {
+      datasets.push({
+          label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
+          data: combinedSlep,
+          borderColor: baseColor,
+          backgroundColor: 'transparent', 
+          borderWidth: 2,
+          borderDash: [5, 5], 
+          pointBackgroundColor: baseColor,
+          pointStyle: 'triangle'
+      });
+  }
+
+  chart.data.labels = combinedLabels;
+  chart.data.datasets = datasets;
+  chart.update();
+}
+
 function updateSocioBarGrouped(chart, dataObj, slepObj, masterKeys = null) {
   if (!chart) return;
   chart.data.datasets = [];
@@ -698,7 +916,6 @@ function updateSocioBarGrouped(chart, dataObj, slepObj, masterKeys = null) {
 
   let colorIdx = 0;
   Object.keys(dataObj).sort().forEach(eje => {
-    // REGLA DE IDENTIDAD DE COLOR
     let cIdx = colorIdx;
     if (masterKeys && masterKeys.includes(eje)) {
         cIdx = masterKeys.indexOf(eje);
@@ -729,7 +946,7 @@ function updateSocioBarGrouped(chart, dataObj, slepObj, masterKeys = null) {
       if (slepObj && slepObj[eje] && slepObj[eje][agno]) {
         const dataSlep = STAGES.map((_, stIdx) => {
           if (slepObj[eje][agno][stIdx][1] > 0) {
-            return slepObj[eje][agno][stIdx][0] / slepObj[eje][agno][stIdx][1];
+            return slepObj[eje][agno][stIdx][1] > 0 ? (slepObj[eje][agno][stIdx][0] / slepObj[eje][agno][stIdx][1]) : null;
           }
           return null;
         });
@@ -754,10 +971,11 @@ function updateSocioBarGrouped(chart, dataObj, slepObj, masterKeys = null) {
 }
 
 function updateSocioEspecial(chartRadar, chartHbar, dataObj, slepObj = null) {
-  if (!chartRadar || !chartHbar) return;
+  if (!chartRadar && !chartHbar) return;
+  
   if (!dataObj || Object.keys(dataObj).length === 0) {
-    chartRadar.data.labels = []; chartRadar.data.datasets = []; chartRadar.update();
-    chartHbar.data.labels = []; chartHbar.data.datasets = []; chartHbar.update();
+    if (chartRadar) { chartRadar.data.labels = []; chartRadar.data.datasets = []; chartRadar.update(); }
+    if (chartHbar) { chartHbar.data.labels = []; chartHbar.data.datasets = []; chartHbar.update(); }
     return;
   }
   
@@ -773,91 +991,95 @@ function updateSocioEspecial(chartRadar, chartHbar, dataObj, slepObj = null) {
   });
 
   if (latestStageIdx === -1) {
-    chartRadar.data.labels = []; chartRadar.data.datasets = []; chartRadar.update();
-    chartHbar.data.labels = []; chartHbar.data.datasets = []; chartHbar.update();
+    if (chartRadar) { chartRadar.data.labels = []; chartRadar.data.datasets = []; chartRadar.update(); }
+    if (chartHbar) { chartHbar.data.labels = []; chartHbar.data.datasets = []; chartHbar.update(); }
     return;
   }
 
   const baseColor = COLORS[latestStageIdx % COLORS.length];
 
-  let radarDatasets = [];
-  let dataEscuelaRadar = ejes.map(eje => {
-     if (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) {
-        return dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1];
-     }
-     return null;
-  });
-  
-  radarDatasets.push({
-    label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
-    data: dataEscuelaRadar,
-    borderColor: baseColor,
-    backgroundColor: baseColor + '33', 
-    borderWidth: 2,
-    pointBackgroundColor: baseColor,
-    pointStyle: 'circle'
-  });
+  if (chartRadar) {
+      let radarDatasets = [];
+      let dataEscuelaRadar = ejes.map(eje => {
+         if (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) {
+            return dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1];
+         }
+         return null;
+      });
+      
+      radarDatasets.push({
+        label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
+        data: dataEscuelaRadar,
+        borderColor: baseColor,
+        backgroundColor: baseColor + '33', 
+        borderWidth: 2,
+        pointBackgroundColor: baseColor,
+        pointStyle: 'circle'
+      });
 
-  if (slepObj) {
-    let dataSlepRadar = ejes.map(eje => {
-       if (slepObj[eje] && slepObj[eje]['2026'] && slepObj[eje]['2026'][latestStageIdx][1] > 0) {
-          return slepObj[eje]['2026'][latestStageIdx][0] / slepObj[eje]['2026'][latestStageIdx][1];
-       }
-       return null;
-    });
-    radarDatasets.push({
-      label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
-      data: dataSlepRadar,
-      borderColor: baseColor,
-      backgroundColor: 'transparent', 
-      borderWidth: 2,
-      borderDash: [5, 5], 
-      pointBackgroundColor: baseColor,
-      pointStyle: 'triangle'
-    });
+      if (slepObj) {
+        let dataSlepRadar = ejes.map(eje => {
+           if (slepObj[eje] && slepObj[eje]['2026'] && slepObj[eje]['2026'][latestStageIdx][1] > 0) {
+              return slepObj[eje]['2026'][latestStageIdx][0] / slepObj[eje]['2026'][latestStageIdx][1];
+           }
+           return null;
+        });
+        radarDatasets.push({
+          label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
+          data: dataSlepRadar,
+          borderColor: baseColor,
+          backgroundColor: 'transparent', 
+          borderWidth: 2,
+          borderDash: [5, 5], 
+          pointBackgroundColor: baseColor,
+          pointStyle: 'triangle'
+        });
+      }
+
+      chartRadar.data.labels = ejes;
+      chartRadar.data.datasets = radarDatasets;
+      chartRadar.update();
   }
 
-  chartRadar.data.labels = ejes;
-  chartRadar.data.datasets = radarDatasets;
-  chartRadar.update();
+  if (chartHbar) {
+      let rankingData = [];
+      ejes.forEach(eje => {
+         let valEsc = (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) ? dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1] : 0;
+         let valSlp = (slepObj && slepObj[eje] && slepObj[eje]['2026'] && slepObj[eje]['2026'][latestStageIdx][1] > 0) ? slepObj[eje]['2026'][latestStageIdx][0] / slepObj[eje]['2026'][latestStageIdx][1] : 0;
+         
+         if (valEsc > 0 || valSlp > 0) {
+            rankingData.push({ eje: eje, valEscuela: valEsc, valSlep: valSlp });
+         }
+      });
+      
+      rankingData.sort((a, b) => b.valEscuela - a.valEscuela);
+      
+      let hbarDatasets = [];
+      hbarDatasets.push({
+         label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
+         data: rankingData.map(d => d.valEscuela > 0 ? d.valEscuela : null),
+         backgroundColor: baseColor + 'CC', 
+         borderColor: baseColor,
+         borderWidth: 1,
+         borderRadius: 4
+      });
 
-  let rankingData = [];
-  ejes.forEach(eje => {
-     let valEsc = (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) ? dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1] : 0;
-     let valSlp = (slepObj && slepObj[eje] && slepObj[eje]['2026'] && slepObj[eje]['2026'][latestStageIdx][1] > 0) ? slepObj[eje]['2026'][latestStageIdx][0] / slepObj[eje]['2026'][latestStageIdx][1] : 0;
-     
-     if (valEsc > 0 || valSlp > 0) {
-        rankingData.push({ eje: eje, valEscuela: valEsc, valSlep: valSlp });
-     }
-  });
-  
-  rankingData.sort((a, b) => b.valEscuela - a.valEscuela);
-  
-  let hbarDatasets = [];
-  hbarDatasets.push({
-     label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
-     data: rankingData.map(d => d.valEscuela > 0 ? d.valEscuela : null),
-     backgroundColor: baseColor + 'CC', 
-     borderColor: baseColor,
-     borderWidth: 1,
-     borderRadius: 4
-  });
+      if (slepObj) {
+        hbarDatasets.push({
+           label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
+           data: rankingData.map(d => d.valSlep > 0 ? d.valSlep : null),
+           backgroundColor: baseColor + '22', 
+           borderColor: baseColor,
+           borderWidth: 2,
+           borderDash: [5, 5], 
+           borderRadius: 4
+        });
+      }
 
-  if (slepObj) {
-    hbarDatasets.push({
-       label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
-       data: rankingData.map(d => d.valSlep > 0 ? d.valSlep : null),
-       backgroundColor: baseColor + '22', 
-       borderColor: baseColor,
-       borderWidth: 2,
-       borderDash: [5, 5], 
-       borderRadius: 4
-    });
+      chartHbar.data.labels = rankingData.map(d => d.eje);
+      chartHbar.data.datasets = hbarDatasets;
+      chartHbar.update();
   }
-
-  chartHbar.data.labels = rankingData.map(d => d.eje);
-  chartHbar.data.datasets = hbarDatasets;
-  chartHbar.update();
 }
 
 function updateLineChart(chart, dataObj, isSingle, forcedColor = null, slepObj = null, masterKeys = null) {
@@ -865,7 +1087,6 @@ function updateLineChart(chart, dataObj, isSingle, forcedColor = null, slepObj =
   if (!dataObj) { chart.update(); return; }
   let colorIdx = 0;
   Object.keys(dataObj).sort().forEach(groupKey => {
-    // REGLA DE IDENTIDAD DE COLOR
     let cIdx = colorIdx;
     if (masterKeys && masterKeys.includes(groupKey)) {
         cIdx = masterKeys.indexOf(groupKey);
@@ -925,7 +1146,12 @@ function getVariationCell(node, idx) {
   return `<span class="var-badge neutral">= 0.0%</span>`;
 }
 
+// AQUÍ APLICAMOS LA PROTECCIÓN CONTRA FALLOS DEL PLUGIN
 function initCharts() {
+  if (typeof ChartDataLabels !== 'undefined') {
+      Chart.register(ChartDataLabels);
+  }
+
   const lineOpt = (showLegend) => {
     const isDark = document.body.classList.contains('dark-theme');
     const gridColor = isDark ? '#21262d' : '#e5e7eb';
@@ -939,7 +1165,8 @@ function initCharts() {
       }, 
       plugins: { 
         legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor, filter: (it) => !it.text.includes('Umbral') && !(it.text.includes('SLEP')) } }, 
-        tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } } 
+        tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } },
+        datalabels: { display: false } 
       } 
     };
   };
@@ -1000,7 +1227,21 @@ function initCharts() {
             chart.update();
           }
         }, 
-        tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } } 
+        tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } },
+        datalabels: {
+          display: function(context) {
+            if (context.dataset.type === 'line') return false; 
+            return context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] > 0;
+          },
+          anchor: 'end',
+          align: 'end',
+          offset: 2,
+          color: textColor,
+          font: { weight: 'bold', size: 10, family: "'Archivo', sans-serif" },
+          formatter: function(value) {
+            return (value * 100).toFixed(0) + '%';
+          }
+        }
       } 
     };
   };
@@ -1023,7 +1264,8 @@ function initCharts() {
       },
       plugins: {
         legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor } },
-        tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.raw * 100).toFixed(1) + '%' } }
+        tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.raw * 100).toFixed(1) + '%' } },
+        datalabels: { display: false } 
       }
     };
   };
@@ -1041,7 +1283,20 @@ function initCharts() {
       }, 
       plugins: { 
         legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor } }, 
-        tooltip: { callbacks: { label: (ctx) => { return ctx.dataset.label + ': ' + (ctx.raw * 100).toFixed(1) + '%'; } } } 
+        tooltip: { callbacks: { label: (ctx) => { return ctx.dataset.label + ': ' + (ctx.raw * 100).toFixed(1) + '%'; } } },
+        datalabels: {
+          display: function(context) {
+             return context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] > 0;
+          },
+          anchor: 'end',
+          align: 'end',
+          offset: 4,
+          color: textColor,
+          font: { weight: 'bold', size: 10, family: "'Archivo', sans-serif" },
+          formatter: function(value) {
+             return (value * 100).toFixed(0) + '%';
+          }
+        }
       } 
     };
   };
@@ -1049,9 +1304,11 @@ function initCharts() {
   ['leng-evo', 'mate-evo', 'curso-evo'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(true) }); });
   ['leng-ejes', 'mate-ejes'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(false) }); });
 
-  ['desarrollo-bar', 'gestion-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: STAGES, datasets: [] }, options: barGroupedOpt(true) }); });
-  ['desarrollo-radar', 'gestion-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
-  ['desarrollo-hbar', 'gestion-hbar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: getHbarOpt(true) }); });
+  ['desarrollo-bar', 'gestion-bar', 'promocion-bar', 'apoyos-bar', 'interv-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: STAGES, datasets: [] }, options: barGroupedOpt(true) }); });
+  
+  ['desarrollo-radar', 'gestion-radar', 'convivencia-super-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
+  
+  ['desarrollo-hbar', 'gestion-hbar', 'promocion-hbar', 'apoyos-hbar', 'interv-hbar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: getHbarOpt(true) }); });
 }
 
 document.querySelectorAll('.btn-toggle').forEach(btn => {
