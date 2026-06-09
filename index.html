@@ -14,6 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <style>
     /* TEMA CLARO POR DEFECTO */
@@ -124,12 +126,33 @@
 
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
     .chart-block { display: flex; flex-direction: column; gap: 0.7rem; }
-    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; transition: background 0.3s, border-color 0.3s; }
-    .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; flex-wrap: wrap; gap: 1rem; }
+    
+    /* MODIFICACIÓN PARA EL BOTÓN DE DESCARGA */
+    .chart-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; transition: background 0.3s, border-color 0.3s; }
+    .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; flex-wrap: wrap; gap: 1rem; padding-right: 2rem; } /* Padding extra para no chocar con el ícono */
     .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
     .chart-title span { color: var(--text); font-size: 0.85rem; display: block; margin-top: 0.15rem; text-transform: none; }
     .chart-wrap { position: relative; flex: 1; min-height: 0; }
     .full-width { grid-column: 1 / -1; }
+
+    /* ESTILOS DEL ÍCONO DE DESCARGA */
+    .btn-download {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.4rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s, color 0.2s, transform 0.2s;
+      z-index: 50;
+      padding: 0;
+    }
+    .btn-download:hover { color: var(--leng); transform: scale(1.1); }
+    .chart-card:hover .btn-download { opacity: 1; }
 
     .master-eje-tray { display: flex; gap: 0.5rem; flex-wrap: wrap; }
     .master-eje-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
@@ -255,6 +278,9 @@
     <div class="charts-grid">
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header"><div class="chart-title">Evolución<span>Lectura</span></div></div>
           <div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div>
         </div>
@@ -263,13 +289,23 @@
       
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header"><div class="chart-title">Evolución<span>Matemática</span></div></div>
           <div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div>
         </div>
         <div id="var-mate-evo"></div>
       </div>
       
-      <div class="chart-block full-width"><div class="chart-card"><div class="chart-header" style="align-items: center;"><div class="chart-title">Análisis Comparativo por Curso</div><div style="display: flex; gap: 0.5rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px;"><button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lectura</button><button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button></div></div><div class="chart-wrap" style="min-height: 300px;"><div id="overlay-curso" class="empty-state-container"><h3>Selecciona un Establecimiento</h3><p>Filtra un RBD arriba para ver el desglose por cursos.</p></div><canvas id="canvas-curso-evo" style="display:none;"></canvas></div></div></div>
+      <div class="chart-block full-width">
+        <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <div class="chart-header" style="align-items: center;"><div class="chart-title">Análisis Comparativo por Curso</div><div style="display: flex; gap: 0.5rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px;"><button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lectura</button><button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button></div></div><div class="chart-wrap" style="min-height: 300px;"><div id="overlay-curso" class="empty-state-container"><h3>Selecciona un Establecimiento</h3><p>Filtra un RBD arriba para ver el desglose por cursos.</p></div><canvas id="canvas-curso-evo" style="display:none;"></canvas></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -278,7 +314,10 @@
       
       <div class="chart-block">
         <div class="chart-card">
-          <div class="chart-header"><div><div class="chart-title">Ejes Temáticos<span>Lectura</span></div><div class="year-ref-label">○ 2025  |  △ 2026</div></div><div id="master-leng-tray" class="master-eje-tray"></div></div>
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <div class="chart-header"><div><div class="chart-title">Ejes Temáticos<span>Lectura</span></div></div><div id="master-leng-tray" class="master-eje-tray"></div></div>
           <div class="chart-wrap" style="min-height: 600px;"><canvas id="canvas-leng-ejes"></canvas></div>
         </div>
         <div id="var-leng-ejes"></div>
@@ -286,7 +325,10 @@
       
       <div class="chart-block">
         <div class="chart-card">
-          <div class="chart-header"><div><div class="chart-title">Ejes Temáticos<span>Matemática</span></div><div class="year-ref-label">○ 2025  |  △ 2026</div></div><div id="master-mate-tray" class="master-eje-tray"></div></div>
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <div class="chart-header"><div><div class="chart-title">Ejes Temáticos<span>Matemática</span></div></div><div id="master-mate-tray" class="master-eje-tray"></div></div>
           <div class="chart-wrap" style="min-height: 600px;"><canvas id="canvas-mate-ejes"></canvas></div>
         </div>
         <div id="var-mate-ejes"></div>
@@ -300,6 +342,9 @@
     <div class="charts-grid">
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Socioemocional<span>Desarrollo (Barras)</span></div></div>
             <div id="master-desarrollo-bar-tray" class="master-eje-tray"></div>
@@ -310,6 +355,9 @@
 
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Socioemocional<span>Gestión (Barras)</span></div></div>
             <div id="master-gestion-bar-tray" class="master-eje-tray"></div>
@@ -323,6 +371,9 @@
     <div class="charts-grid">
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Socioemocional<span>Desarrollo (Radar Año 2026)</span></div></div>
           </div>
@@ -332,6 +383,9 @@
 
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Socioemocional<span>Gestión (Radar Año 2026)</span></div></div>
           </div>
@@ -344,6 +398,9 @@
     <div class="charts-grid">
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Socioemocional<span>Desarrollo (Ranking)</span></div></div>
           </div>
@@ -353,6 +410,9 @@
 
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Socioemocional<span>Gestión (Ranking)</span></div></div>
           </div>
@@ -367,6 +427,9 @@
     <div class="charts-grid">
       <div class="chart-block full-width">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Convivencia<span>Promoción universal (Barras)</span></div></div>
             <div id="master-promocion-bar-tray" class="master-eje-tray"></div>
@@ -377,6 +440,9 @@
 
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Convivencia<span>Apoyos focalizados (Barras)</span></div></div>
             <div id="master-apoyos-bar-tray" class="master-eje-tray"></div>
@@ -387,6 +453,9 @@
 
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Convivencia<span>Intervenciones de mayor intensidad (Barras)</span></div></div>
             <div id="master-interv-bar-tray" class="master-eje-tray"></div>
@@ -400,6 +469,9 @@
     <div class="charts-grid">
       <div class="chart-block full-width">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Convivencia<span>Perfil Integrado (Radar Año 2026)</span></div></div>
           </div>
@@ -412,6 +484,9 @@
     <div class="charts-grid">
       <div class="chart-block full-width">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Convivencia<span>Promoción universal (Ranking)</span></div></div>
           </div>
@@ -421,6 +496,9 @@
 
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Convivencia<span>Apoyos focalizados (Ranking)</span></div></div>
           </div>
@@ -430,6 +508,9 @@
 
       <div class="chart-block">
         <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
           <div class="chart-header">
             <div><div class="chart-title">Convivencia<span>Intervenciones de mayor intensidad (Ranking)</span></div></div>
           </div>
@@ -443,6 +524,10 @@
 </main>
 
 <script>
+if (typeof ChartDataLabels !== 'undefined') {
+  Chart.register(ChartDataLabels);
+}
+
 const UMBRAL_LOGRO = 0.6;
 let DATA_RAW = null;
 let charts = {};
@@ -1146,12 +1231,42 @@ function getVariationCell(node, idx) {
   return `<span class="var-badge neutral">= 0.0%</span>`;
 }
 
-// AQUÍ APLICAMOS LA PROTECCIÓN CONTRA FALLOS DEL PLUGIN
-function initCharts() {
-  if (typeof ChartDataLabels !== 'undefined') {
-      Chart.register(ChartDataLabels);
+// NUEVA FUNCIÓN: Captura fotográfica de la tarjeta completa
+function descargarGrafico(btn) {
+  const card = btn.closest('.chart-card');
+  
+  // Esconder el botón temporalmente para que no salga en la foto
+  btn.style.opacity = '0'; 
+  
+  // Buscar el título del gráfico para nombrar el archivo
+  const titleEl = card.querySelector('.chart-title');
+  let fileName = 'Grafico_DIA.png';
+  if (titleEl) {
+    // Reemplazar espacios y saltos de línea por guiones bajos
+    fileName = titleEl.innerText.replace(/\n/g, '_').replace(/ /g, '_') + '.png';
   }
+  
+  // Determinar el color de fondo según el tema activo
+  const isDark = document.body.classList.contains('dark-theme');
+  const bgColor = isDark ? '#161b22' : '#ffffff';
+  
+  // Iniciar la captura de HTML2Canvas
+  html2canvas(card, {
+    backgroundColor: bgColor,
+    scale: 2 // Escala 2x para resolución "Retina" (no se pixela en PowerPoint)
+  }).then(canvas => {
+    // Crear enlace de descarga fantasma y hacerle clic
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    
+    // Restaurar la visibilidad del botón
+    btn.style.opacity = ''; 
+  });
+}
 
+function initCharts() {
   const lineOpt = (showLegend) => {
     const isDark = document.body.classList.contains('dark-theme');
     const gridColor = isDark ? '#21262d' : '#e5e7eb';
