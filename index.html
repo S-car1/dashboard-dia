@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard DIA · SLEP Del Pino</title>
+  <title>Dashboard Asistencia y Matrícula · SLEP Del Pino</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,13 +12,11 @@
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <style>
-    /* TEMA CLARO POR DEFECTO */
+    /* TEMA CLARO */
     :root {
       --bg:         #f6f8fa; --surface:    #ffffff; --surface-2:  #f3f4f6;
       --border:     #d0d7de; --border-2:   #afb8c1; --text:       #24292f;
@@ -27,7 +25,7 @@
       --font:       'Archivo', sans-serif; --mono:       'JetBrains Mono', monospace;
     }
 
-    /* CONFIGURACIÓN DEL TEMA OSCURO */
+    /* TEMA OSCURO */
     body.dark-theme {
       --bg:         #0d1117; --surface:    #161b22; --surface-2:  #21262d;
       --border:     #30363d; --border-2:   #3d444d; --text:       #e6edf3;
@@ -35,65 +33,49 @@
       --total:      #34d399; --purple:     #a78bfa; --red:        #f87171;
     }
 
-    html { font-size: 18px; }
-
+    html { font-size: 16px; }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; min-height: 100vh; overflow-x: hidden; transition: background 0.3s, color 0.3s; }
 
-    /* PANTALLA DE LOGIN */
-    #login-overlay {
-      position: fixed; inset: 0; background: var(--bg); z-index: 5000;
-      display: flex; align-items: center; justify-content: center; padding: 2rem;
-    }
-    .login-card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
-      padding: 2.5rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-      text-align: center;
-    }
+    /* LOGIN */
+    #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 2.5rem; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; }
     body.dark-theme .login-card { box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    .login-card img { height: 60px; margin-bottom: 1.5rem; }
-    .login-card h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .login-card h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text); }
     .login-card p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 2rem; }
     .input-group { text-align: left; margin-bottom: 1.2rem; }
     .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
-    .input-group input {
-      width: 100%; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
-      padding: 0.8rem; color: var(--text); font-family: var(--font); outline: none; transition: 0.2s;
-    }
+    .input-group input { width: 100%; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; color: var(--text); font-family: var(--font); outline: none; transition: 0.2s; }
     .input-group input:focus { border-color: var(--leng); box-shadow: 0 0 0 2px rgba(56,189,248,0.1); }
-    .btn-login {
-      width: 100%; background: var(--leng); color: #ffffff; border: none; border-radius: 8px;
-      padding: 0.9rem; font-weight: 800; cursor: pointer; transition: 0.2s; margin-top: 1rem;
-    }
+    .btn-login { width: 100%; background: var(--leng); color: #ffffff; border: none; border-radius: 8px; padding: 0.9rem; font-weight: 800; cursor: pointer; transition: 0.2s; margin-top: 1rem; }
     body.dark-theme .btn-login { color: var(--bg); }
     .btn-login:hover { filter: brightness(1.1); transform: translateY(-1px); }
     #login-error { color: var(--red); font-size: 0.8rem; margin-top: 1rem; display: none; font-weight: 600; }
+    .loader { border: 4px solid var(--surface-2); border-top: 4px solid var(--leng); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 1rem auto; display: none; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* DASHBOARD */
-    .sticky-top-section { position: sticky; top: 0; z-index: 1000; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: background 0.3s, border-color 0.3s; }
+    /* NAVBAR & FILTROS */
+    .sticky-top-section { position: sticky; top: 0; z-index: 1000; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
     body.dark-theme .sticky-top-section { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-    .header { padding: 1rem 2rem 0.5rem 2rem; display: block; }
-    .header::after { content: ""; display: table; clear: both; }
-    .header-info { float: left; display: flex; align-items: center; gap: 1rem; margin-right: 2rem; margin-bottom: 0.5rem; }
-    .filter-bar { padding: 0.5rem 2rem 0.8rem 2rem; display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; clear: both; }
-    
+    .header { padding: 1rem 2rem 0.5rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header-info { display: flex; align-items: center; gap: 1rem; }
+    .filter-bar { padding: 0.5rem 2rem 0.8rem 2rem; display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; }
     .filter-group { position: relative; transition: opacity 0.3s; }
     .filter-group::before { content: attr(data-label); position: absolute; left: 0; top: 8px; font-size: 0.85rem; font-weight: 800; color: var(--text-muted); pointer-events: none; transition: opacity 0.2s, color 0.2s; z-index: 10; letter-spacing: 0.05em; }
     .filter-group:hover::before { color: var(--text); }
     .filter-group:focus-within::before { opacity: 0; }
+    .btn-clear-text { background: transparent; border: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 800; cursor: pointer; margin-left: auto; text-transform: uppercase; }
 
-    /* BARRA DE NAVEGACIÓN Y MENÚS */
-    .tabs-nav { position: relative; background: var(--bg); padding: 0 2rem; display: flex; justify-content: center; gap: 3rem; border-bottom: 1px solid var(--border); transition: background 0.3s, border-color 0.3s; }
+    /* TABS */
+    .tabs-nav { position: relative; background: var(--bg); padding: 0 2rem; display: flex; justify-content: center; gap: 3rem; border-bottom: 1px solid var(--border); }
     .tab-btn { background: transparent; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.85rem; font-weight: 700; padding: 1rem 0; cursor: pointer; position: relative; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; }
     .tab-btn.active { color: var(--leng); }
     .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--leng); }
-
     .theme-toggle-wrapper { position: absolute; left: 2rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.8rem; }
-    .theme-toggle-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; transition: 0.3s; }
-
     .slep-toggle-wrapper { position: absolute; right: 2rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.8rem; }
-    .slep-toggle-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; transition: 0.3s; }
+    .theme-toggle-label, .slep-toggle-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
     
+    /* SWITCH (TOGGLE) */
     .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--surface-2); border: 1px solid var(--border); transition: .4s; border-radius: 34px; }
@@ -101,139 +83,83 @@
     input:checked + .slider { background-color: rgba(56, 189, 248, 0.15); border-color: var(--leng); }
     input:checked + .slider:before { transform: translateX(20px); background-color: var(--leng); }
 
-    .main { max-width: 1560px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    /* SELECTORES */
     .ts-wrapper.multi .ts-control { background: transparent !important; border: none !important; border-bottom: 1px solid transparent !important; padding: 6px 0 !important; height: 34px !important; box-shadow: none !important; cursor: pointer !important; overflow: hidden; }
     .ts-wrapper.multi.focus .ts-control { border-bottom: 1px solid var(--leng) !important; }
-    
-    .ts-wrapper.disabled .ts-control { opacity: 0.5; cursor: not-allowed !important; }
-    
     .ts-wrapper.multi .ts-control > div.item { display: none !important; }
     .ts-control input { color: var(--text) !important; font-size: 0.85rem; }
     .ts-wrapper.multi:not(.focus) .ts-control input::placeholder { color: transparent !important; }
     .ts-dropdown { background: var(--surface-2) !important; border: 1px solid var(--border) !important; color: var(--text) !important; z-index: 2000; }
-    .btn-clear-text { background: transparent; border: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 800; cursor: pointer; margin-left: auto; text-transform: uppercase; }
 
-    .active-filters-tray { display: block; padding-top: 0.4rem; }
-    .filter-group-tag { display: inline-flex; align-items: center; margin: 0 0.5rem 0.5rem 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-    .filter-group-label { padding: 4px 8px; font-size: 0.65rem; font-weight: 800; color: var(--leng); background: rgba(56,189,248,0.05); border-right: 1px solid var(--border); cursor: pointer; }
-    .filter-value-tag { padding: 4px 10px; font-size: 0.75rem; color: var(--text); cursor: pointer; display: flex; align-items: center; border-right: 1px solid var(--border); }
-
+    /* CONTENIDO PRINCIPAL */
+    .main { max-width: 1560px; margin: 0 auto; padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    
     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; transition: background 0.3s, border-color 0.3s; }
+    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; }
     .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--kpi-c); opacity: 0.5; }
     .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
     .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; color: var(--kpi-c); }
+    .kpi-desc { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
 
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-    .chart-block { display: flex; flex-direction: column; gap: 0.7rem; }
-    
-    /* MODIFICACIÓN PARA EL BOTÓN DE DESCARGA */
-    .chart-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; transition: background 0.3s, border-color 0.3s; }
-    .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; flex-wrap: wrap; gap: 1rem; padding-right: 2rem; } /* Padding extra para no chocar con el ícono */
+    .chart-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; }
+    .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; }
     .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
     .chart-title span { color: var(--text); font-size: 0.85rem; display: block; margin-top: 0.15rem; text-transform: none; }
     .chart-wrap { position: relative; flex: 1; min-height: 0; }
     .full-width { grid-column: 1 / -1; }
 
-    /* ESTILOS DEL ÍCONO DE DESCARGA */
-    .btn-download {
-      position: absolute;
-      top: 1.25rem;
-      right: 1.4rem;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.3s, color 0.2s, transform 0.2s;
-      z-index: 50;
-      padding: 0;
-    }
+    .btn-download { position: absolute; top: 1.25rem; right: 1.4rem; background: transparent; border: none; color: var(--text-muted); width: 20px; height: 20px; cursor: pointer; opacity: 0; transition: 0.3s; z-index: 50; padding: 0; }
     .btn-download:hover { color: var(--leng); transform: scale(1.1); }
     .chart-card:hover .btn-download { opacity: 1; }
 
-    .master-eje-tray { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .master-eje-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
-    .master-eje-card.active { border-color: var(--leng); color: var(--text); background: rgba(56, 189, 248, 0.05); }
-    .color-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot-c); }
-    .year-ref-label { font-size: 0.7rem; color: var(--text-muted); font-family: var(--mono); margin-top: 0.3rem; }
-    .empty-state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; text-align: center; background: var(--surface-2); border-radius: 8px; border: 1px dashed var(--border); height: 100%; }
-
-    .var-table-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem; margin-top: 0.5rem; transition: background 0.3s, border-color 0.3s; }
-    .var-table { width: 100%; border-collapse: collapse; text-align: left; }
-    .var-table th { color: var(--text-muted); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); }
-    .var-table td { padding: 8px; font-size: 0.8rem; border-bottom: 1px solid rgba(48, 54, 61, 0.5); }
-    .var-badge { display: inline-flex; align-items: center; justify-content: center; padding: 3px 6px; border-radius: 4px; font-family: var(--mono); font-weight: bold; font-size: 0.72rem; min-width: 55px; }
-    .var-badge.up { background: rgba(52, 211, 153, 0.1); color: #1a7f37; }
-    body.dark-theme .var-badge.up { color: #34d399; }
-    .var-badge.down { background: rgba(248, 113, 113, 0.1); color: var(--red); }
-    .var-badge.neutral { background: var(--surface-2); color: var(--text-muted); }
-    .var-badge.empty { background: transparent; color: var(--text-muted); }
-
-    /* ESTILOS PARA LOS TÍTULOS DE SECCIÓN DE LA GALERÍA */
-    .section-title {
-      font-size: 1rem;
-      font-weight: 800;
-      color: var(--text);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin: 2rem 0 1rem 0;
-      padding-bottom: 0.5rem;
-      border-bottom: 2px solid var(--border);
-    }
-    .section-title:first-child { margin-top: 0; }
-
-    @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; }
   </style>
 </head>
 <body>
 
 <div id="login-overlay">
   <div class="login-card">
-    <img src="logo3.png" alt="Logo SLEP">
-    <h2>Acceso Unidad Educativa</h2>
-    <p>Ingresa tu usuario y contraseña para visualizar los resultados DIA.</p>
-    
+    <h2>Portal de Asistencia y Matrícula</h2>
+    <p>Ingresa tus credenciales institucionales.</p>
     <div class="input-group">
-      <label>USUARIO</label>
-      <input type="text" id="login-user" placeholder="RBD">
+      <label>USUARIO (RBD O ADMIN)</label>
+      <input type="text" id="login-user" placeholder="Ej: 1234">
     </div>
-    
     <div class="input-group">
       <label>Contraseña</label>
       <input type="password" id="login-pass" placeholder="••••••••">
     </div>
-    
-    <button class="btn-login" onclick="handleLogin()">Ingresar al Sistema</button>
-    <div id="login-error">Credenciales incorrectas</div>
+    <button class="btn-login" onclick="handleLogin()">Acceder a la Base</button>
+    <div class="loader" id="login-loader"></div>
+    <div id="login-error">Credenciales incorrectas o error de conexión.</div>
   </div>
 </div>
 
 <div class="sticky-top-section" id="navbar" style="display:none;">
   <header class="header">
     <div class="header-info">
-      <img src="logo3.png" alt="Logo" style="height: 55px; width: auto; object-fit: contain;">    
       <div>
-        <div style="font-size: 1rem; font-weight: 800;">Dashboard resultados DIA</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted);">SLEP Del Pino</div>
+        <div style="font-size: 1.1rem; font-weight: 800;">Panel de Asistencia y Matrícula</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Servicio de Educación Pública Del Pino</div>
       </div>
     </div>
-    <div id="active-filters-tray" class="active-filters-tray" style="display: none; float: right;"></div>
   </header>
 
   <div class="filter-bar">
     <div class="filter-group" style="flex: 0.6;" data-label="AÑO ▾"><select id="f-agno" multiple placeholder="Año..."></select></div>
-    <div class="filter-group" style="flex: 0.8;" data-label="ETAPA ▾"><select id="f-etapa" multiple placeholder="Etapa..."></select></div>
-    <div class="filter-group" style="flex: 0.8;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Nivel..."></select></div>
-    <div class="filter-group" id="filter-group-curso" style="flex: 0.8;" data-label="CURSO ▾"><select id="f-curso" multiple placeholder="Curso..."></select></div>
+    <div class="filter-group" style="flex: 0.8;" data-label="MES ▾"><select id="f-mes" multiple placeholder="Mes..."></select></div>
+    <div class="filter-group" style="flex: 1.2;" data-label="ENSEÑANZA ▾"><select id="f-ensenanza" multiple placeholder="Enseñanza..."></select></div>
+    <div class="filter-group" style="flex: 1.2;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Nivel..."></select></div>
+    <div class="filter-group" style="flex: 0.8;" data-label="LETRA ▾"><select id="f-letra" multiple placeholder="Letra..."></select></div>
     
-    <div class="filter-group" id="group-rbd" style="flex: 2.5;" data-label="UNIDAD EDUCATIVA ▾"><select id="f-rbd" multiple placeholder="Buscar unidad educativa..."></select></div>
+    <div class="filter-group" id="group-rbd" style="flex: 2.5;" data-label="ESTABLECIMIENTO ▾">
+      <select id="f-rbd" multiple placeholder="Buscar unidad educativa..."></select>
+    </div>
     
     <div id="static-rbd-container" class="filter-group" style="display:none; flex: 2.5;">
       <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid var(--leng); border-radius: 8px; padding: 0 12px; height: 34px; display: flex; align-items: center; overflow: hidden;">
-        <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-right: 8px; letter-spacing: 0.05em;">UNIDAD EDUCATIVA:</span>
+        <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-right: 8px; letter-spacing: 0.05em;">ESTABLECIMIENTO:</span>
         <span id="static-rbd-text" style="font-size: 0.85rem; font-weight: 700; color: var(--leng); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
       </div>
     </div>
@@ -250,10 +176,9 @@
       </label>
     </div>
 
-    <button class="tab-btn active" onclick="showTab('tab-general', event)">Académico</button>
-    <button class="tab-btn" onclick="showTab('tab-ejes', event)">Académico por Ejes</button>
-    <button class="tab-btn" onclick="showTab('tab-socio', event)">Socioemocional (Piloto)</button>
-    <button class="tab-btn" onclick="showTab('tab-convivencia', event)">Convivencia (Piloto)</button>
+    <button class="tab-btn active" onclick="showTab('tab-general', event)">Panorama General</button>
+    <button class="tab-btn" onclick="showTab('tab-niveles', event)">Análisis por Niveles</button>
+    <button class="tab-btn" onclick="showTab('tab-retencion', event)">Retención y Matrícula</button>
     
     <div class="slep-toggle-wrapper">
       <span class="slep-toggle-label" id="slep-label-text">PROMEDIO SLEP</span>
@@ -269,1172 +194,631 @@
   
   <div id="tab-general" class="tab-content">
     <div class="kpi-grid" style="margin-bottom: 1.5rem;">
-      <div class="kpi" style="--kpi-c: var(--text)"><div class="kpi-label">Promedio General</div><div class="kpi-val" id="kpi-global">—</div></div>
-      <div class="kpi" style="--kpi-c: var(--leng)"><div class="kpi-label">Lectura</div><div class="kpi-val" id="kpi-leng">—</div></div>
-      <div class="kpi" style="--kpi-c: var(--mate)"><div class="kpi-label">Matemática</div><div class="kpi-val" id="kpi-mate">—</div></div>
-      <div class="kpi" style="--kpi-c: var(--purple)"><div class="kpi-label">Evaluaciones</div><div class="kpi-val" id="kpi-eval">—</div></div>
+      <div class="kpi" style="--kpi-c: var(--leng)">
+        <div class="kpi-label">Asistencia Ponderada</div>
+        <div class="kpi-val" id="kpi-asistencia">—</div>
+        <div class="kpi-desc">Promedio exacto s/matrícula</div>
+      </div>
+      <div class="kpi" style="--kpi-c: var(--mate)">
+        <div class="kpi-label">Matrícula Activa</div>
+        <div class="kpi-val" id="kpi-matricula">—</div>
+        <div class="kpi-desc" id="kpi-matricula-desc">Último mes seleccionado</div>
+      </div>
+      <div class="kpi" style="--kpi-c: var(--purple)">
+        <div class="kpi-label">Establecimientos</div>
+        <div class="kpi-val" id="kpi-establecimientos">—</div>
+        <div class="kpi-desc">Con registro en el periodo</div>
+      </div>
+      <div class="kpi" style="--kpi-c: var(--total)">
+        <div class="kpi-label">Aulas / Cursos</div>
+        <div class="kpi-val" id="kpi-cursos">—</div>
+        <div class="kpi-desc">Bajo filtros actuales</div>
+      </div>
     </div>
     
     <div class="charts-grid">
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header"><div class="chart-title">Evolución<span>Lectura</span></div></div>
-          <div class="chart-wrap"><canvas id="canvas-leng-evo"></canvas></div>
-        </div>
-        <div id="var-leng-evo"></div>
-      </div>
-      
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header"><div class="chart-title">Evolución<span>Matemática</span></div></div>
-          <div class="chart-wrap"><canvas id="canvas-mate-evo"></canvas></div>
-        </div>
-        <div id="var-mate-evo"></div>
-      </div>
-      
-      <div class="chart-block full-width">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header" style="align-items: center;"><div class="chart-title">Análisis Comparativo por Curso</div><div style="display: flex; gap: 0.5rem; background: var(--surface-2); padding: 0.3rem; border-radius: 8px;"><button class="btn-toggle active" data-asig="Lenguaje" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--leng); font-weight: 600;">Lectura</button><button class="btn-toggle" data-asig="Matemática" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: transparent; font-weight: 600;">Matemática</button></div></div><div class="chart-wrap" style="min-height: 300px;"><div id="overlay-curso" class="empty-state-container"><h3>Selecciona un Establecimiento</h3><p>Filtra un RBD arriba para ver el desglose por cursos.</p></div><canvas id="canvas-curso-evo" style="display:none;"></canvas></div>
-        </div>
+      <div class="chart-card full-width">
+        <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+        <div class="chart-header"><div class="chart-title">Evolución Histórica<span>Asistencia Promedio (Mes a Mes)</span></div></div>
+        <div class="chart-wrap" style="height: 350px;"><canvas id="chart-asis-evo"></canvas></div>
       </div>
     </div>
   </div>
 
-  <div id="tab-ejes" class="tab-content" style="display:none;">
-    <div class="charts-grid" style="grid-template-columns: 1fr;">
-      
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header"><div><div class="chart-title">Ejes Temáticos<span>Lectura</span></div></div><div id="master-leng-tray" class="master-eje-tray"></div></div>
-          <div class="chart-wrap" style="min-height: 600px;"><canvas id="canvas-leng-ejes"></canvas></div>
-        </div>
-        <div id="var-leng-ejes"></div>
+  <div id="tab-niveles" class="tab-content" style="display:none;">
+    <div class="charts-grid">
+      <div class="chart-card">
+        <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+        <div class="chart-header"><div class="chart-title">Brechas por Etapa<span>Asistencia por Tipo de Enseñanza</span></div></div>
+        <div class="chart-wrap"><canvas id="chart-asis-ensenanza"></canvas></div>
       </div>
       
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header"><div><div class="chart-title">Ejes Temáticos<span>Matemática</span></div></div><div id="master-mate-tray" class="master-eje-tray"></div></div>
-          <div class="chart-wrap" style="min-height: 600px;"><canvas id="canvas-mate-ejes"></canvas></div>
-        </div>
-        <div id="var-mate-ejes"></div>
-      </div>
-
-    </div>
-  </div>
-
-  <div id="tab-socio" class="tab-content" style="display:none;">
-    <div class="section-title">1. Comparación Temporal (Barras Agrupadas)</div>
-    <div class="charts-grid">
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Desarrollo (Barras)</span></div></div>
-            <div id="master-desarrollo-bar-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-desarrollo-bar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Gestión (Barras)</span></div></div>
-            <div id="master-gestion-bar-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-gestion-bar"></canvas></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">2. Perfil de Habilidades (Tela de Araña)</div>
-    <div class="charts-grid">
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Desarrollo (Radar Año 2026)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-desarrollo-radar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Gestión (Radar Año 2026)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-gestion-radar"></canvas></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">3. Ranking Última Evaluación (Barras Horizontales)</div>
-    <div class="charts-grid">
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Desarrollo (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-desarrollo-hbar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Gestión (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-gestion-hbar"></canvas></div>
-        </div>
+      <div class="chart-card">
+        <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+        <div class="chart-header"><div class="chart-title">Desglose Específico<span>Asistencia por Nivel Educativo</span></div></div>
+        <div class="chart-wrap"><canvas id="chart-asis-nivel"></canvas></div>
       </div>
     </div>
   </div>
 
-  <div id="tab-convivencia" class="tab-content" style="display:none;">
-    <div class="section-title">1. Comparación Temporal (Barras Agrupadas)</div>
+  <div id="tab-retencion" class="tab-content" style="display:none;">
     <div class="charts-grid">
-      <div class="chart-block full-width">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Promoción universal (Barras)</span></div></div>
-            <div id="master-promocion-bar-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-promocion-bar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Apoyos focalizados (Barras)</span></div></div>
-            <div id="master-apoyos-bar-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-apoyos-bar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Intervenciones de mayor intensidad (Barras)</span></div></div>
-            <div id="master-interv-bar-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-interv-bar"></canvas></div>
-        </div>
+      <div class="chart-card full-width">
+        <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+        <div class="chart-header"><div class="chart-title">Fluctuación de Estudiantes<span>Evolución de la Matrícula Total (Mes a Mes)</span></div></div>
+        <div class="chart-wrap" style="height: 350px;"><canvas id="chart-mat-evo"></canvas></div>
       </div>
     </div>
-
-    <div class="section-title">2. Perfil Holístico de Convivencia (Súper Radar)</div>
-    <div class="charts-grid">
-      <div class="chart-block full-width">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Perfil Integrado (Radar Año 2026)</span></div></div>
-          </div>
-          <div class="chart-wrap" style="min-height: 450px;"><canvas id="canvas-convivencia-super-radar"></canvas></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">3. Ranking Última Evaluación (Barras Horizontales)</div>
-    <div class="charts-grid">
-      <div class="chart-block full-width">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Promoción universal (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-promocion-hbar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Apoyos focalizados (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-apoyos-hbar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Intervenciones de mayor intensidad (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-interv-hbar"></canvas></div>
-        </div>
-      </div>
-    </div>
-
   </div>
 
 </main>
 
 <script>
-if (typeof ChartDataLabels !== 'undefined') {
-  Chart.register(ChartDataLabels);
-}
+// --- CONFIGURACIÓN DE FUENTE DE DATOS ---
+// Desarrollo local: CSV generado con exportar_datos.py
+// Producción futura: publicar la misma estructura en Google Sheets y cambiar USAR_DATOS_LOCALES a false
+const USAR_DATOS_LOCALES = true;
+const DATOS_CSV_LOCAL = 'datos_curso.csv';
+const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQx2wv9TroK9XDnSw6J5G8LJAw11SeHS370_qI_vgzKeVeEO68NOSuMyQ-k2ww3-ns2XVC7JyrKBkbZ/pub?gid=0&single=true&output=csv';
 
-const UMBRAL_LOGRO = 0.6;
-let DATA_RAW = null;
-let charts = {};
-let ts = {};
-const STAGES = ['Diagnóstico', 'Intermedio', 'Cierre'];
-const COLORS = ['#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', '#fbbf24', '#2dd4bf', '#818cf8'];
-const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
-let currentAsigFilter = 'Lenguaje';
-let showSlep = false;
+const ORDEN_MESES = ['1.Marzo','2.Abril','3.Mayo','4.Junio','5.Julio','6.Agosto','7.Septiembre','8.Octubre','9.Noviembre'];
 
-let activeEjes = { 
-  Lenguaje: new Set(), Matemática: new Set(), 
-  Desarrollo: new Set(), Gestión: new Set(),
-  'Promoción universal': new Set(), 'Apoyos focalizados': new Set(), 'Intervenciones de mayor intensidad': new Set()
+// Códigos SIGE → nombre legible (mantener Excel con códigos; el dashboard muestra texto)
+const MAP_ENSENANZA = {
+  '10':  'Educación Parvularia',
+  '110': 'Enseñanza Básica',
+  '165': 'Ed. Especial Parvularia',
+  '167': 'Ed. Especial Básica',
+  '211': 'Ed. Básica Adultos',
+  '212': 'Ed. Básica Adultos (Alternativa)',
+  '310': 'Enseñanza Media HC',
+  '363': 'Enseñanza Media HC Adultos',
+  '410': 'Enseñanza Media TP',
+  '510': 'Educación Especial',
+  '563': 'Programa Integración Escolar',
+  '610': 'Ed. Media TP Adultos',
+  '663': 'Ed. Media HC Adultos'
 };
+const ORDEN_ENSENANZA = [
+  'Educación Parvularia', 'Enseñanza Básica', 'Enseñanza Media HC', 'Enseñanza Media TP',
+  'Educación Especial', 'Ed. Especial Parvularia', 'Ed. Especial Básica',
+  'Ed. Básica Adultos', 'Ed. Básica Adultos (Alternativa)', 'Enseñanza Media HC Adultos',
+  'Enseñanza Media TP Adultos', 'Ed. Media HC Adultos', 'Ed. Media TP Adultos',
+  'Programa Integración Escolar'
+];
+const ORDEN_NIVEL = [
+  'Nivel de Transición 1', '1er Nivel de Transición (Pre-kinder)', 'Nivel de Transición 2', '2do Nivel de Transición (Kinder)',
+  '1° Básico', '2° Básico', '3° Básico', '4° Básico', '5° Básico', '6° Básico', '7° Básico', '8° Básico',
+  'Nivel Básico 1 (1° a 4° Básico)', 'Nivel Básico 2 (5° y 6° Básico)', 'Nivel Básico 3 (7° y 8° Básico)',
+  'I° Medio', 'II° Medio', 'III° Medio', 'IV° Medio',
+  '1er Nivel (1° y 2° Medio)', '2do Nivel (3° Medio)', '2do Nivel (3° y 4° Medio)', '3er Nivel (4° Medio)',
+  'Laboral 1', 'Laboral 2', 'Laboral 3'
+];
+
+let DB_RAW = [];
+let ts = {};
+let charts = {};
 let IS_ADMIN = false;
 let SESSION_RBD = null;
+let SHOW_SLEP = false;
 
-async function initData() {
-  try {
-    const res = await fetch('datos.json');
-    DATA_RAW = await res.json();
-    setupFiltersStable();
-    initCharts();
-  } catch (e) { console.error(e); }
+function normalizarEntero(valor) {
+  if (valor === null || valor === undefined || valor === '') return '';
+  const n = parseInt(parseFloat(String(valor).replace(/\./g, '').replace(',', '.')), 10);
+  return isNaN(n) ? String(valor).trim() : String(n);
 }
 
+function mapearEnsenanza(codigo) {
+  const cod = String(codigo ?? '').trim();
+  if (!cod) return '';
+  return MAP_ENSENANZA[cod] || MAP_ENSENANZA[cod.replace(/^0+/, '')] || `Enseñanza ${cod}`;
+}
+
+function obtenerUrlDatos() {
+  return USAR_DATOS_LOCALES ? DATOS_CSV_LOCAL : GOOGLE_SHEETS_CSV_URL;
+}
+
+function cargarDatos(onSuccess, onError) {
+  Papa.parse(obtenerUrlDatos(), {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      if (results.errors && results.errors.length > 0) {
+        console.warn('Advertencias al parsear CSV:', results.errors.slice(0, 3));
+      }
+      if (results.data && results.data.length > 0) {
+        onSuccess(results.data);
+      } else {
+        onError('La base de datos está vacía o el archivo CSV no responde.');
+      }
+    },
+    error: function() {
+      onError(USAR_DATOS_LOCALES
+        ? 'No se pudo cargar datos_curso.csv. Ejecuta exportar_datos.py y usa Live Server.'
+        : 'Error de conexión con Google Sheets.');
+    }
+  });
+}
+
+// --- FUNCIÓN INTELIGENTE PARA LEER COLUMNAS SIN IMPORTAR TILDES O MAYÚSCULAS ---
+function encontrarValorColumna(fila, opcionesClave) {
+    const nombresColumnas = Object.keys(fila);
+    for (let claveBusqueda of opcionesClave) {
+        let claveLimpiaBusqueda = claveBusqueda.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        let encontrada = nombresColumnas.find(k => 
+            k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === claveLimpiaBusqueda
+        );
+        if (encontrada && fila[encontrada] !== undefined && fila[encontrada] !== null) {
+            return fila[encontrada];
+        }
+    }
+    return "";
+}
+
+// --- MOTOR DE ARRANQUE Y LOGIN ---
 function handleLogin() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value.trim();
   const errorEl = document.getElementById('login-error');
+  const loader = document.getElementById('login-loader');
+  
+  errorEl.style.display = 'none';
+  
+  let valid = false;
+  if (user === 'admin' && pass === 'slep2026') valid = true;
+  else {
+    const rbdNum = parseInt(user, 10);
+    if (!isNaN(rbdNum) && pass === String((rbdNum * 2) + 30)) valid = true;
+  }
 
-  if (user === 'admin' && pass === 'slep2026') {
-    IS_ADMIN = true;
-    registrarAcceso(user);
-    startDashboard();
+  if (!valid) {
+    errorEl.innerText = "Credenciales incorrectas.";
+    errorEl.style.display = 'block';
     return;
   }
 
-  const rbdNum = parseInt(user, 10);
-  if (!isNaN(rbdNum) && pass === String((rbdNum * 2) + 30)) {
-    const rbdFound = DATA_RAW.maps[I.RBD].some(text => text.startsWith(user));
-    if (rbdFound) {
-      IS_ADMIN = false;
-      SESSION_RBD = user;
-      registrarAcceso(user);
-      startDashboard();
-      return;
+  loader.style.display = 'block';
+  cargarDatos(
+    function(data) { procesarDatos(data, user); },
+    function(msg) {
+      loader.style.display = 'none';
+      errorEl.innerText = msg;
+      errorEl.style.display = 'block';
     }
-  }
-
-  errorEl.style.display = 'block';
+  );
 }
 
-function registrarAcceso(usuario) {
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxEybK4ERWVNT8uQgLzZ9UwCLmY2wYlMte55huNGwytKpckNs1K7WW9q7GqapWELCPS/exec'; 
-  if (scriptURL !== 'TU_URL_AQUI') {
-    fetch(`${scriptURL}?usuario=${usuario}`, { mode: 'no-cors' })
-      .catch(e => console.log('Error de registro silencioso:', e));
-  }
-}
+function procesarDatos(rawData, user) {
+  DB_RAW = rawData.map(row => {
+    let asisRaw = encontrarValorColumna(row, ['%asistencia', 'asistencia', 'porc_de_asistencia']);
+    let matRaw = encontrarValorColumna(row, ['matricula', 'matricula_cierre_mes', 'matrícula']);
+    let rbdEstRaw = encontrarValorColumna(row, ['rbd_establecimiento', 'establecimiento']);
+    let rbdRaw = encontrarValorColumna(row, ['rbd']);
 
-function toggleTheme() {
-  const checkbox = document.getElementById('theme-toggle');
-  const labelText = document.getElementById('theme-label-text');
-  
-  if (checkbox.checked) {
-    document.body.classList.add('dark-theme');
-    labelText.innerText = 'Tema Oscuro';
-    labelText.style.color = 'var(--text)';
+    if (!rbdRaw && rbdEstRaw) {
+      let match = rbdEstRaw.toString().match(/^(\d+)/);
+      if (match) rbdRaw = match[1];
+    }
+    if (!rbdEstRaw && rbdRaw) rbdEstRaw = rbdRaw;
+
+    let asisStr = (asisRaw || "0").toString().replace('%','').replace(',','.');
+    let asistencia = parseFloat(asisStr);
+    if (asistencia > 1 && asistencia <= 100) asistencia = asistencia / 100;
+
+    let matricula = parseInt((matRaw || "0").toString().replace(/\./g,''), 10) || 0;
+    let ensCod = (encontrarValorColumna(row, ['enseñanza', 'ensenanza']) || "").toString().trim();
+
+    return {
+      agno: normalizarEntero(encontrarValorColumna(row, ['agno', 'año', 'year'])),
+      mes: (encontrarValorColumna(row, ['mes', 'month']) || "").toString().trim(),
+      rbd_est: rbdEstRaw.toString().trim(),
+      rbd_puro: normalizarEntero(rbdRaw),
+      ensenanza_cod: ensCod,
+      ensenanza: mapearEnsenanza(ensCod),
+      nivel: (encontrarValorColumna(row, ['nivel']) || "").toString().trim(),
+      letra: (encontrarValorColumna(row, ['letra']) || "").toString().trim(),
+      asistencia: isNaN(asistencia) ? 0 : asistencia,
+      matricula: matricula
+    };
+  }).filter(d => d.agno !== "" && d.matricula > 0);
+
+  document.getElementById('login-loader').style.display = 'none';
+
+  if (DB_RAW.length === 0) {
+    const errorEl = document.getElementById('login-error');
+    errorEl.innerText = "No hay filas válidas en la base de datos.";
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (user === 'admin') {
+    IS_ADMIN = true;
   } else {
-    document.body.classList.remove('dark-theme');
-    labelText.innerText = 'Tema Claro';
-    labelText.style.color = 'var(--text-muted)';
+    IS_ADMIN = false;
+    SESSION_RBD = normalizarEntero(user);
+    if (!DB_RAW.some(d => d.rbd_puro === SESSION_RBD)) {
+        document.getElementById('login-loader').style.display = 'none';
+        const errorEl = document.getElementById('login-error');
+        errorEl.innerText = "El RBD ingresado no tiene datos en el sistema.";
+        errorEl.style.display = 'block';
+        return;
+    }
   }
-  applyThemeToCharts();
+  iniciarInterfaz();
 }
 
-function applyThemeToCharts() {
-  const isDark = document.body.classList.contains('dark-theme');
-  const gridColor = isDark ? '#21262d' : '#e5e7eb';
-  const textColor = isDark ? '#7d8590' : '#57606a';
-
-  Object.values(charts).forEach(chart => {
-    if (chart.options.scales.x) {
-      chart.options.scales.x.grid.color = gridColor;
-      chart.options.scales.x.ticks.color = textColor;
-    }
-    if (chart.options.scales.y) {
-      chart.options.scales.y.grid.color = gridColor;
-      chart.options.scales.y.ticks.color = textColor;
-    }
-    if (chart.options.scales.r) {
-      chart.options.scales.r.angleLines.color = gridColor;
-      chart.options.scales.r.grid.color = gridColor;
-      chart.options.scales.r.pointLabels.color = textColor;
-    }
-    if (chart.options.plugins.legend) {
-      chart.options.plugins.legend.labels.color = textColor;
-    }
-    if (chart.options.plugins.datalabels) {
-      chart.options.plugins.datalabels.color = textColor;
-    }
-    chart.update();
-  });
-}
-
-function startDashboard() {
+function iniciarInterfaz() {
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('navbar').style.display = 'block';
   document.getElementById('dashboard').style.display = 'block';
 
+  configurarFiltros();
+  initCharts();
+  
   if (!IS_ADMIN && SESSION_RBD) {
-    const rbdId = DATA_RAW.maps[I.RBD].findIndex(text => text.startsWith(SESSION_RBD));
-    if (rbdId !== -1) {
-      ts.rbd.setValue([String(rbdId)]);
-      document.getElementById('group-rbd').style.display = 'none';
-      document.getElementById('static-rbd-container').style.display = 'block';
-      document.getElementById('static-rbd-text').innerText = DATA_RAW.maps[I.RBD][rbdId];
-      document.getElementById('static-rbd-text').title = DATA_RAW.maps[I.RBD][rbdId];
+    const dataColegio = DB_RAW.find(d => d.rbd_puro === SESSION_RBD);
+    if(dataColegio) {
+        ts['rbd_est'].setValue([dataColegio.rbd_est]);
+        document.getElementById('group-rbd').style.display = 'none';
+        document.getElementById('static-rbd-container').style.display = 'block';
+        document.getElementById('static-rbd-text').innerText = dataColegio.rbd_est;
     }
   }
-  update();
+  actualizarDashboard();
+}
+
+// --- CONFIGURACIÓN DE FILTROS TOMSELECT ---
+function configurarFiltros() {
+  const mapeo = { agno: 'f-agno', mes: 'f-mes', ensenanza: 'f-ensenanza', nivel: 'f-nivel', letra: 'f-letra', rbd_est: 'f-rbd' };
+  
+  Object.keys(mapeo).forEach(key => {
+    let valoresUnicos = [...new Set(DB_RAW.map(d => d[key]))].filter(Boolean);
+    
+    valoresUnicos.sort((a, b) => {
+      if (key === 'mes') {
+        let ia = ORDEN_MESES.indexOf(a), ib = ORDEN_MESES.indexOf(b);
+        return (ia !== -1 ? ia : 99) - (ib !== -1 ? ib : 99);
+      }
+      if (key === 'ensenanza') {
+        let ia = ORDEN_ENSENANZA.indexOf(a), ib = ORDEN_ENSENANZA.indexOf(b);
+        return (ia !== -1 ? ia : 99) - (ib !== -1 ? ib : 99);
+      }
+      if (key === 'nivel') {
+        let ia = ORDEN_NIVEL.indexOf(a), ib = ORDEN_NIVEL.indexOf(b);
+        return (ia !== -1 ? ia : 99) - (ib !== -1 ? ib : 99);
+      }
+      return a.localeCompare(b, 'es', {numeric: true});
+    });
+
+    // Fix: maxItems: null asegura que no se congele la selección múltiple
+    ts[key] = new TomSelect(`#${mapeo[key]}`, {
+      plugins: ['checkbox_options'],
+      maxOptions: null,
+      maxItems: null, 
+      closeAfterSelect: false,
+      valueField: 'id',
+      labelField: 'title',
+      searchField: 'title',
+      options: valoresUnicos.map(v => ({ id: v, title: v })),
+      onChange: () => actualizarDashboard()
+    });
+  });
+
+  const agnos = [...new Set(DB_RAW.map(d => d.agno))];
+  ts['agno'].setValue(agnos, true); // true = silencioso, no dispara evento extra
+
+  document.getElementById('btn-clear').onclick = () => { 
+    Object.keys(ts).forEach(k => {
+      if (!IS_ADMIN && k === 'rbd_est') return; 
+      ts[k].setValue([], true); // Fix: Usar setValue vacío en vez de clear
+    });
+    ts['agno'].setValue(agnos, true); 
+    actualizarDashboard();
+  };
+}
+
+// --- LOGICA PRINCIPAL BLINDADA ---
+function actualizarDashboard() {
+  try {
+      const getArr = (id) => { let v = ts[id].getValue(); return Array.isArray(v) ? v : (v ? [v] : []); };
+      
+      const f = {
+        agno: getArr('agno'),
+        mes: getArr('mes'),
+        ensenanza: getArr('ensenanza'),
+        nivel: getArr('nivel'),
+        letra: getArr('letra'),
+        rbd_est: getArr('rbd_est')
+      };
+
+      let datosFiltrados = DB_RAW.filter(d => {
+        if (f.agno.length && !f.agno.includes(d.agno)) return false;
+        if (f.mes.length && !f.mes.includes(d.mes)) return false;
+        if (f.ensenanza.length && !f.ensenanza.includes(d.ensenanza)) return false;
+        if (f.nivel.length && !f.nivel.includes(d.nivel)) return false;
+        if (f.letra.length && !f.letra.includes(d.letra)) return false;
+        if (f.rbd_est.length && !f.rbd_est.includes(d.rbd_est)) return false;
+        return true;
+      });
+
+      let datosSlep = DB_RAW.filter(d => {
+        if (f.agno.length && !f.agno.includes(d.agno)) return false;
+        if (f.mes.length && !f.mes.includes(d.mes)) return false;
+        if (f.ensenanza.length && !f.ensenanza.includes(d.ensenanza)) return false;
+        if (f.nivel.length && !f.nivel.includes(d.nivel)) return false;
+        if (f.letra.length && !f.letra.includes(d.letra)) return false;
+        return true;
+      });
+
+      let asisPonderadaSum = 0, matTotalForAsis = 0, establecimientosUnicos = new Set();
+      
+      let agnosDisponibles = [...new Set(datosFiltrados.map(d=>d.agno))];
+      let ultimoAgno = agnosDisponibles.length > 0 ? Math.max(...agnosDisponibles.map(Number)).toString() : null;
+      let ultimoMes = null;
+      
+      if (ultimoAgno) {
+          let mesesDelUltimoAgno = [...new Set(datosFiltrados.filter(d => d.agno === ultimoAgno).map(d => d.mes))];
+          if (mesesDelUltimoAgno.length > 0) {
+              mesesDelUltimoAgno.sort((a, b) => ORDEN_MESES.indexOf(b) - ORDEN_MESES.indexOf(a));
+              ultimoMes = mesesDelUltimoAgno[0];
+              document.getElementById('kpi-matricula-desc').innerText = `Dato a ${ultimoMes} ${ultimoAgno}`;
+          } else {
+              document.getElementById('kpi-matricula-desc').innerText = "Sin datos";
+          }
+      } else {
+          document.getElementById('kpi-matricula-desc').innerText = "Filtros sin resultados";
+      }
+
+      datosFiltrados.forEach(d => {
+        // Fix Crítico: Ignorar asistencia 0 para no desplomar el promedio
+        if (d.asistencia > 0) {
+            asisPonderadaSum += (d.asistencia * d.matricula);
+            matTotalForAsis += d.matricula;
+        }
+        establecimientosUnicos.add(d.rbd_puro);
+      });
+
+      let matReal = 0;
+      let aulasUnicas = new Set();
+      
+      if (ultimoAgno && ultimoMes) {
+          datosFiltrados.filter(d => d.agno === ultimoAgno && d.mes === ultimoMes).forEach(d => {
+              matReal += d.matricula;
+              aulasUnicas.add(`${d.rbd_puro}-${d.ensenanza}-${d.nivel}-${d.letra}`);
+          });
+      }
+
+      let asistenciaPromedio = matTotalForAsis > 0 ? (asisPonderadaSum / matTotalForAsis) : 0;
+
+      document.getElementById('kpi-asistencia').innerText = matTotalForAsis > 0 ? (asistenciaPromedio * 100).toFixed(1) + '%' : '—';
+      document.getElementById('kpi-matricula').innerText = matReal.toLocaleString('es-CL');
+      document.getElementById('kpi-establecimientos').innerText = establecimientosUnicos.size;
+      document.getElementById('kpi-cursos').innerText = aulasUnicas.size;
+
+      let mesesUnicosArr = [...new Set(datosFiltrados.map(d=>d.mes))].sort((a, b) => ORDEN_MESES.indexOf(a) - ORDEN_MESES.indexOf(b));
+      let agnosUnicosArr = [...new Set(datosFiltrados.map(d=>d.agno))].sort();
+
+      let evoAsisData = { labels: mesesUnicosArr, datasets: [] };
+      let evoMatData = { labels: mesesUnicosArr, datasets: [] };
+      let colors = ['#0284c7', '#ea580c', '#1a7f37', '#8250df'];
+
+      agnosUnicosArr.forEach((agno, idx) => {
+        let dataAsis = [], dataMat = [], dataAsisSlep = [];
+        
+        mesesUnicosArr.forEach(mes => {
+          let df = datosFiltrados.filter(d => d.agno === agno && d.mes === mes);
+          let mSum = 0, aSum = 0;
+          df.forEach(d => { 
+              if(d.asistencia > 0) { aSum += (d.asistencia * d.matricula); mSum += d.matricula; }
+          });
+          dataAsis.push(mSum > 0 ? (aSum/mSum) : null);
+          
+          let dfMat = df.reduce((acc, current) => acc + current.matricula, 0);
+          dataMat.push(dfMat > 0 ? dfMat : null);
+
+          if (SHOW_SLEP && (!IS_ADMIN || f.rbd_est.length > 0)) {
+              let ds = datosSlep.filter(d => d.agno === agno && d.mes === mes);
+              let mSumSlep = 0, aSumSlep = 0;
+              ds.forEach(d => { 
+                  if(d.asistencia > 0) { aSumSlep += (d.asistencia * d.matricula); mSumSlep += d.matricula; }
+              });
+              dataAsisSlep.push(mSumSlep > 0 ? (aSumSlep/mSumSlep) : null);
+          }
+        });
+
+        evoAsisData.datasets.push(crearDatasetLineal(`Asistencia ${agno}`, dataAsis, colors[idx % colors.length], false));
+        evoMatData.datasets.push(crearDatasetBarras(`Matrícula ${agno}`, dataMat, colors[idx % colors.length]));
+        
+        if (SHOW_SLEP && (!IS_ADMIN || f.rbd_est.length > 0)) {
+            evoAsisData.datasets.push(crearDatasetLineal(`SLEP ${agno}`, dataAsisSlep, colors[idx % colors.length], true));
+        }
+      });
+
+      actualizarGrafico(charts['asis-evo'], evoAsisData);
+      actualizarGrafico(charts['mat-evo'], evoMatData);
+
+      let datosCorte = [];
+      if (ultimoAgno && ultimoMes) {
+          datosCorte = datosFiltrados.filter(d => d.agno === ultimoAgno && d.mes === ultimoMes);
+      }
+      
+      let ensData = agruparPorCategoria(datosCorte, 'ensenanza', ORDEN_ENSENANZA);
+      actualizarGraficoHBar(charts['asis-ensenanza'], ensData.labels, ensData.asistencias, '#8250df');
+      
+      let nivData = agruparPorCategoria(datosCorte, 'nivel', ORDEN_NIVEL);
+      actualizarGraficoHBar(charts['asis-nivel'], nivData.labels, nivData.asistencias, '#ea580c');
+
+  } catch (error) {
+      console.error("Error en el renderizado del dashboard:", error);
+  }
+}
+
+function agruparPorCategoria(data, variable, arrayOrdenamiento) {
+    let grupos = {};
+    data.forEach(d => {
+        let k = d[variable];
+        if(!grupos[k]) grupos[k] = { asisSum: 0, matSum: 0 };
+        // Solo calcular promedio con asistencia válida
+        if(d.asistencia > 0) {
+            grupos[k].matSum += d.matricula;
+            grupos[k].asisSum += (d.asistencia * d.matricula);
+        }
+    });
+
+    let labels = Object.keys(grupos).sort((a,b) => {
+        let idxA = arrayOrdenamiento.indexOf(a);
+        let idxB = arrayOrdenamiento.indexOf(b);
+        return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+    });
+    let asistencias = labels.map(l => grupos[l].matSum > 0 ? grupos[l].asisSum / grupos[l].matSum : null);
+    
+    return { labels, asistencias };
+}
+
+function crearDatasetLineal(label, data, color, isSlep) {
+    return { label: label, data: data, borderColor: isSlep ? color + '88' : color, backgroundColor: isSlep ? 'transparent' : color + '11', borderWidth: isSlep ? 2 : 3, borderDash: isSlep ? [5, 5] : [], fill: !isSlep, pointStyle: isSlep ? 'triangle' : 'circle', pointRadius: 4, tension: 0.2 };
+}
+function crearDatasetBarras(label, data, color) { return { label: label, data: data, backgroundColor: color + 'DD', borderRadius: 4 }; }
+function actualizarGrafico(chart, dataObj) { chart.data = dataObj; chart.update(); }
+function actualizarGraficoHBar(chart, labels, data, color) { chart.data = { labels: labels, datasets: [{ label: 'Asistencia Promedio', data: data, backgroundColor: color + 'CC', borderRadius: 4 }] }; chart.update(); }
+
+// --- CONFIGURACIÓN UI Y CHART.JS ---
+function toggleTheme() {
+  const isDark = document.getElementById('theme-toggle').checked;
+  document.body.classList.toggle('dark-theme', isDark);
+  document.getElementById('theme-label-text').innerText = isDark ? 'Tema Oscuro' : 'Tema Claro';
+  document.getElementById('theme-label-text').style.color = isDark ? 'var(--text)' : 'var(--text-muted)';
+  
+  const gridColor = isDark ? '#21262d' : '#e5e7eb';
+  const textColor = isDark ? '#7d8590' : '#57606a';
+  Object.values(charts).forEach(chart => {
+      if(chart.options.scales.x) { chart.options.scales.x.grid.color = gridColor; chart.options.scales.x.ticks.color = textColor; }
+      if(chart.options.scales.y) { chart.options.scales.y.grid.color = gridColor; chart.options.scales.y.ticks.color = textColor; }
+      chart.update();
+  });
 }
 
 function showTab(tabId, e) {
   document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById(tabId).style.display = 'block';
-  if(e) e.currentTarget.classList.add('active');
-
-  const cursoGroup = document.getElementById('filter-group-curso');
-
-  if (tabId === 'tab-socio' || tabId === 'tab-convivencia') {
-    ts['curso'].clear(true); 
-    ts['curso'].disable();   
-    if (cursoGroup) {
-      cursoGroup.style.opacity = '0.4';
-      cursoGroup.style.pointerEvents = 'none';
-      cursoGroup.setAttribute('data-label', 'CURSO (No aplica)');
-    }
-  } else {
-    ts['curso'].enable();    
-    if (cursoGroup) {
-      cursoGroup.style.opacity = '1';
-      cursoGroup.style.pointerEvents = 'auto';
-      cursoGroup.setAttribute('data-label', 'CURSO ▾');
-    }
-  }
+  if (e) e.currentTarget.classList.add('active');
 }
 
 function toggleSlep() {
-  showSlep = document.getElementById('slep-toggle').checked;
-  document.getElementById('slep-label-text').style.color = showSlep ? 'var(--leng)' : 'var(--text-muted)';
-  update();
+  SHOW_SLEP = document.getElementById('slep-toggle').checked;
+  actualizarDashboard();
 }
 
-function setupFiltersStable() {
-  const customOrder = { etapa: ['Diagnóstico', 'Intermedio', 'Cierre'] };
-  ['agno', 'etapa', 'nivel', 'curso', 'rbd'].forEach(k => {
-    let sortRules = [{field: 'text', direction: 'asc'}]; 
-    if (customOrder[k]) sortRules = [{field: 'custom_index', direction: 'asc'}];
-    else if (k === 'rbd' || k === 'nivel') sortRules = [ {field: 'num_index', direction: 'asc'}, {field: 'text', direction: 'asc'} ];
-    ts[k] = new TomSelect(`#f-${k}`, { plugins: ['checkbox_options'], maxOptions: 300, closeAfterSelect: false, sortField: sortRules, onChange: () => update() });
-    DATA_RAW.maps[I[k.toUpperCase()]].forEach((text, index) => {
-      
-      if (k === 'curso' && (text === 'Socioemocional' || text === 'Convivencia')) return;
-      
-      if (text && text.trim() !== '') {
-        let itemData = { value: String(index), text: text };
-        if (customOrder[k]) itemData.custom_index = customOrder[k].indexOf(text) !== -1 ? customOrder[k].indexOf(text) : 999; 
-        else if (k === 'rbd' || k === 'nivel') { let m = text.match(/^\d+/); itemData.num_index = m ? parseInt(m[0], 10) : 999999; }
-        ts[k].addOption(itemData);
-      }
-    });
-  });
-
-  document.getElementById('btn-clear').onclick = () => { 
-    Object.keys(ts).forEach(k => {
-      if (!IS_ADMIN && k === 'rbd') return; 
-      ts[k].clear(true); 
-    });
-    activeEjes = { 
-      Lenguaje: new Set(), Matemática: new Set(), 
-      Desarrollo: new Set(), Gestión: new Set(),
-      'Promoción universal': new Set(), 'Apoyos focalizados': new Set(), 'Intervenciones de mayor intensidad': new Set()
-    };
-    document.getElementById('master-leng-tray').innerHTML = '';
-    document.getElementById('master-mate-tray').innerHTML = '';
-    document.getElementById('master-desarrollo-bar-tray').innerHTML = '';
-    document.getElementById('master-gestion-bar-tray').innerHTML = '';
-    
-    document.getElementById('master-promocion-bar-tray').innerHTML = '';
-    document.getElementById('master-apoyos-bar-tray').innerHTML = '';
-    document.getElementById('master-interv-bar-tray').innerHTML = '';
-    
-    update(); 
-  };
-}
-
-function renderActiveFiltersTray() {
-  const tray = document.getElementById('active-filters-tray');
-  tray.innerHTML = ''; let hasFilters = false;
-  Object.keys(ts).forEach(key => {
-    const selected = ts[key].getValue();
-    if (selected.length > 0) {
-      if (!IS_ADMIN && key === 'rbd') return; 
-      hasFilters = true;
-      const group = document.createElement('div'); group.className = 'filter-group-tag';
-      const label = document.createElement('span'); label.className = 'filter-group-label'; label.innerText = key.toUpperCase();
-      label.onclick = () => { ts[key].clear(true); update(); };
-      group.appendChild(label);
-      selected.forEach(val => {
-        const tag = document.createElement('span'); tag.className = 'filter-value-tag'; tag.innerText = ts[key].options[val].text;
-        tag.onclick = () => { ts[key].removeItem(val); }; group.appendChild(tag);
-      });
-      tray.appendChild(group);
-    }
-  });
-  tray.style.display = hasFilters ? 'block' : 'none';
-}
-
-function update() {
-  const filters = {}; Object.keys(ts).forEach(k => filters[k] = ts[k].getValue());
-  renderActiveFiltersTray();
-  
-  const res = { 
-    kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() }, 
-    evo: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
-    ejes: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
-    cursos: {} 
-  };
-  const slep = { 
-    evo: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
-    ejes: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
-    niveles: {} 
-  };
-
-  DATA_RAW.rows.forEach(r => {
-    if (filters.agno.length && !filters.agno.includes(String(r[I.AGNO]))) return;
-    if (filters.etapa.length && !filters.etapa.includes(String(r[I.ETAPA]))) return;
-    if (filters.nivel.length && !filters.nivel.includes(String(r[I.NIVEL]))) return;
-    if (filters.curso.length && !filters.curso.includes(String(r[I.CURSO]))) return;
-
-    const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]], etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]], asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]], p = r[I.PUNTAJE], stIdx = STAGES.indexOf(etapaV);
-    if (stIdx === -1) return;
-
-    if (!slep.evo[asigV][agnoV]) slep.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-    slep.evo[asigV][agnoV][stIdx][0] += p; slep.evo[asigV][agnoV][stIdx][1]++;
-    const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
-    if (ejeV) {
-      if (!slep.ejes[asigV][ejeV]) slep.ejes[asigV][ejeV] = {};
-      if (!slep.ejes[asigV][ejeV][agnoV]) slep.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      slep.ejes[asigV][ejeV][agnoV][stIdx][0] += p; slep.ejes[asigV][ejeV][agnoV][stIdx][1]++;
-    }
-    if (asigV === currentAsigFilter) {
-      const nV = DATA_RAW.maps[I.NIVEL][r[I.NIVEL]];
-      if (!slep.niveles[nV]) slep.niveles[nV] = {};
-      if (!slep.niveles[nV][agnoV]) slep.niveles[nV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      slep.niveles[nV][agnoV][stIdx][0] += p; slep.niveles[nV][agnoV][stIdx][1]++;
-    }
-
-    if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
-    
-    const asignaturasEspeciales = ['Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
-    if (!asignaturasEspeciales.includes(asigV)) {
-      res.kpi.sum += p; res.kpi.count++; 
-    }
-    res.kpi.rbds.add(r[I.RBD]);
-    
-    if (asigV === 'Lenguaje') { res.kpi.lSum += p; res.kpi.lC++; } else if (asigV === 'Matemática') { res.kpi.mSum += p; res.kpi.mC++; }
-    
-    if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-    res.evo[asigV][agnoV][stIdx][0] += p; res.evo[asigV][agnoV][stIdx][1]++;
-    if (ejeV) {
-      if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
-      if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      res.ejes[asigV][ejeV][agnoV][stIdx][0] += p; res.ejes[asigV][ejeV][agnoV][stIdx][1]++;
-    }
-    if (filters.rbd.length && asigV === currentAsigFilter) {
-      const cV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
-      if (!res.cursos[cV]) res.cursos[cV] = {};
-      if (!res.cursos[cV][agnoV]) res.cursos[cV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      res.cursos[cV][agnoV][stIdx][0] += p; res.cursos[cV][agnoV][stIdx][1]++;
-    }
-  });
-
-  const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
-  document.getElementById('kpi-global').innerText = f(res.kpi.sum, res.kpi.count);
-  document.getElementById('kpi-leng').innerText = f(res.kpi.lSum, res.kpi.lC);
-  document.getElementById('kpi-mate').innerText = f(res.kpi.mSum, res.kpi.mC);
-  document.getElementById('kpi-eval').innerText = res.kpi.count.toLocaleString('es-CL');
-
-  const hasRBD = filters.rbd.length > 0;
-  const sData = hasRBD && showSlep;
-  
-  const masterLeng = Object.keys(res.ejes.Lenguaje || {}).sort();
-  const masterMate = Object.keys(res.ejes.Matemática || {}).sort();
-  const masterDesarrollo = Object.keys(res.ejes.Desarrollo || {}).sort();
-  const masterGestion = Object.keys(res.ejes.Gestión || {}).sort();
-  
-  const masterPromocion = Object.keys(res.ejes['Promoción universal'] || {}).sort();
-  const masterApoyos = Object.keys(res.ejes['Apoyos focalizados'] || {}).sort();
-  const masterInterv = Object.keys(res.ejes['Intervenciones de mayor intensidad'] || {}).sort();
-
-  updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, '#38bdf8', sData ? slep.evo.Lenguaje : null);
-  updateLineChart(charts['mate-evo'], res.evo.Matemática, true, '#fb923c', sData ? slep.evo.Matemática : null);
-  
-  updateLineChart(charts['leng-ejes'], filterEjes(res.ejes.Lenguaje, 'Lenguaje'), false, null, sData ? filterEjes(slep.ejes.Lenguaje, 'Lenguaje') : null, masterLeng);
-  updateLineChart(charts['mate-ejes'], filterEjes(res.ejes.Matemática, 'Matemática'), false, null, sData ? filterEjes(slep.ejes.Matemática, 'Matemática') : null, masterMate);
-  
-  updateSocioBarGrouped(charts['desarrollo-bar'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null, masterDesarrollo);
-  updateSocioBarGrouped(charts['gestion-bar'], filterEjes(res.ejes.Gestión, 'Gestión'), sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null, masterGestion);
-  
-  updateSocioBarGrouped(charts['promocion-bar'], filterEjes(res.ejes['Promoción universal'], 'Promoción universal'), sData ? filterEjes(slep.ejes['Promoción universal'], 'Promoción universal') : null, masterPromocion);
-  updateSocioBarGrouped(charts['apoyos-bar'], filterEjes(res.ejes['Apoyos focalizados'], 'Apoyos focalizados'), sData ? filterEjes(slep.ejes['Apoyos focalizados'], 'Apoyos focalizados') : null, masterApoyos);
-  updateSocioBarGrouped(charts['interv-bar'], filterEjes(res.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad'), sData ? filterEjes(slep.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad') : null, masterInterv);
-
-  updateSocioEspecial(charts['desarrollo-radar'], charts['desarrollo-hbar'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null);
-  updateSocioEspecial(charts['gestion-radar'], charts['gestion-hbar'], filterEjes(res.ejes.Gestión, 'Gestión'), sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null);
-
-  updateSocioEspecial(null, charts['promocion-hbar'], filterEjes(res.ejes['Promoción universal'], 'Promoción universal'), sData ? filterEjes(slep.ejes['Promoción universal'], 'Promoción universal') : null);
-  updateSocioEspecial(null, charts['apoyos-hbar'], filterEjes(res.ejes['Apoyos focalizados'], 'Apoyos focalizados'), sData ? filterEjes(slep.ejes['Apoyos focalizados'], 'Apoyos focalizados') : null);
-  updateSocioEspecial(null, charts['interv-hbar'], filterEjes(res.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad'), sData ? filterEjes(slep.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad') : null);
-
-  updateSuperRadarConvivencia(
-      charts['convivencia-super-radar'], 
-      {
-         'Promoción universal': filterEjes(res.ejes['Promoción universal'], 'Promoción universal'),
-         'Apoyos focalizados': filterEjes(res.ejes['Apoyos focalizados'], 'Apoyos focalizados'),
-         'Intervenciones de mayor intensidad': filterEjes(res.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad')
-      },
-      sData ? {
-         'Promoción universal': filterEjes(slep.ejes['Promoción universal'], 'Promoción universal'),
-         'Apoyos focalizados': filterEjes(slep.ejes['Apoyos focalizados'], 'Apoyos focalizados'),
-         'Intervenciones de mayor intensidad': filterEjes(slep.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad')
-      } : null
-  );
-
-  renderEjeMasterCards(res.ejes.Lenguaje, 'master-leng-tray', 'Lenguaje');
-  renderEjeMasterCards(res.ejes.Matemática, 'master-mate-tray', 'Matemática');
-  renderEjeMasterCards(res.ejes.Desarrollo, 'master-desarrollo-bar-tray', 'Desarrollo');
-  renderEjeMasterCards(res.ejes.Gestión, 'master-gestion-bar-tray', 'Gestión');
-
-  renderEjeMasterCards(res.ejes['Promoción universal'], 'master-promocion-bar-tray', 'Promoción universal');
-  renderEjeMasterCards(res.ejes['Apoyos focalizados'], 'master-apoyos-bar-tray', 'Apoyos focalizados');
-  renderEjeMasterCards(res.ejes['Intervenciones de mayor intensidad'], 'master-interv-bar-tray', 'Intervenciones de mayor intensidad');
-
-  renderVariationsTable(res.evo.Lenguaje, 'var-leng-evo', false);
-  renderVariationsTable(res.evo.Matemática, 'var-mate-evo', false);
-
-  document.getElementById('overlay-curso').style.display = hasRBD ? 'none' : 'flex';
-  document.getElementById('canvas-curso-evo').style.display = hasRBD ? 'block' : 'none';
-  if (hasRBD) updateLineChart(charts['curso-evo'], res.cursos, false, null, sData ? slep.niveles : null);
-}
-
-function filterEjes(dataObj, asig) {
-  if (activeEjes[asig].size === 0) return dataObj;
-  let f = {}; activeEjes[asig].forEach(e => { if (dataObj[e]) f[e] = dataObj[e]; }); return f;
-}
-
-function renderEjeMasterCards(dataObj, trayId, asig) {
-  const tray = document.getElementById(trayId);
-  if (!dataObj || !tray) return; 
-  const keys = Object.keys(dataObj).sort();
-  if (tray.children.length === keys.length) return; 
-  tray.innerHTML = '';
-  keys.forEach((eje, idx) => {
-    const card = document.createElement('div');
-    card.className = 'master-eje-card active';
-    card.innerHTML = `<div class="color-dot" style="--dot-c: ${COLORS[idx % COLORS.length]}"></div>${eje}`;
-    if (activeEjes[asig].size === 0) keys.forEach(k => activeEjes[asig].add(k));
-    card.onclick = () => {
-      if (activeEjes[asig].has(eje)) { activeEjes[asig].delete(eje); card.classList.remove('active'); }
-      else { activeEjes[asig].add(eje); card.classList.add('active'); }
-      update();
-    };
-    tray.appendChild(card);
-  });
-}
-
-function updateSuperRadarConvivencia(chart, resData, slepData) {
-  if (!chart) return;
-  
-  let latestStageIdx = -1;
-  const subjects = ['Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
-  
-  subjects.forEach(subj => {
-      const dataObj = resData[subj];
-      if (dataObj) {
-          Object.keys(dataObj).forEach(eje => {
-              STAGES.forEach((_, idx) => {
-                  if (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][idx][1] > 0) {
-                      latestStageIdx = Math.max(latestStageIdx, idx);
-                  }
-              });
-          });
-      }
-  });
-
-  if (latestStageIdx === -1) {
-      chart.data.labels = [];
-      chart.data.datasets = [];
-      chart.update();
-      return;
-  }
-
-  let combinedLabels = [];
-  let combinedEscuela = [];
-  let combinedSlep = [];
-
-  subjects.forEach(subj => {
-      const dataObj = resData[subj];
-      if (dataObj) {
-          Object.keys(dataObj).sort().forEach(eje => {
-              combinedLabels.push([eje, `(${subj})`]);
-              
-              let valEsc = 0;
-              if (dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) {
-                  valEsc = dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1];
-              }
-              combinedEscuela.push(valEsc > 0 ? valEsc : null);
-
-              let valSlp = 0;
-              if (slepData && slepData[subj] && slepData[subj][eje] && slepData[subj][eje]['2026'] && slepData[subj][eje]['2026'][latestStageIdx][1] > 0) {
-                  valSlp = slepData[subj][eje]['2026'][latestStageIdx][0] / slepData[subj][eje]['2026'][latestStageIdx][1];
-              }
-              combinedSlep.push(valSlp > 0 ? valSlp : null);
-          });
-      }
-  });
-
-  const baseColor = COLORS[latestStageIdx % COLORS.length];
-
-  let datasets = [];
-  datasets.push({
-      label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
-      data: combinedEscuela,
-      borderColor: baseColor,
-      backgroundColor: baseColor + '33', 
-      borderWidth: 2,
-      pointBackgroundColor: baseColor,
-      pointStyle: 'circle'
-  });
-
-  if (slepData) {
-      datasets.push({
-          label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
-          data: combinedSlep,
-          borderColor: baseColor,
-          backgroundColor: 'transparent', 
-          borderWidth: 2,
-          borderDash: [5, 5], 
-          pointBackgroundColor: baseColor,
-          pointStyle: 'triangle'
-      });
-  }
-
-  chart.data.labels = combinedLabels;
-  chart.data.datasets = datasets;
-  chart.update();
-}
-
-function updateSocioBarGrouped(chart, dataObj, slepObj, masterKeys = null) {
-  if (!chart) return;
-  chart.data.datasets = [];
-  if (!dataObj || Object.keys(dataObj).length === 0) {
-    chart.update();
-    return;
-  }
-
-  let colorIdx = 0;
-  Object.keys(dataObj).sort().forEach(eje => {
-    let cIdx = colorIdx;
-    if (masterKeys && masterKeys.includes(eje)) {
-        cIdx = masterKeys.indexOf(eje);
-    }
-    const color = COLORS[cIdx % COLORS.length];
-    
-    const agnos = Object.keys(dataObj[eje]).sort();
-
-    agnos.forEach(agno => {
-      const isLatest = (agno === '2026'); 
-      
-      const dataEscuela = STAGES.map((_, stIdx) => {
-        if (dataObj[eje][agno] && dataObj[eje][agno][stIdx][1] > 0) {
-          return dataObj[eje][agno][stIdx][0] / dataObj[eje][agno][stIdx][1];
-        }
-        return null;
-      });
-
-      chart.data.datasets.push({
-        label: isLatest ? eje : `${eje} (${agno})`,
-        data: dataEscuela,
-        backgroundColor: color + 'CC', 
-        borderColor: color,
-        borderWidth: 1,
-        borderRadius: 4
-      });
-
-      if (slepObj && slepObj[eje] && slepObj[eje][agno]) {
-        const dataSlep = STAGES.map((_, stIdx) => {
-          if (slepObj[eje][agno][stIdx][1] > 0) {
-            return slepObj[eje][agno][stIdx][1] > 0 ? (slepObj[eje][agno][stIdx][0] / slepObj[eje][agno][stIdx][1]) : null;
-          }
-          return null;
-        });
-
-        chart.data.datasets.push({
-          label: isLatest ? `Promedio SLEP - ${eje}` : `Promedio SLEP - ${eje} (${agno})`,
-          data: dataSlep,
-          backgroundColor: color + '22', 
-          borderColor: color,          
-          borderWidth: 2,              
-          borderDash: [5, 5], 
-          borderRadius: 4
-        });
-      }
-    });
-    colorIdx++;
-  });
-
-  chart.data.datasets.push({ type: 'line', label: 'Umbral 60%', data: Array(3).fill(UMBRAL_LOGRO), borderColor: 'transparent', borderWidth: 0, pointRadius: 0, fill: false });
-
-  chart.update();
-}
-
-function updateSocioEspecial(chartRadar, chartHbar, dataObj, slepObj = null) {
-  if (!chartRadar && !chartHbar) return;
-  
-  if (!dataObj || Object.keys(dataObj).length === 0) {
-    if (chartRadar) { chartRadar.data.labels = []; chartRadar.data.datasets = []; chartRadar.update(); }
-    if (chartHbar) { chartHbar.data.labels = []; chartHbar.data.datasets = []; chartHbar.update(); }
-    return;
-  }
-  
-  const ejes = Object.keys(dataObj).sort();
-  
-  let latestStageIdx = -1;
-  STAGES.forEach((_, idx) => {
-     ejes.forEach(eje => {
-        if (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][idx][1] > 0) {
-          latestStageIdx = Math.max(latestStageIdx, idx);
-        }
-     });
-  });
-
-  if (latestStageIdx === -1) {
-    if (chartRadar) { chartRadar.data.labels = []; chartRadar.data.datasets = []; chartRadar.update(); }
-    if (chartHbar) { chartHbar.data.labels = []; chartHbar.data.datasets = []; chartHbar.update(); }
-    return;
-  }
-
-  const baseColor = COLORS[latestStageIdx % COLORS.length];
-
-  if (chartRadar) {
-      let radarDatasets = [];
-      let dataEscuelaRadar = ejes.map(eje => {
-         if (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) {
-            return dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1];
-         }
-         return null;
-      });
-      
-      radarDatasets.push({
-        label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
-        data: dataEscuelaRadar,
-        borderColor: baseColor,
-        backgroundColor: baseColor + '33', 
-        borderWidth: 2,
-        pointBackgroundColor: baseColor,
-        pointStyle: 'circle'
-      });
-
-      if (slepObj) {
-        let dataSlepRadar = ejes.map(eje => {
-           if (slepObj[eje] && slepObj[eje]['2026'] && slepObj[eje]['2026'][latestStageIdx][1] > 0) {
-              return slepObj[eje]['2026'][latestStageIdx][0] / slepObj[eje]['2026'][latestStageIdx][1];
-           }
-           return null;
-        });
-        radarDatasets.push({
-          label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
-          data: dataSlepRadar,
-          borderColor: baseColor,
-          backgroundColor: 'transparent', 
-          borderWidth: 2,
-          borderDash: [5, 5], 
-          pointBackgroundColor: baseColor,
-          pointStyle: 'triangle'
-        });
-      }
-
-      chartRadar.data.labels = ejes;
-      chartRadar.data.datasets = radarDatasets;
-      chartRadar.update();
-  }
-
-  if (chartHbar) {
-      let rankingData = [];
-      ejes.forEach(eje => {
-         let valEsc = (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) ? dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1] : 0;
-         let valSlp = (slepObj && slepObj[eje] && slepObj[eje]['2026'] && slepObj[eje]['2026'][latestStageIdx][1] > 0) ? slepObj[eje]['2026'][latestStageIdx][0] / slepObj[eje]['2026'][latestStageIdx][1] : 0;
-         
-         if (valEsc > 0 || valSlp > 0) {
-            rankingData.push({ eje: eje, valEscuela: valEsc, valSlep: valSlp });
-         }
-      });
-      
-      rankingData.sort((a, b) => b.valEscuela - a.valEscuela);
-      
-      let hbarDatasets = [];
-      hbarDatasets.push({
-         label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
-         data: rankingData.map(d => d.valEscuela > 0 ? d.valEscuela : null),
-         backgroundColor: baseColor + 'CC', 
-         borderColor: baseColor,
-         borderWidth: 1,
-         borderRadius: 4
-      });
-
-      if (slepObj) {
-        hbarDatasets.push({
-           label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
-           data: rankingData.map(d => d.valSlep > 0 ? d.valSlep : null),
-           backgroundColor: baseColor + '22', 
-           borderColor: baseColor,
-           borderWidth: 2,
-           borderDash: [5, 5], 
-           borderRadius: 4
-        });
-      }
-
-      chartHbar.data.labels = rankingData.map(d => d.eje);
-      chartHbar.data.datasets = hbarDatasets;
-      chartHbar.update();
-  }
-}
-
-function updateLineChart(chart, dataObj, isSingle, forcedColor = null, slepObj = null, masterKeys = null) {
-  chart.data.datasets = [];
-  if (!dataObj) { chart.update(); return; }
-  let colorIdx = 0;
-  Object.keys(dataObj).sort().forEach(groupKey => {
-    let cIdx = colorIdx;
-    if (masterKeys && masterKeys.includes(groupKey)) {
-        cIdx = masterKeys.indexOf(groupKey);
-    }
-    const isEvo = (groupKey === '2025' || groupKey === '2026'), color = isSingle ? forcedColor : COLORS[cIdx % COLORS.length];
-    
-    if (isEvo) {
-      chart.data.datasets.push(createDS(groupKey, dataObj[groupKey], color, groupKey === '2026'));
-      if (slepObj && slepObj[groupKey]) chart.data.datasets.push(createDS(`SLEP ${groupKey}`, slepObj[groupKey], color, groupKey === '2026', true));
-    } else {
-      Object.keys(dataObj[groupKey]).sort().forEach(agno => {
-        chart.data.datasets.push(createDS(`${groupKey} (${agno})`, dataObj[groupKey][agno], color, agno === '2026'));
-        if (slepObj && slepObj[groupKey] && slepObj[groupKey][agno]) chart.data.datasets.push(createDS(`SLEP ${groupKey} (${agno})`, slepObj[groupKey][agno], color, agno === '2026', true));
-      });
-    }
-    colorIdx++;
-  });
-  chart.data.datasets.push({ type: 'line', label: 'Umbral 60%', data: Array(3).fill(UMBRAL_LOGRO), borderColor: 'transparent', borderWidth: 0, pointRadius: 0, fill: false });
-  chart.update();
-}
-
-function createDS(label, points, color, isDashed, isSlep = false) {
-  const finalColor = isSlep ? color + '66' : color; 
-  return { label, data: points.map(d => d[1] > 0 ? d[0] / d[1] : null), borderColor: finalColor, borderDash: isDashed ? [5, 5] : [], backgroundColor: isSlep ? 'transparent' : finalColor + '22', borderWidth: isSlep ? 1.5 : 3, fill: !isDashed && !isSlep && label.length <= 4, pointStyle: isDashed ? 'triangle' : 'circle', pointRadius: isSlep ? 2 : (isDashed ? 5 : 4), tension: 0.3 };
-}
-
-function renderVariationsTable(dataObj, elementId, isEjes) {
-  const container = document.getElementById(elementId);
-  if (!container || !dataObj) return;
-  let hasComp = false;
-  if (!isEjes) { if (dataObj['2025'] && dataObj['2026']) hasComp = true; } 
-  else { Object.keys(dataObj).forEach(e => { if (dataObj[e]['2025'] && dataObj[e]['2026']) hasComp = true; }); }
-  if (!hasComp) { container.innerHTML = ''; return; }
-
-  let html = `<div class="var-table-wrapper"><div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); margin-bottom:0.5rem;">VARIACIÓN 2026 VS 2025</div><table class="var-table"><thead><tr><th>${isEjes ? 'Dimensión / Eje' : 'Asignatura'}</th><th>Diagnóstico</th><th>Intermedio</th><th>Cierre</th></tr></thead><tbody>`;
-  if (!isEjes) {
-    html += `<tr><td>Promedio General</td>`;
-    STAGES.forEach((s, idx) => html += `<td>${getVariationCell(dataObj, idx)}</td>`);
-    html += `</tr>`;
-  } else {
-    Object.keys(dataObj).sort().forEach(e => {
-      if (dataObj[e]['2025'] && dataObj[e][ '2026']) {
-        html += `<tr><td>${e}</td>`;
-        STAGES.forEach((s, idx) => html += `<td>${getVariationCell(dataObj[e], idx)}</td>`);
-        html += `</tr>`;
-      }
-    });
-  }
-  container.innerHTML = html + `</tbody></table></div>`;
-}
-
-function getVariationCell(node, idx) {
-  if (!node['2025'] || !node['2026'] || node['2025'][idx][1] === 0 || node['2026'][idx][1] === 0) return `<span class="var-badge empty">—</span>`;
-  const diff = ((node['2026'][idx][0]/node['2026'][idx][1]) - (node['2025'][idx][0]/node['2025'][idx][1])) * 100;
-  if (diff > 0.1) return `<span class="var-badge up">↑ ${diff.toFixed(1)}%</span>`;
-  if (diff < -0.1) return `<span class="var-badge down">↓ ${Math.abs(diff).toFixed(1)}%</span>`;
-  return `<span class="var-badge neutral">= 0.0%</span>`;
-}
-
-// NUEVA FUNCIÓN: Captura fotográfica de la tarjeta completa
 function descargarGrafico(btn) {
   const card = btn.closest('.chart-card');
-  
-  // Esconder el botón temporalmente para que no salga en la foto
-  btn.style.opacity = '0'; 
-  
-  // Buscar el título del gráfico para nombrar el archivo
-  const titleEl = card.querySelector('.chart-title');
-  let fileName = 'Grafico_DIA.png';
-  if (titleEl) {
-    // Reemplazar espacios y saltos de línea por guiones bajos
-    fileName = titleEl.innerText.replace(/\n/g, '_').replace(/ /g, '_') + '.png';
-  }
-  
-  // Determinar el color de fondo según el tema activo
-  const isDark = document.body.classList.contains('dark-theme');
-  const bgColor = isDark ? '#161b22' : '#ffffff';
-  
-  // Iniciar la captura de HTML2Canvas
+  if (!card || typeof html2canvas !== 'function') return;
   html2canvas(card, {
-    backgroundColor: bgColor,
-    scale: 2 // Escala 2x para resolución "Retina" (no se pixela en PowerPoint)
+    scale: 2,
+    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff',
+    useCORS: true
   }).then(canvas => {
-    // Crear enlace de descarga fantasma y hacerle clic
     const link = document.createElement('a');
-    link.download = fileName;
+    link.download = 'grafico_slep.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
-    
-    // Restaurar la visibilidad del botón
-    btn.style.opacity = ''; 
-  });
+  }).catch(err => console.error('Error al descargar gráfico:', err));
+}
+
+function opcionesChartBase() {
+  const gridColor = document.body.classList.contains('dark-theme') ? '#21262d' : '#e5e7eb';
+  const textColor = document.body.classList.contains('dark-theme') ? '#7d8590' : '#57606a';
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: textColor, font: { family: 'Archivo', size: 11 } } },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const v = ctx.parsed.y ?? ctx.parsed.x;
+            if (v === null || v === undefined) return '';
+            if (ctx.chart.config.type === 'line' || ctx.chart.options.indexAxis === 'y') {
+              return `${ctx.dataset.label}: ${(v * 100).toFixed(1)}%`;
+            }
+            return `${ctx.dataset.label}: ${Number(v).toLocaleString('es-CL')}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: textColor } },
+      y: { grid: { color: gridColor }, ticks: { color: textColor } }
+    }
+  };
 }
 
 function initCharts() {
-  const lineOpt = (showLegend) => {
-    const isDark = document.body.classList.contains('dark-theme');
-    const gridColor = isDark ? '#21262d' : '#e5e7eb';
-    const textColor = isDark ? '#7d8590' : '#57606a';
-    return { 
-      responsive: true, 
-      maintainAspectRatio: false, 
-      scales: { 
-        y: { grace: '10%', ticks: { color: textColor, callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: gridColor } }, 
-        x: { ticks: { color: textColor }, grid: { display: false } } 
-      }, 
-      plugins: { 
-        legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor, filter: (it) => !it.text.includes('Umbral') && !(it.text.includes('SLEP')) } }, 
-        tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } },
-        datalabels: { display: false } 
-      } 
-    };
-  };
+  const base = opcionesChartBase();
 
-  const barGroupedOpt = (showLegend) => {
-    const isDark = document.body.classList.contains('dark-theme');
-    const gridColor = isDark ? '#21262d' : '#e5e7eb';
-    const textColor = isDark ? '#7d8590' : '#57606a';
-    return { 
-      responsive: true, 
-      maintainAspectRatio: false, 
-      scales: { 
-        y: { grace: '10%', ticks: { color: textColor, callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: gridColor } }, 
-        x: { ticks: { color: textColor }, grid: { display: false } } 
-      }, 
-      plugins: { 
-        legend: { 
-          display: showLegend, 
-          position: 'bottom', 
-          labels: { 
-            color: textColor,
-            generateLabels: function(chart) {
-              const hasSlep = chart.data.datasets.some(ds => ds.label.includes('SLEP'));
-              
-              const labels = [{
-                  text: 'Establecimiento',
-                  fillStyle: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                  strokeStyle: 'transparent',
-                  lineWidth: 0,
-                  hidden: false
-              }];
-
-              if (hasSlep) {
-                labels.push({
-                  text: 'Promedio SLEP',
-                  fillStyle: 'transparent',
-                  strokeStyle: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)',
-                  lineWidth: 2,
-                  lineDash: [5, 5],
-                  hidden: false
-                });
-              }
-
-              return labels;
-            }
-          },
-          onClick: function(e, legendItem, legend) {
-            const chart = legend.chart;
-            const isSlepClick = legendItem.text === 'Promedio SLEP';
-            
-            chart.data.datasets.forEach((dataset, index) => {
-               const isSlepDataset = dataset.label.includes('SLEP');
-               if ((isSlepClick && isSlepDataset) || (!isSlepClick && !isSlepDataset && !dataset.label.includes('Umbral'))) {
-                  const meta = chart.getDatasetMeta(index);
-                  meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
-               }
-            });
-            chart.update();
-          }
-        }, 
-        tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } },
-        datalabels: {
-          display: function(context) {
-            if (context.dataset.type === 'line') return false; 
-            return context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] > 0;
-          },
-          anchor: 'end',
-          align: 'end',
-          offset: 2,
-          color: textColor,
-          font: { weight: 'bold', size: 10, family: "'Archivo', sans-serif" },
-          formatter: function(value) {
-            return (value * 100).toFixed(0) + '%';
-          }
-        }
-      } 
-    };
-  };
-
-  const radarOpt = (showLegend) => {
-    const isDark = document.body.classList.contains('dark-theme');
-    const gridColor = isDark ? '#21262d' : '#e5e7eb';
-    const textColor = isDark ? '#7d8590' : '#57606a';
-    return {
-      responsive: true, maintainAspectRatio: false,
+  charts['asis-evo'] = new Chart(document.getElementById('chart-asis-evo'), {
+    type: 'line',
+    data: { labels: [], datasets: [] },
+    options: {
+      ...base,
       scales: {
-        r: {
-          angleLines: { color: gridColor },
-          grid: { color: gridColor },
-          pointLabels: { color: textColor, font: { size: 12, family: "'Archivo', sans-serif" } },
-          ticks: { display: false },
-          suggestedMin: 0,
-          suggestedMax: 1
+        x: base.scales.x,
+        y: {
+          ...base.scales.y,
+          min: 0,
+          max: 1,
+          ticks: { ...base.scales.y.ticks, callback: v => (v * 100).toFixed(0) + '%' }
         }
-      },
-      plugins: {
-        legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor } },
-        tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.raw * 100).toFixed(1) + '%' } },
-        datalabels: { display: false } 
       }
-    };
-  };
+    }
+  });
 
-  const getHbarOpt = (showLegend) => {
-    const isDark = document.body.classList.contains('dark-theme');
-    const gridColor = isDark ? '#21262d' : '#e5e7eb';
-    const textColor = isDark ? '#7d8590' : '#57606a';
-    return { 
-      responsive: true, maintainAspectRatio: false, 
-      indexAxis: 'y',
-      scales: { 
-        x: { grace: '10%', ticks: { color: textColor, callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: gridColor } }, 
-        y: { ticks: { color: textColor }, grid: { display: false } } 
-      }, 
-      plugins: { 
-        legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor } }, 
-        tooltip: { callbacks: { label: (ctx) => { return ctx.dataset.label + ': ' + (ctx.raw * 100).toFixed(1) + '%'; } } },
-        datalabels: {
-          display: function(context) {
-             return context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] > 0;
-          },
-          anchor: 'end',
-          align: 'end',
-          offset: 4,
-          color: textColor,
-          font: { weight: 'bold', size: 10, family: "'Archivo', sans-serif" },
-          formatter: function(value) {
-             return (value * 100).toFixed(0) + '%';
-          }
-        }
-      } 
-    };
-  };
+  charts['mat-evo'] = new Chart(document.getElementById('chart-mat-evo'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+      ...base,
+      scales: {
+        x: base.scales.x,
+        y: { ...base.scales.y, ticks: { ...base.scales.y.ticks, callback: v => Number(v).toLocaleString('es-CL') } }
+      }
+    }
+  });
 
-  ['leng-evo', 'mate-evo', 'curso-evo'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(true) }); });
-  ['leng-ejes', 'mate-ejes'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(false) }); });
+  const hBarOpts = (color) => ({
+    ...base,
+    indexAxis: 'y',
+    scales: {
+      x: {
+        ...base.scales.x,
+        min: 0,
+        max: 1,
+        ticks: { ...base.scales.x.ticks, callback: v => (v * 100).toFixed(0) + '%' }
+      },
+      y: { ...base.scales.y, ticks: { ...base.scales.y.ticks, autoSkip: false } }
+    }
+  });
 
-  ['desarrollo-bar', 'gestion-bar', 'promocion-bar', 'apoyos-bar', 'interv-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: STAGES, datasets: [] }, options: barGroupedOpt(true) }); });
-  
-  ['desarrollo-radar', 'gestion-radar', 'convivencia-super-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
-  
-  ['desarrollo-hbar', 'gestion-hbar', 'promocion-hbar', 'apoyos-hbar', 'interv-hbar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: getHbarOpt(true) }); });
+  charts['asis-ensenanza'] = new Chart(document.getElementById('chart-asis-ensenanza'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: hBarOpts('#8250df')
+  });
+
+  charts['asis-nivel'] = new Chart(document.getElementById('chart-asis-nivel'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: hBarOpts('#ea580c')
+  });
 }
-
-document.querySelectorAll('.btn-toggle').forEach(btn => {
-  btn.onclick = (e) => {
-    document.querySelectorAll('.btn-toggle').forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; });
-    e.target.classList.add('active'); e.target.style.background = e.target.dataset.asig === 'Lenguaje' ? 'var(--leng)' : 'var(--mate)';
-    currentAsigFilter = e.target.dataset.asig; update();
-  };
-});
-
-initData();
 </script>
 </body>
 </html>
