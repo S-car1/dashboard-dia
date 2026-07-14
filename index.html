@@ -229,6 +229,7 @@
     <div class="filter-group" style="flex: 0.8;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Nivel..."></select></div>
     <div class="filter-group" id="filter-group-curso" style="flex: 0.8;" data-label="CURSO ▾"><select id="f-curso" multiple placeholder="Curso..."></select></div>
     
+    <div class="filter-group" id="filter-group-comuna" style="flex: 1;" data-label="COMUNA ▾"><select id="f-comuna" multiple placeholder="Comuna..."></select></div>
     <div class="filter-group" id="group-rbd" style="flex: 2.5;" data-label="UNIDAD EDUCATIVA ▾"><select id="f-rbd" multiple placeholder="Buscar unidad educativa..."></select></div>
     
     <div id="static-rbd-container" class="filter-group" style="display:none; flex: 2.5;">
@@ -534,7 +535,7 @@ let charts = {};
 let ts = {};
 const STAGES = ['Diagnóstico', 'Intermedio', 'Cierre'];
 const COLORS = ['#38bdf8', '#fb923c', '#34d399', '#a78bfa', '#f472b6', '#fbbf24', '#2dd4bf', '#818cf8'];
-const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7 };
+const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNTAJE: 7, COMUNA: 8 };
 let currentAsigFilter = 'Lenguaje';
 let showSlep = false;
 
@@ -687,7 +688,7 @@ function toggleSlep() {
 
 function setupFiltersStable() {
   const customOrder = { etapa: ['Diagnóstico', 'Intermedio', 'Cierre'] };
-  ['agno', 'etapa', 'nivel', 'curso', 'rbd'].forEach(k => {
+  ['agno', 'etapa', 'nivel', 'curso', 'rbd', 'comuna'].forEach(k => {
     let sortRules = [{field: 'text', direction: 'asc'}]; 
     if (customOrder[k]) sortRules = [{field: 'custom_index', direction: 'asc'}];
     else if (k === 'rbd' || k === 'nivel') sortRules = [ {field: 'num_index', direction: 'asc'}, {field: 'text', direction: 'asc'} ];
@@ -791,6 +792,7 @@ function update() {
     }
 
     if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
+    if (filters.comuna.length && !filters.comuna.includes(String(r[I.COMUNA]))) return;
     
     const asignaturasEspeciales = ['Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
     if (!asignaturasEspeciales.includes(asigV)) {
