@@ -1283,7 +1283,20 @@ function initCharts() {
       plugins: { 
         legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor, filter: (it) => !it.text.includes('Umbral') && !(it.text.includes('SLEP')) } }, 
         tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } },
-        datalabels: { display: false } 
+        datalabels: {
+          display: function(context) {
+            const label = context.dataset.label || '';
+            if (label.includes('Umbral')) return false;
+            const v = context.dataset.data[context.dataIndex];
+            return v !== null && v !== undefined;
+          },
+          align: 'top',
+          anchor: 'end',
+          offset: 4,
+          color: textColor,
+          font: { weight: 'bold', size: 9, family: "'Archivo', sans-serif" },
+          formatter: function(value) { return (value * 100).toFixed(1) + '%'; }
+        }
       } 
     };
   };
@@ -1382,7 +1395,15 @@ function initCharts() {
       plugins: {
         legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor } },
         tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.raw * 100).toFixed(1) + '%' } },
-        datalabels: { display: false } 
+        datalabels: {
+          display: function(context) {
+            const v = context.dataset.data[context.dataIndex];
+            return v !== null && v !== undefined;
+          },
+          color: textColor,
+          font: { weight: 'bold', size: 9, family: "'Archivo', sans-serif" },
+          formatter: function(value) { return (value * 100).toFixed(0) + '%'; }
+        }
       }
     };
   };
