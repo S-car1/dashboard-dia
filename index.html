@@ -530,6 +530,9 @@ if (typeof ChartDataLabels !== 'undefined') {
 }
 
 const UMBRAL_LOGRO = 0.6;
+// Mismo endpoint de validación de credenciales que usa Proyecto_Asistencia (la lógica de
+// login es idéntica y no toca ninguna planilla, así que no hace falta duplicarlo).
+const AUTH_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbxtd7WGL55-gTb1JW6SvJwPUul5Z8s2TPG0A8LWJ_9d_Nk6HDpMJbR2GRpqfyQ7-ks5/exec';
 let DATA_RAW = null;
 let charts = {};
 let ts = {};
@@ -539,11 +542,16 @@ const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNT
 let currentAsigFilter = 'Lenguaje';
 let showSlep = false;
 
-let activeEjes = { 
-  Lenguaje: new Set(), Matemática: new Set(), 
-  Desarrollo: new Set(), Gestión: new Set(),
-  'Promoción universal': new Set(), 'Apoyos focalizados': new Set(), 'Intervenciones de mayor intensidad': new Set()
-};
+// Única fuente de verdad de las asignaturas/dimensiones filtrables por eje, para no
+// tener que mantener la misma lista sincronizada en dos lugares del archivo.
+function crearActiveEjesVacio() {
+  return {
+    Lenguaje: new Set(), Matemática: new Set(),
+    Desarrollo: new Set(), Gestión: new Set(),
+    'Promoción universal': new Set(), 'Apoyos focalizados': new Set(), 'Intervenciones de mayor intensidad': new Set()
+  };
+}
+let activeEjes = crearActiveEjesVacio();
 let IS_ADMIN = false;
 let SESSION_RBD = null;
 
@@ -556,39 +564,57 @@ async function initData() {
   } catch (e) { console.error(e); }
 }
 
-function handleLogin() {
+async function handleLogin() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value.trim();
   const errorEl = document.getElementById('login-error');
+  errorEl.style.display = 'none';
 
-  if (user === 'admin' && pass === 'slep2026') {
+  let auth;
+  try {
+    // Content-Type text/plain evita el preflight CORS (Apps Script no responde OPTIONS).
+    const res = await fetch(AUTH_ENDPOINT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ user, pass })
+    });
+    auth = await res.json();
+  } catch (e) {
+    errorEl.innerText = 'Error validando credenciales. Intenta nuevamente.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (!auth.valid) {
+    errorEl.innerText = 'Credenciales incorrectas';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (auth.isAdmin) {
     IS_ADMIN = true;
     registrarAcceso(user);
     startDashboard();
     return;
   }
 
-  const rbdNum = parseInt(user, 10);
-  if (!isNaN(rbdNum) && pass === String((rbdNum * 2) + 30)) {
-    const rbdFound = DATA_RAW.maps[I.RBD].some(text => text.startsWith(user));
-    if (rbdFound) {
-      IS_ADMIN = false;
-      SESSION_RBD = user;
-      registrarAcceso(user);
-      startDashboard();
-      return;
-    }
+  const rbdFound = DATA_RAW.maps[I.RBD].some(text => text.startsWith(user));
+  if (rbdFound) {
+    IS_ADMIN = false;
+    SESSION_RBD = user;
+    registrarAcceso(user);
+    startDashboard();
+    return;
   }
 
+  errorEl.innerText = 'El RBD ingresado no tiene datos en el sistema.';
   errorEl.style.display = 'block';
 }
 
 function registrarAcceso(usuario) {
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxEybK4ERWVNT8uQgLzZ9UwCLmY2wYlMte55huNGwytKpckNs1K7WW9q7GqapWELCPS/exec'; 
-  if (scriptURL !== 'TU_URL_AQUI') {
-    fetch(`${scriptURL}?usuario=${usuario}`, { mode: 'no-cors' })
-      .catch(e => console.log('Error de registro silencioso:', e));
-  }
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxEybK4ERWVNT8uQgLzZ9UwCLmY2wYlMte55huNGwytKpckNs1K7WW9q7GqapWELCPS/exec';
+  fetch(`${scriptURL}?usuario=${usuario}`, { mode: 'no-cors' })
+    .catch(e => console.log('Error de registro silencioso:', e));
 }
 
 function toggleTheme() {
@@ -711,11 +737,7 @@ function setupFiltersStable() {
       if (!IS_ADMIN && k === 'rbd') return; 
       ts[k].clear(true); 
     });
-    activeEjes = { 
-      Lenguaje: new Set(), Matemática: new Set(), 
-      Desarrollo: new Set(), Gestión: new Set(),
-      'Promoción universal': new Set(), 'Apoyos focalizados': new Set(), 'Intervenciones de mayor intensidad': new Set()
-    };
+    activeEjes = crearActiveEjesVacio();
     document.getElementById('master-leng-tray').innerHTML = '';
     document.getElementById('master-mate-tray').innerHTML = '';
     document.getElementById('master-desarrollo-bar-tray').innerHTML = '';
@@ -751,7 +773,7 @@ function renderActiveFiltersTray() {
   tray.style.display = hasFilters ? 'block' : 'none';
 }
 
-function update() {
+function updateImmediate() {
   const filters = {}; Object.keys(ts).forEach(k => filters[k] = ts[k].getValue());
   renderActiveFiltersTray();
   
@@ -772,6 +794,9 @@ function update() {
     if (filters.etapa.length && !filters.etapa.includes(String(r[I.ETAPA]))) return;
     if (filters.nivel.length && !filters.nivel.includes(String(r[I.NIVEL]))) return;
     if (filters.curso.length && !filters.curso.includes(String(r[I.CURSO]))) return;
+    // Comuna se aplica antes del bloque SLEP (a diferencia de RBD) para que "Promedio SLEP"
+    // compare contra la comuna filtrada y no siempre contra el total de las 4 comunas.
+    if (filters.comuna.length && !filters.comuna.includes(String(r[I.COMUNA]))) return;
 
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]], etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]], asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]], p = r[I.PUNTAJE], stIdx = STAGES.indexOf(etapaV);
     if (stIdx === -1) return;
@@ -792,8 +817,7 @@ function update() {
     }
 
     if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
-    if (filters.comuna.length && !filters.comuna.includes(String(r[I.COMUNA]))) return;
-    
+
     const asignaturasEspeciales = ['Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
     if (!asignaturasEspeciales.includes(asigV)) {
       res.kpi.sum += p; res.kpi.count++; 
@@ -885,6 +909,15 @@ function update() {
   document.getElementById('canvas-curso-evo').style.display = hasRBD ? 'block' : 'none';
   if (hasRBD) updateLineChart(charts['curso-evo'], res.cursos, false, null, sData ? slep.niveles : null);
 }
+
+// Con ~555.000 filas, recalcular en cada clic individual de un multiselect (varios
+// seguidos) se siente lento en equipos antiguos. Se agrupan clics rápidos en un solo
+// recálculo 150ms después del último cambio.
+function debounce(fn, wait) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+const update = debounce(updateImmediate, 150);
 
 function filterEjes(dataObj, asig) {
   if (activeEjes[asig].size === 0) return dataObj;
