@@ -197,7 +197,10 @@
       .sticky-top-section { position: static; }
 
       .tabs-nav { flex-direction: column; align-items: stretch; padding: 0.5rem 1rem 0; gap: 0.5rem; }
-      .theme-toggle-wrapper, .slep-toggle-wrapper { position: static; transform: none; justify-content: center; order: 2; }
+      /* El toggle de tema es una preferencia cosmética; en un header ya apretado se
+         prioriza el de "Promedio SLEP" (ese sí cambia qué datos se están viendo). */
+      .theme-toggle-wrapper { display: none; }
+      .slep-toggle-wrapper { position: static; transform: none; justify-content: center; order: 2; }
       .tabs-scroll { order: 1; overflow-x: auto; justify-content: flex-start; gap: 1.5rem; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
     }
   </style>
