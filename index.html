@@ -84,7 +84,8 @@
 
     /* BARRA DE NAVEGACIÓN Y MENÚS */
     .tabs-nav { position: relative; background: var(--bg); padding: 0 2rem; display: flex; justify-content: center; gap: 3rem; border-bottom: 1px solid var(--border); transition: background 0.3s, border-color 0.3s; }
-    .tab-btn { background: transparent; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.85rem; font-weight: 700; padding: 1rem 0; cursor: pointer; position: relative; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; }
+    .tabs-scroll { display: flex; gap: 3rem; }
+    .tab-btn { background: transparent; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.85rem; font-weight: 700; padding: 1rem 0; cursor: pointer; position: relative; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; white-space: nowrap; }
     .tab-btn.active { color: var(--leng); }
     .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--leng); }
 
@@ -119,20 +120,20 @@
     .filter-value-tag { padding: 4px 10px; font-size: 0.75rem; color: var(--text); cursor: pointer; display: flex; align-items: center; border-right: 1px solid var(--border); }
 
     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; transition: background 0.3s, border-color 0.3s; }
+    .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; min-width: 0; transition: background 0.3s, border-color 0.3s; }
     .kpi::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--kpi-c); opacity: 0.5; }
     .kpi-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
     .kpi-val { font-family: var(--mono); font-size: 2rem; font-weight: 700; color: var(--kpi-c); }
 
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-    .chart-block { display: flex; flex-direction: column; gap: 0.7rem; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; min-width: 0; }
+    .chart-block { display: flex; flex-direction: column; gap: 0.7rem; min-width: 0; }
     
     /* MODIFICACIÓN PARA EL BOTÓN DE DESCARGA */
-    .chart-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; display: flex; flex-direction: column; transition: background 0.3s, border-color 0.3s; }
+    .chart-card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.25rem 1.4rem; min-height: 400px; min-width: 0; display: flex; flex-direction: column; transition: background 0.3s, border-color 0.3s; }
     .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; flex-wrap: wrap; gap: 1rem; padding-right: 2rem; } /* Padding extra para no chocar con el ícono */
     .chart-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
     .chart-title span { color: var(--text); font-size: 0.85rem; display: block; margin-top: 0.15rem; text-transform: none; }
-    .chart-wrap { position: relative; flex: 1; min-height: 0; }
+    .chart-wrap { position: relative; flex: 1; min-height: 0; min-width: 0; }
     .full-width { grid-column: 1 / -1; }
 
     /* ESTILOS DEL ÍCONO DE DESCARGA */
@@ -161,7 +162,7 @@
     .year-ref-label { font-size: 0.7rem; color: var(--text-muted); font-family: var(--mono); margin-top: 0.3rem; }
     .empty-state-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; text-align: center; background: var(--surface-2); border-radius: 8px; border: 1px dashed var(--border); height: 100%; }
 
-    .var-table-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem; margin-top: 0.5rem; transition: background 0.3s, border-color 0.3s; }
+    .var-table-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem; margin-top: 0.5rem; overflow-x: auto; transition: background 0.3s, border-color 0.3s; }
     .var-table { width: 100%; border-collapse: collapse; text-align: left; }
     .var-table th { color: var(--text-muted); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); }
     .var-table td { padding: 8px; font-size: 0.8rem; border-bottom: 1px solid rgba(48, 54, 61, 0.5); }
@@ -186,6 +187,19 @@
     .section-title:first-child { margin-top: 0; }
 
     @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } .kpi-grid { grid-template-columns: 1fr 1fr; } }
+
+    /* MÓVIL: la cabecera (filtros + pestañas + toggles) está pensada para escritorio,
+       donde sobra ancho a los costados. En pantallas angostas se desborda y los toggles
+       (absolutamente posicionados) quedan flotando encima del texto de las pestañas. */
+    @media (max-width: 640px) {
+      /* Deja de estar fija al hacer scroll: con filtros apilados, "sticky" ocupa
+         permanentemente gran parte de la pantalla y tapa el contenido de abajo. */
+      .sticky-top-section { position: static; }
+
+      .tabs-nav { flex-direction: column; align-items: stretch; padding: 0.5rem 1rem 0; gap: 0.5rem; }
+      .theme-toggle-wrapper, .slep-toggle-wrapper { position: static; transform: none; justify-content: center; order: 2; }
+      .tabs-scroll { order: 1; overflow-x: auto; justify-content: flex-start; gap: 1.5rem; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
+    }
   </style>
 </head>
 <body>
@@ -251,11 +265,13 @@
       </label>
     </div>
 
-    <button class="tab-btn active" onclick="showTab('tab-general', event)">Académico</button>
-    <button class="tab-btn" onclick="showTab('tab-ejes', event)">Académico por Ejes</button>
-    <button class="tab-btn" onclick="showTab('tab-socio', event)">Socioemocional (Piloto)</button>
-    <button class="tab-btn" onclick="showTab('tab-convivencia', event)">Convivencia (Piloto)</button>
-    
+    <div class="tabs-scroll">
+      <button class="tab-btn active" onclick="showTab('tab-general', event)">Académico</button>
+      <button class="tab-btn" onclick="showTab('tab-ejes', event)">Académico por Ejes</button>
+      <button class="tab-btn" onclick="showTab('tab-socio', event)">Socioemocional (Piloto)</button>
+      <button class="tab-btn" onclick="showTab('tab-convivencia', event)">Convivencia (Piloto)</button>
+    </div>
+
     <div class="slep-toggle-wrapper">
       <span class="slep-toggle-label" id="slep-label-text">PROMEDIO SLEP</span>
       <label class="switch">
