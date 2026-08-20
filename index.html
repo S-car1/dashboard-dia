@@ -89,6 +89,7 @@
     .tab-btn.active { color: var(--leng); }
     .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: var(--leng); }
 
+
     .theme-toggle-wrapper { position: absolute; left: 2rem; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 0.8rem; }
     .theme-toggle-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; transition: 0.3s; }
 
@@ -271,8 +272,8 @@
     <div class="tabs-scroll">
       <button class="tab-btn active" onclick="showTab('tab-general', event)">Académico</button>
       <button class="tab-btn" onclick="showTab('tab-ejes', event)">Académico por Ejes</button>
-      <button class="tab-btn" onclick="showTab('tab-socio', event)">Socioemocional (Piloto)</button>
-      <button class="tab-btn" onclick="showTab('tab-convivencia', event)">Convivencia (Piloto)</button>
+      <button class="tab-btn" onclick="showTab('tab-1basico', event)">1° Básico</button>
+      <button class="tab-btn" onclick="showTab('tab-convivencia-socio', event)">Convivencia y Socioemocional</button>
     </div>
 
     <div class="slep-toggle-wrapper">
@@ -292,7 +293,7 @@
       <div class="kpi" style="--kpi-c: var(--text)"><div class="kpi-label">Promedio General</div><div class="kpi-val" id="kpi-global">—</div></div>
       <div class="kpi" style="--kpi-c: var(--leng)"><div class="kpi-label">Lectura</div><div class="kpi-val" id="kpi-leng">—</div></div>
       <div class="kpi" style="--kpi-c: var(--mate)"><div class="kpi-label">Matemática</div><div class="kpi-val" id="kpi-mate">—</div></div>
-      <div class="kpi" style="--kpi-c: var(--purple)"><div class="kpi-label">Evaluaciones</div><div class="kpi-val" id="kpi-eval">—</div></div>
+      <div class="kpi" style="--kpi-c: var(--purple)"><div class="kpi-label">Puntajes Registrados</div><div class="kpi-val" id="kpi-eval">—</div></div>
     </div>
     
     <div class="charts-grid">
@@ -357,93 +358,8 @@
     </div>
   </div>
 
-  <div id="tab-socio" class="tab-content" style="display:none;">
-    <div class="section-title">1. Comparación Temporal (Barras Agrupadas)</div>
-    <div class="charts-grid">
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Desarrollo (Barras)</span></div></div>
-            <div id="master-desarrollo-bar-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-desarrollo-bar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Gestión (Barras)</span></div></div>
-            <div id="master-gestion-bar-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-gestion-bar"></canvas></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">2. Perfil de Habilidades (Tela de Araña)</div>
-    <div class="charts-grid">
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Desarrollo (Radar Año 2026)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-desarrollo-radar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Gestión (Radar Año 2026)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-gestion-radar"></canvas></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">3. Ranking Última Evaluación (Barras Horizontales)</div>
-    <div class="charts-grid">
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Desarrollo (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-desarrollo-hbar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Gestión (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-gestion-hbar"></canvas></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="tab-convivencia" class="tab-content" style="display:none;">
-    <div class="section-title">1. Comparación Temporal (Barras Agrupadas)</div>
+  <div id="tab-1basico" class="tab-content" style="display:none;">
+    <div class="section-title">1. Detalle por Categoría (Intermedio)</div>
     <div class="charts-grid">
       <div class="chart-block full-width">
         <div class="chart-card">
@@ -451,10 +367,26 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
           <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Promoción universal (Barras)</span></div></div>
-            <div id="master-promocion-bar-tray" class="master-eje-tray"></div>
+            <div><div class="chart-title">1° Básico<span>Lectura Inicial — % de logro (solo disponible en Intermedio)</span></div></div>
+            <div id="master-1basico-bar-tray" class="master-eje-tray"></div>
           </div>
-          <div class="chart-wrap"><canvas id="canvas-promocion-bar"></canvas></div>
+          <div class="chart-wrap"><canvas id="canvas-1basico-bar"></canvas></div>
+        </div>
+        <div id="var-1basico-evo"></div>
+      </div>
+    </div>
+
+    <div class="section-title">2. Perfil por Categoría (Tela de Araña) — Comparación entre años</div>
+    <div class="charts-grid">
+      <div class="chart-block">
+        <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <div class="chart-header">
+            <div><div class="chart-title">1° Básico — Intermedio<span>Conciencia fonológica / Principio alfabético / Lectura de palabras · 2025 vs 2026</span></div></div>
+          </div>
+          <div class="chart-wrap" style="min-height: 450px;"><canvas id="canvas-1basico-radar-intermedio"></canvas></div>
         </div>
       </div>
 
@@ -464,28 +396,31 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
           <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Apoyos focalizados (Barras)</span></div></div>
-            <div id="master-apoyos-bar-tray" class="master-eje-tray"></div>
+            <div><div class="chart-title">1° Básico — Cierre<span>Lectura de palabras / Lectura de oraciones / Comprensión lectora · 2025 vs 2026</span></div></div>
           </div>
-          <div class="chart-wrap"><canvas id="canvas-apoyos-bar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Intervenciones de mayor intensidad (Barras)</span></div></div>
-            <div id="master-interv-bar-tray" class="master-eje-tray"></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-interv-bar"></canvas></div>
+          <div class="chart-wrap" style="min-height: 450px;"><canvas id="canvas-1basico-radar-cierre"></canvas></div>
         </div>
       </div>
     </div>
 
-    <div class="section-title">2. Perfil Holístico de Convivencia (Súper Radar)</div>
+    <div class="section-title">3. Ranking por Categoría</div>
+    <div class="charts-grid">
+      <div class="chart-block full-width">
+        <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <div class="chart-header">
+            <div><div class="chart-title">1° Básico<span>Lectura Inicial (Ranking)</span></div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="canvas-1basico-hbar"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-convivencia-socio" class="tab-content" style="display:none;">
+    <div class="section-title">Sección: Convivencia</div>
     <div class="charts-grid">
       <div class="chart-block full-width">
         <div class="chart-card">
@@ -500,7 +435,7 @@
       </div>
     </div>
 
-    <div class="section-title">3. Ranking Última Evaluación (Barras Horizontales)</div>
+    <div class="section-title">Sección: Socioemocional</div>
     <div class="charts-grid">
       <div class="chart-block full-width">
         <div class="chart-card">
@@ -508,37 +443,12 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
           <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Promoción universal (Ranking)</span></div></div>
+            <div><div class="chart-title">Socioemocional<span>Perfil Integrado (Radar Año 2026)</span></div></div>
           </div>
-          <div class="chart-wrap"><canvas id="canvas-promocion-hbar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Apoyos focalizados (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-apoyos-hbar"></canvas></div>
-        </div>
-      </div>
-
-      <div class="chart-block">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Intervenciones de mayor intensidad (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-interv-hbar"></canvas></div>
+          <div class="chart-wrap" style="min-height: 450px;"><canvas id="canvas-socio-super-radar"></canvas></div>
         </div>
       </div>
     </div>
-
   </div>
 
 </main>
@@ -565,7 +475,7 @@ let showSlep = false;
 // tener que mantener la misma lista sincronizada en dos lugares del archivo.
 function crearActiveEjesVacio() {
   return {
-    Lenguaje: new Set(), Matemática: new Set(),
+    Lenguaje: new Set(), Matemática: new Set(), 'Lectura Inicial': new Set(),
     Desarrollo: new Set(), Gestión: new Set(),
     'Promoción universal': new Set(), 'Apoyos focalizados': new Set(), 'Intervenciones de mayor intensidad': new Set()
   };
@@ -699,24 +609,27 @@ function startDashboard() {
   update();
 }
 
+// Pestañas donde el filtro de Curso no aplica (no tienen desglose por curso).
+const TABS_SIN_CURSO = ['tab-1basico', 'tab-convivencia-socio'];
+
 function showTab(tabId, e) {
   document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById(tabId).style.display = 'block';
-  if(e) e.currentTarget.classList.add('active');
+  if (e) e.currentTarget.classList.add('active');
 
   const cursoGroup = document.getElementById('filter-group-curso');
 
-  if (tabId === 'tab-socio' || tabId === 'tab-convivencia') {
-    ts['curso'].clear(true); 
-    ts['curso'].disable();   
+  if (TABS_SIN_CURSO.includes(tabId)) {
+    ts['curso'].clear(true);
+    ts['curso'].disable();
     if (cursoGroup) {
       cursoGroup.style.opacity = '0.4';
       cursoGroup.style.pointerEvents = 'none';
       cursoGroup.setAttribute('data-label', 'CURSO (No aplica)');
     }
   } else {
-    ts['curso'].enable();    
+    ts['curso'].enable();
     if (cursoGroup) {
       cursoGroup.style.opacity = '1';
       cursoGroup.style.pointerEvents = 'auto';
@@ -759,14 +672,8 @@ function setupFiltersStable() {
     activeEjes = crearActiveEjesVacio();
     document.getElementById('master-leng-tray').innerHTML = '';
     document.getElementById('master-mate-tray').innerHTML = '';
-    document.getElementById('master-desarrollo-bar-tray').innerHTML = '';
-    document.getElementById('master-gestion-bar-tray').innerHTML = '';
-    
-    document.getElementById('master-promocion-bar-tray').innerHTML = '';
-    document.getElementById('master-apoyos-bar-tray').innerHTML = '';
-    document.getElementById('master-interv-bar-tray').innerHTML = '';
-    
-    update(); 
+    document.getElementById('master-1basico-bar-tray').innerHTML = '';
+    update();
   };
 }
 
@@ -798,13 +705,13 @@ function updateImmediate() {
   
   const res = { 
     kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() }, 
-    evo: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
-    ejes: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
+    evo: { Lenguaje: {}, Matemática: {}, 'Lectura Inicial': {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
+    ejes: { Lenguaje: {}, Matemática: {}, 'Lectura Inicial': {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
     cursos: {} 
   };
   const slep = { 
-    evo: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
-    ejes: { Lenguaje: {}, Matemática: {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
+    evo: { Lenguaje: {}, Matemática: {}, 'Lectura Inicial': {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
+    ejes: { Lenguaje: {}, Matemática: {}, 'Lectura Inicial': {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
     niveles: {} 
   };
 
@@ -837,7 +744,7 @@ function updateImmediate() {
 
     if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
 
-    const asignaturasEspeciales = ['Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
+    const asignaturasEspeciales = ['Lectura Inicial', 'Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
     if (!asignaturasEspeciales.includes(asigV)) {
       res.kpi.sum += p; res.kpi.count++; 
     }
@@ -871,12 +778,7 @@ function updateImmediate() {
   
   const masterLeng = Object.keys(res.ejes.Lenguaje || {}).sort();
   const masterMate = Object.keys(res.ejes.Matemática || {}).sort();
-  const masterDesarrollo = Object.keys(res.ejes.Desarrollo || {}).sort();
-  const masterGestion = Object.keys(res.ejes.Gestión || {}).sort();
-  
-  const masterPromocion = Object.keys(res.ejes['Promoción universal'] || {}).sort();
-  const masterApoyos = Object.keys(res.ejes['Apoyos focalizados'] || {}).sort();
-  const masterInterv = Object.keys(res.ejes['Intervenciones de mayor intensidad'] || {}).sort();
+  const master1Basico = Object.keys(res.ejes['Lectura Inicial'] || {}).sort();
 
   updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, '#38bdf8', sData ? slep.evo.Lenguaje : null);
   updateLineChart(charts['mate-evo'], res.evo.Matemática, true, '#fb923c', sData ? slep.evo.Matemática : null);
@@ -884,45 +786,42 @@ function updateImmediate() {
   updateLineChart(charts['leng-ejes'], filterEjes(res.ejes.Lenguaje, 'Lenguaje'), false, null, sData ? filterEjes(slep.ejes.Lenguaje, 'Lenguaje') : null, masterLeng);
   updateLineChart(charts['mate-ejes'], filterEjes(res.ejes.Matemática, 'Matemática'), false, null, sData ? filterEjes(slep.ejes.Matemática, 'Matemática') : null, masterMate);
   
-  updateSocioBarGrouped(charts['desarrollo-bar'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null, masterDesarrollo);
-  updateSocioBarGrouped(charts['gestion-bar'], filterEjes(res.ejes.Gestión, 'Gestión'), sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null, masterGestion);
-  
-  updateSocioBarGrouped(charts['promocion-bar'], filterEjes(res.ejes['Promoción universal'], 'Promoción universal'), sData ? filterEjes(slep.ejes['Promoción universal'], 'Promoción universal') : null, masterPromocion);
-  updateSocioBarGrouped(charts['apoyos-bar'], filterEjes(res.ejes['Apoyos focalizados'], 'Apoyos focalizados'), sData ? filterEjes(slep.ejes['Apoyos focalizados'], 'Apoyos focalizados') : null, masterApoyos);
-  updateSocioBarGrouped(charts['interv-bar'], filterEjes(res.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad'), sData ? filterEjes(slep.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad') : null, masterInterv);
+  updateSocioBarGrouped(charts['1basico-bar'], filterEjes(res.ejes['Lectura Inicial'], 'Lectura Inicial'), sData ? filterEjes(slep.ejes['Lectura Inicial'], 'Lectura Inicial') : null, master1Basico);
+  updateRadarPorAnio(charts['1basico-radar-intermedio'], res.ejes['Lectura Inicial'], 'Intermedio', GRUPOS_LECTURA_INICIAL_INTERMEDIO);
+  updateRadarPorAnio(charts['1basico-radar-cierre'], res.ejes['Lectura Inicial'], 'Cierre', GRUPOS_LECTURA_INICIAL_CIERRE);
+  updateSocioEspecial(null, charts['1basico-hbar'], filterEjes(res.ejes['Lectura Inicial'], 'Lectura Inicial'), sData ? filterEjes(slep.ejes['Lectura Inicial'], 'Lectura Inicial') : null);
 
-  updateSocioEspecial(charts['desarrollo-radar'], charts['desarrollo-hbar'], filterEjes(res.ejes.Desarrollo, 'Desarrollo'), sData ? filterEjes(slep.ejes.Desarrollo, 'Desarrollo') : null);
-  updateSocioEspecial(charts['gestion-radar'], charts['gestion-hbar'], filterEjes(res.ejes.Gestión, 'Gestión'), sData ? filterEjes(slep.ejes.Gestión, 'Gestión') : null);
-
-  updateSocioEspecial(null, charts['promocion-hbar'], filterEjes(res.ejes['Promoción universal'], 'Promoción universal'), sData ? filterEjes(slep.ejes['Promoción universal'], 'Promoción universal') : null);
-  updateSocioEspecial(null, charts['apoyos-hbar'], filterEjes(res.ejes['Apoyos focalizados'], 'Apoyos focalizados'), sData ? filterEjes(slep.ejes['Apoyos focalizados'], 'Apoyos focalizados') : null);
-  updateSocioEspecial(null, charts['interv-hbar'], filterEjes(res.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad'), sData ? filterEjes(slep.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad') : null);
-
-  updateSuperRadarConvivencia(
-      charts['convivencia-super-radar'], 
+  // Convivencia y Socioemocional quedan reducidas a un unico "super radar" cada una
+  // (combina sus sub-dimensiones en un solo grafico), sin filtro de eje por click.
+  updateSuperRadarCombinado(
+      charts['convivencia-super-radar'],
       {
-         'Promoción universal': filterEjes(res.ejes['Promoción universal'], 'Promoción universal'),
-         'Apoyos focalizados': filterEjes(res.ejes['Apoyos focalizados'], 'Apoyos focalizados'),
-         'Intervenciones de mayor intensidad': filterEjes(res.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad')
+         'Promoción universal': res.ejes['Promoción universal'],
+         'Apoyos focalizados': res.ejes['Apoyos focalizados'],
+         'Intervenciones de mayor intensidad': res.ejes['Intervenciones de mayor intensidad']
       },
       sData ? {
-         'Promoción universal': filterEjes(slep.ejes['Promoción universal'], 'Promoción universal'),
-         'Apoyos focalizados': filterEjes(slep.ejes['Apoyos focalizados'], 'Apoyos focalizados'),
-         'Intervenciones de mayor intensidad': filterEjes(slep.ejes['Intervenciones de mayor intensidad'], 'Intervenciones de mayor intensidad')
-      } : null
+         'Promoción universal': slep.ejes['Promoción universal'],
+         'Apoyos focalizados': slep.ejes['Apoyos focalizados'],
+         'Intervenciones de mayor intensidad': slep.ejes['Intervenciones de mayor intensidad']
+      } : null,
+      ['Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad']
+  );
+
+  updateSuperRadarCombinado(
+      charts['socio-super-radar'],
+      { Desarrollo: res.ejes.Desarrollo, Gestión: res.ejes.Gestión },
+      sData ? { Desarrollo: slep.ejes.Desarrollo, Gestión: slep.ejes.Gestión } : null,
+      ['Desarrollo', 'Gestión']
   );
 
   renderEjeMasterCards(res.ejes.Lenguaje, 'master-leng-tray', 'Lenguaje');
   renderEjeMasterCards(res.ejes.Matemática, 'master-mate-tray', 'Matemática');
-  renderEjeMasterCards(res.ejes.Desarrollo, 'master-desarrollo-bar-tray', 'Desarrollo');
-  renderEjeMasterCards(res.ejes.Gestión, 'master-gestion-bar-tray', 'Gestión');
-
-  renderEjeMasterCards(res.ejes['Promoción universal'], 'master-promocion-bar-tray', 'Promoción universal');
-  renderEjeMasterCards(res.ejes['Apoyos focalizados'], 'master-apoyos-bar-tray', 'Apoyos focalizados');
-  renderEjeMasterCards(res.ejes['Intervenciones de mayor intensidad'], 'master-interv-bar-tray', 'Intervenciones de mayor intensidad');
+  renderEjeMasterCards(res.ejes['Lectura Inicial'], 'master-1basico-bar-tray', 'Lectura Inicial');
 
   renderVariationsTable(res.evo.Lenguaje, 'var-leng-evo', false);
   renderVariationsTable(res.evo.Matemática, 'var-mate-evo', false);
+  renderVariationsTable(res.evo['Lectura Inicial'], 'var-1basico-evo', false);
 
   document.getElementById('overlay-curso').style.display = hasRBD ? 'none' : 'flex';
   document.getElementById('canvas-curso-evo').style.display = hasRBD ? 'block' : 'none';
@@ -963,12 +862,15 @@ function renderEjeMasterCards(dataObj, trayId, asig) {
   });
 }
 
-function updateSuperRadarConvivencia(chart, resData, slepData) {
+// Combina varias "asignaturas especiales" (Desarrollo/Gestión, o Promoción
+// universal/Apoyos focalizados/Intervenciones) en un unico radar de multiples ejes,
+// mostrando siempre la ultima etapa con datos. Generica: sirve tanto para
+// Convivencia como para Socioemocional, se le pasa la lista de asignaturas a combinar.
+function updateSuperRadarCombinado(chart, resData, slepData, subjects) {
   if (!chart) return;
-  
+
   let latestStageIdx = -1;
-  const subjects = ['Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
-  
+
   subjects.forEach(subj => {
       const dataObj = resData[subj];
       if (dataObj) {
@@ -1041,6 +943,74 @@ function updateSuperRadarConvivencia(chart, resData, slepData) {
   }
 
   chart.data.labels = combinedLabels;
+  chart.data.datasets = datasets;
+  chart.update();
+}
+
+// Las 10 categorias de Lectura Inicial (1° básico) vienen agrupadas en 3 areas segun
+// el propio reporte de origen (fila de encabezado "Conciencia fonológica" / "Principio
+// alfabético" / "Lectura de palabras"). El radar detallado de 10 puntas es poco legible,
+// asi que se promedia cada area a un solo punto -- mismo espiritu que el "super radar"
+// de Convivencia/Socioemocional, pero agrupando categorias de una asignatura en vez de
+// asignaturas completas.
+// 1° básico Lectura no es comparable entre Diagnóstico/Intermedio/Cierre (cada ronda
+// mide cosas distintas -- Diagnóstico ni siquiera tiene datos). Lo comparable es la
+// MISMA ronda entre años: Intermedio 2025 vs 2026, y por separado Cierre 2025 vs 2026
+// (con sus propias categorias, distintas a las de Intermedio).
+const GRUPOS_LECTURA_INICIAL_INTERMEDIO = {
+  'Conciencia fonológica': ['Sílaba inicial', 'Sílaba final', 'Sonido inicial', 'Sonido final'],
+  'Principio alfabético': ['Vocales A, E, U', 'Cons. M, L, P, S', 'Cons. D, T, N, R'],
+  'Lectura de palabras': ['Sílaba directa', 'Sílaba indirecta', 'Sílaba compleja']
+};
+const GRUPOS_LECTURA_INICIAL_CIERRE = {
+  'Lectura de palabras': ['Lectura de palabras'],
+  'Lectura de oraciones': ['Lectura de oraciones'],
+  'Comprensión lectora': ['Comprensión lectora']
+};
+
+function updateRadarPorAnio(chart, dataObj, etapaNombre, gruposMap) {
+  if (!chart) return;
+  const grupos = Object.keys(gruposMap);
+  const stIdx = STAGES.indexOf(etapaNombre);
+
+  if (!dataObj || stIdx === -1) {
+    chart.data.labels = []; chart.data.datasets = []; chart.update();
+    return;
+  }
+
+  const promediarGrupoAnio = (agno) => grupos.map(grupo => {
+    let sum = 0, count = 0;
+    gruposMap[grupo].forEach(eje => {
+      const d = dataObj[eje] && dataObj[eje][agno] && dataObj[eje][agno][stIdx];
+      if (d && d[1] > 0) { sum += d[0]; count += d[1]; }
+    });
+    return count > 0 ? sum / count : null;
+  });
+
+  const estiloPorAnio = {
+    '2025': { color: COLORS[3], dash: [5, 5], point: 'triangle' },
+    '2026': { color: COLORS[0], dash: [], point: 'circle' }
+  };
+
+  let datasets = [];
+  ['2025', '2026'].forEach(agno => {
+    const data = promediarGrupoAnio(agno);
+    if (data.some(v => v !== null)) {
+      const estilo = estiloPorAnio[agno];
+      datasets.push({
+        label: agno,
+        data,
+        borderColor: estilo.color,
+        backgroundColor: estilo.color + '33',
+        borderWidth: 2,
+        borderDash: estilo.dash,
+        pointBackgroundColor: estilo.color,
+        pointStyle: estilo.point
+      });
+    }
+  });
+
+  chart.data.labels = grupos;
   chart.data.datasets = datasets;
   chart.update();
 }
@@ -1494,11 +1464,11 @@ function initCharts() {
   ['leng-evo', 'mate-evo', 'curso-evo'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(true) }); });
   ['leng-ejes', 'mate-ejes'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(false) }); });
 
-  ['desarrollo-bar', 'gestion-bar', 'promocion-bar', 'apoyos-bar', 'interv-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: STAGES, datasets: [] }, options: barGroupedOpt(true) }); });
+  ['1basico-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: STAGES, datasets: [] }, options: barGroupedOpt(true) }); });
   
-  ['desarrollo-radar', 'gestion-radar', 'convivencia-super-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
+  ['1basico-radar-intermedio', '1basico-radar-cierre', 'convivencia-super-radar', 'socio-super-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
   
-  ['desarrollo-hbar', 'gestion-hbar', 'promocion-hbar', 'apoyos-hbar', 'interv-hbar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: getHbarOpt(true) }); });
+  ['1basico-hbar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: getHbarOpt(true) }); });
 }
 
 document.querySelectorAll('.btn-toggle').forEach(btn => {
