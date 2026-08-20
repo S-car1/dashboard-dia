@@ -403,20 +403,6 @@
       </div>
     </div>
 
-    <div class="section-title">3. Ranking por Categoría</div>
-    <div class="charts-grid">
-      <div class="chart-block full-width">
-        <div class="chart-card">
-          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          </button>
-          <div class="chart-header">
-            <div><div class="chart-title">1° Básico<span>Lectura Inicial (Ranking)</span></div></div>
-          </div>
-          <div class="chart-wrap"><canvas id="canvas-1basico-hbar"></canvas></div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div id="tab-convivencia-socio" class="tab-content" style="display:none;">
@@ -789,8 +775,6 @@ function updateImmediate() {
   updateSocioBarGrouped(charts['1basico-bar'], filterEjes(res.ejes['Lectura Inicial'], 'Lectura Inicial'), sData ? filterEjes(slep.ejes['Lectura Inicial'], 'Lectura Inicial') : null, master1Basico);
   updateRadarPorAnio(charts['1basico-radar-intermedio'], res.ejes['Lectura Inicial'], 'Intermedio', GRUPOS_LECTURA_INICIAL_INTERMEDIO);
   updateRadarPorAnio(charts['1basico-radar-cierre'], res.ejes['Lectura Inicial'], 'Cierre', GRUPOS_LECTURA_INICIAL_CIERRE);
-  updateSocioEspecial(null, charts['1basico-hbar'], filterEjes(res.ejes['Lectura Inicial'], 'Lectura Inicial'), sData ? filterEjes(slep.ejes['Lectura Inicial'], 'Lectura Inicial') : null);
-
   // Convivencia y Socioemocional quedan reducidas a un unico "super radar" cada una
   // (combina sus sub-dimensiones en un solo grafico), sin filtro de eje por click.
   updateSuperRadarCombinado(
@@ -1467,8 +1451,6 @@ function initCharts() {
   ['1basico-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: STAGES, datasets: [] }, options: barGroupedOpt(true) }); });
   
   ['1basico-radar-intermedio', '1basico-radar-cierre', 'convivencia-super-radar', 'socio-super-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
-  
-  ['1basico-hbar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: getHbarOpt(true) }); });
 }
 
 document.querySelectorAll('.btn-toggle').forEach(btn => {
