@@ -367,8 +367,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
           <div class="chart-header">
-            <div><div class="chart-title">1° Básico<span>Lectura Inicial — % de logro (solo disponible en Intermedio)</span></div></div>
-            <div id="master-1basico-bar-tray" class="master-eje-tray"></div>
+            <div><div class="chart-title">1° Básico — Intermedio<span>% de logro por categoría · 2025 vs 2026</span></div></div>
           </div>
           <div class="chart-wrap"><canvas id="canvas-1basico-bar"></canvas></div>
         </div>
@@ -659,7 +658,6 @@ function setupFiltersStable() {
     activeEjes = crearActiveEjesVacio();
     document.getElementById('master-leng-tray').innerHTML = '';
     document.getElementById('master-mate-tray').innerHTML = '';
-    document.getElementById('master-1basico-bar-tray').innerHTML = '';
     update();
   };
 }
@@ -765,7 +763,6 @@ function updateImmediate() {
   
   const masterLeng = Object.keys(res.ejes.Lenguaje || {}).sort();
   const masterMate = Object.keys(res.ejes.Matemática || {}).sort();
-  const master1Basico = Object.keys(res.ejes['Lectura Inicial'] || {}).sort();
 
   updateLineChart(charts['leng-evo'], res.evo.Lenguaje, true, '#38bdf8', sData ? slep.evo.Lenguaje : null);
   updateLineChart(charts['mate-evo'], res.evo.Matemática, true, '#fb923c', sData ? slep.evo.Matemática : null);
@@ -773,7 +770,7 @@ function updateImmediate() {
   updateLineChart(charts['leng-ejes'], filterEjes(res.ejes.Lenguaje, 'Lenguaje'), false, null, sData ? filterEjes(slep.ejes.Lenguaje, 'Lenguaje') : null, masterLeng);
   updateLineChart(charts['mate-ejes'], filterEjes(res.ejes.Matemática, 'Matemática'), false, null, sData ? filterEjes(slep.ejes.Matemática, 'Matemática') : null, masterMate);
   
-  updateSocioBarGrouped(charts['1basico-bar'], filterEjes(res.ejes['Lectura Inicial'], 'Lectura Inicial'), sData ? filterEjes(slep.ejes['Lectura Inicial'], 'Lectura Inicial') : null, master1Basico);
+  updateBarPorAnio(charts['1basico-bar'], res.ejes['Lectura Inicial'], 'Intermedio', DETALLE_LECTURA_INICIAL_INTERMEDIO);
   updateRadarPorAnio(charts['1basico-radar-intermedio'], res.ejes['Lectura Inicial'], 'Intermedio', mostrarDetalle1BasicoIntermedio ? DETALLE_LECTURA_INICIAL_INTERMEDIO : GRUPOS_LECTURA_INICIAL_INTERMEDIO);
   updateRadarPorAnio(charts['1basico-radar-cierre'], res.ejes['Lectura Inicial'], 'Cierre', GRUPOS_LECTURA_INICIAL_CIERRE);
   // Convivencia y Socioemocional quedan reducidas a un unico "super radar" cada una
@@ -802,7 +799,6 @@ function updateImmediate() {
 
   renderEjeMasterCards(res.ejes.Lenguaje, 'master-leng-tray', 'Lenguaje');
   renderEjeMasterCards(res.ejes.Matemática, 'master-mate-tray', 'Matemática');
-  renderEjeMasterCards(res.ejes['Lectura Inicial'], 'master-1basico-bar-tray', 'Lectura Inicial');
 
   renderVariationsTable(res.evo.Lenguaje, 'var-leng-evo', false);
   renderVariationsTable(res.evo.Matemática, 'var-mate-evo', false);
@@ -972,6 +968,20 @@ const GRUPOS_LECTURA_INICIAL_CIERRE = {
   'Comprensión lectora': ['Comprensión lectora']
 };
 
+// Promedia (suma/cantidad) los ejes de cada grupo, para un año y etapa dados. Compartido
+// entre el radar y la barra de "1 basico por categoria, comparado entre anios" -- ambos
+// necesitan el mismo numero, solo cambia como se dibuja.
+function promediarGruposPorAnio(dataObj, gruposMap, stIdx, agno) {
+  return Object.keys(gruposMap).map(grupo => {
+    let sum = 0, count = 0;
+    gruposMap[grupo].forEach(eje => {
+      const d = dataObj[eje] && dataObj[eje][agno] && dataObj[eje][agno][stIdx];
+      if (d && d[1] > 0) { sum += d[0]; count += d[1]; }
+    });
+    return count > 0 ? sum / count : null;
+  });
+}
+
 function updateRadarPorAnio(chart, dataObj, etapaNombre, gruposMap) {
   if (!chart) return;
   const grupos = Object.keys(gruposMap);
@@ -982,14 +992,7 @@ function updateRadarPorAnio(chart, dataObj, etapaNombre, gruposMap) {
     return;
   }
 
-  const promediarGrupoAnio = (agno) => grupos.map(grupo => {
-    let sum = 0, count = 0;
-    gruposMap[grupo].forEach(eje => {
-      const d = dataObj[eje] && dataObj[eje][agno] && dataObj[eje][agno][stIdx];
-      if (d && d[1] > 0) { sum += d[0]; count += d[1]; }
-    });
-    return count > 0 ? sum / count : null;
-  });
+  const promediarGrupoAnio = (agno) => promediarGruposPorAnio(dataObj, gruposMap, stIdx, agno);
 
   const estiloPorAnio = {
     '2025': { color: COLORS[3], dash: [5, 5], point: 'triangle' },
@@ -1010,6 +1013,46 @@ function updateRadarPorAnio(chart, dataObj, etapaNombre, gruposMap) {
         borderDash: estilo.dash,
         pointBackgroundColor: estilo.color,
         pointStyle: estilo.point
+      });
+    }
+  });
+
+  chart.data.labels = grupos;
+  chart.data.datasets = datasets;
+  chart.update();
+}
+
+// Version en barras de updateRadarPorAnio: mismo calculo (promedio por grupo/año), pero
+// mostrando el eje X = categorias y una barra por año, para leer valores exactos y
+// comparar la trayectoria 2025 vs 2026 -- a diferencia del grafico "Evolucion" (STAGES en
+// el eje X), que no tiene sentido aca porque Lectura Inicial solo existe en Intermedio.
+function updateBarPorAnio(chart, dataObj, etapaNombre, gruposMap) {
+  if (!chart) return;
+  const grupos = Object.keys(gruposMap);
+  const stIdx = STAGES.indexOf(etapaNombre);
+
+  if (!dataObj || stIdx === -1) {
+    chart.data.labels = []; chart.data.datasets = []; chart.update();
+    return;
+  }
+
+  const estiloPorAnio = {
+    '2025': { color: COLORS[3] },
+    '2026': { color: COLORS[0] }
+  };
+
+  let datasets = [];
+  ['2025', '2026'].forEach(agno => {
+    const data = promediarGruposPorAnio(dataObj, gruposMap, stIdx, agno);
+    if (data.some(v => v !== null)) {
+      const estilo = estiloPorAnio[agno];
+      datasets.push({
+        label: agno,
+        data,
+        backgroundColor: estilo.color + 'CC',
+        borderColor: estilo.color,
+        borderWidth: 1,
+        borderRadius: 4
       });
     }
   });
@@ -1402,6 +1445,34 @@ function initCharts() {
     };
   };
 
+  // Version simplificada de barGroupedOpt, sin el legend/tooltip especiales de
+  // "Establecimiento vs Promedio SLEP" (que no aplican aca): las series son años
+  // (2025/2026), asi que basta el legend por defecto de Chart.js.
+  const barPorAnioOpt = () => {
+    const isDark = document.body.classList.contains('dark-theme');
+    const gridColor = isDark ? '#21262d' : '#e5e7eb';
+    const textColor = isDark ? '#7d8590' : '#57606a';
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { grace: '10%', ticks: { color: textColor, callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: gridColor } },
+        x: { ticks: { color: textColor }, grid: { display: false } }
+      },
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { color: textColor } },
+        tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%' } },
+        datalabels: {
+          display: (context) => context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] !== undefined,
+          anchor: 'end', align: 'end', offset: 2,
+          color: textColor,
+          font: { weight: 'bold', size: 10, family: "'Archivo', sans-serif" },
+          formatter: (value) => (value * 100).toFixed(0) + '%'
+        }
+      }
+    };
+  };
+
   const radarOpt = (showLegend) => {
     const isDark = document.body.classList.contains('dark-theme');
     const gridColor = isDark ? '#21262d' : '#e5e7eb';
@@ -1468,7 +1539,7 @@ function initCharts() {
   ['leng-evo', 'mate-evo', 'curso-evo'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(true) }); });
   ['leng-ejes', 'mate-ejes'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(false) }); });
 
-  ['1basico-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: STAGES, datasets: [] }, options: barGroupedOpt(true) }); });
+  ['1basico-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: barPorAnioOpt() }); });
   
   ['1basico-radar-intermedio', '1basico-radar-cierre', 'convivencia-super-radar', 'socio-super-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
 }
