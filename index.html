@@ -383,8 +383,9 @@
           <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
-          <div class="chart-header">
-            <div><div class="chart-title">1° Básico — Intermedio<span>Conciencia fonológica / Principio alfabético / Lectura de palabras · 2025 vs 2026</span></div></div>
+          <div class="chart-header" style="align-items: center;">
+            <div><div class="chart-title">1° Básico — Intermedio<span id="subtitulo-1basico-radar-intermedio">Conciencia fonológica / Principio alfabético / Lectura de palabras · 2025 vs 2026</span></div></div>
+            <button id="btn-1basico-radar-detalle" onclick="toggleDetalleRadar1Basico()" style="padding: 0.3rem 0.8rem; border-radius: 6px; border: none; cursor: pointer; color: var(--text); background: var(--surface-2); font-weight: 600; font-size: 0.8rem; white-space: nowrap;">Ver detalle</button>
           </div>
           <div class="chart-wrap" style="min-height: 450px;"><canvas id="canvas-1basico-radar-intermedio"></canvas></div>
         </div>
@@ -773,7 +774,7 @@ function updateImmediate() {
   updateLineChart(charts['mate-ejes'], filterEjes(res.ejes.Matemática, 'Matemática'), false, null, sData ? filterEjes(slep.ejes.Matemática, 'Matemática') : null, masterMate);
   
   updateSocioBarGrouped(charts['1basico-bar'], filterEjes(res.ejes['Lectura Inicial'], 'Lectura Inicial'), sData ? filterEjes(slep.ejes['Lectura Inicial'], 'Lectura Inicial') : null, master1Basico);
-  updateRadarPorAnio(charts['1basico-radar-intermedio'], res.ejes['Lectura Inicial'], 'Intermedio', GRUPOS_LECTURA_INICIAL_INTERMEDIO);
+  updateRadarPorAnio(charts['1basico-radar-intermedio'], res.ejes['Lectura Inicial'], 'Intermedio', mostrarDetalle1BasicoIntermedio ? DETALLE_LECTURA_INICIAL_INTERMEDIO : GRUPOS_LECTURA_INICIAL_INTERMEDIO);
   updateRadarPorAnio(charts['1basico-radar-cierre'], res.ejes['Lectura Inicial'], 'Cierre', GRUPOS_LECTURA_INICIAL_CIERRE);
   // Convivencia y Socioemocional quedan reducidas a un unico "super radar" cada una
   // (combina sus sub-dimensiones en un solo grafico), sin filtro de eje por click.
@@ -946,6 +947,25 @@ const GRUPOS_LECTURA_INICIAL_INTERMEDIO = {
   'Principio alfabético': ['Vocales A, E, U', 'Cons. M, L, P, S', 'Cons. D, T, N, R'],
   'Lectura de palabras': ['Sílaba directa', 'Sílaba indirecta', 'Sílaba compleja']
 };
+// Mismas 10 categorias que arriba, pero sin agrupar -- una punta del radar por cada una,
+// para la vista "detalle" (alternativa a la vista agrupada de 3 categorias grandes).
+const DETALLE_LECTURA_INICIAL_INTERMEDIO = Object.fromEntries(
+  Object.values(GRUPOS_LECTURA_INICIAL_INTERMEDIO).flat().map(eje => [eje, [eje]])
+);
+let mostrarDetalle1BasicoIntermedio = false;
+function toggleDetalleRadar1Basico() {
+  mostrarDetalle1BasicoIntermedio = !mostrarDetalle1BasicoIntermedio;
+  const btn = document.getElementById('btn-1basico-radar-detalle');
+  const subtitulo = document.getElementById('subtitulo-1basico-radar-intermedio');
+  if (mostrarDetalle1BasicoIntermedio) {
+    btn.textContent = 'Ver agrupado';
+    subtitulo.textContent = 'Sílaba inicial / final / directa / indirecta / compleja, Sonido inicial / final, Vocales, Consonantes · 2025 vs 2026';
+  } else {
+    btn.textContent = 'Ver detalle';
+    subtitulo.textContent = 'Conciencia fonológica / Principio alfabético / Lectura de palabras · 2025 vs 2026';
+  }
+  update();
+}
 const GRUPOS_LECTURA_INICIAL_CIERRE = {
   'Lectura de palabras': ['Lectura de palabras'],
   'Lectura de oraciones': ['Lectura de oraciones'],
