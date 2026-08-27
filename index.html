@@ -457,14 +457,17 @@ const I = { AGNO: 0, ETAPA: 1, RBD: 2, NIVEL: 3, CURSO: 4, ASIG: 5, EJE: 6, PUNT
 let currentAsigFilter = 'Lenguaje';
 let showSlep = false;
 
-// Única fuente de verdad de las asignaturas/dimensiones filtrables por eje, para no
-// tener que mantener la misma lista sincronizada en dos lugares del archivo.
+// Única fuente de verdad de las asignaturas/dimensiones filtrables por eje -- de aca se
+// derivan crearActiveEjesVacio() y los esqueletos evo/ejes de res y slep en
+// updateImmediate(), para no tener que mantener la misma lista sincronizada a mano en
+// varios lugares del archivo.
+const SUBJECTS = [
+  'Lenguaje', 'Matemática', 'Lectura Inicial', 'Desarrollo', 'Gestión',
+  'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'
+];
+
 function crearActiveEjesVacio() {
-  return {
-    Lenguaje: new Set(), Matemática: new Set(), 'Lectura Inicial': new Set(),
-    Desarrollo: new Set(), Gestión: new Set(),
-    'Promoción universal': new Set(), 'Apoyos focalizados': new Set(), 'Intervenciones de mayor intensidad': new Set()
-  };
+  return Object.fromEntries(SUBJECTS.map(s => [s, new Set()]));
 }
 let activeEjes = crearActiveEjesVacio();
 let IS_ADMIN = false;
@@ -684,19 +687,21 @@ function renderActiveFiltersTray() {
   tray.style.display = hasFilters ? 'block' : 'none';
 }
 
+let lecturaInicialCache = null;
+
 function updateImmediate() {
   const filters = {}; Object.keys(ts).forEach(k => filters[k] = ts[k].getValue());
   renderActiveFiltersTray();
   
-  const res = { 
-    kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() }, 
-    evo: { Lenguaje: {}, Matemática: {}, 'Lectura Inicial': {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
-    ejes: { Lenguaje: {}, Matemática: {}, 'Lectura Inicial': {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
-    cursos: {} 
+  const res = {
+    kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() },
+    evo: Object.fromEntries(SUBJECTS.map(s => [s, {}])),
+    ejes: Object.fromEntries(SUBJECTS.map(s => [s, {}])),
+    cursos: {}
   };
-  const slep = { 
-    evo: { Lenguaje: {}, Matemática: {}, 'Lectura Inicial': {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
-    ejes: { Lenguaje: {}, Matemática: {}, 'Lectura Inicial': {}, Desarrollo: {}, Gestión: {}, 'Promoción universal': {}, 'Apoyos focalizados': {}, 'Intervenciones de mayor intensidad': {} }, 
+  const slep = {
+    evo: Object.fromEntries(SUBJECTS.map(s => [s, {}])),
+    ejes: Object.fromEntries(SUBJECTS.map(s => [s, {}])), 
     niveles: {} 
   };
 
@@ -770,6 +775,9 @@ function updateImmediate() {
   updateLineChart(charts['leng-ejes'], filterEjes(res.ejes.Lenguaje, 'Lenguaje'), false, null, sData ? filterEjes(slep.ejes.Lenguaje, 'Lenguaje') : null, masterLeng);
   updateLineChart(charts['mate-ejes'], filterEjes(res.ejes.Matemática, 'Matemática'), false, null, sData ? filterEjes(slep.ejes.Matemática, 'Matemática') : null, masterMate);
   
+  // cacheado para que el toggle "Ver detalle" de mas abajo pueda redibujar solo este
+  // radar sin tener que recorrer DATA_RAW.rows completo (~555.000 filas) de nuevo.
+  lecturaInicialCache = res.ejes['Lectura Inicial'];
   updateBarPorAnio(charts['1basico-bar'], res.ejes['Lectura Inicial'], 'Intermedio', DETALLE_LECTURA_INICIAL_INTERMEDIO);
   updateRadarPorAnio(charts['1basico-radar-intermedio'], res.ejes['Lectura Inicial'], 'Intermedio', mostrarDetalle1BasicoIntermedio ? DETALLE_LECTURA_INICIAL_INTERMEDIO : GRUPOS_LECTURA_INICIAL_INTERMEDIO);
   updateRadarPorAnio(charts['1basico-radar-cierre'], res.ejes['Lectura Inicial'], 'Cierre', GRUPOS_LECTURA_INICIAL_CIERRE);
@@ -882,17 +890,17 @@ function updateSuperRadarCombinado(chart, resData, slepData, subjects) {
           Object.keys(dataObj).sort().forEach(eje => {
               combinedLabels.push([eje, `(${subj})`]);
               
-              let valEsc = 0;
+              let valEsc = null;
               if (dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) {
                   valEsc = dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1];
               }
-              combinedEscuela.push(valEsc > 0 ? valEsc : null);
+              combinedEscuela.push(valEsc);
 
-              let valSlp = 0;
+              let valSlp = null;
               if (slepData && slepData[subj] && slepData[subj][eje] && slepData[subj][eje]['2026'] && slepData[subj][eje]['2026'][latestStageIdx][1] > 0) {
                   valSlp = slepData[subj][eje]['2026'][latestStageIdx][0] / slepData[subj][eje]['2026'][latestStageIdx][1];
               }
-              combinedSlep.push(valSlp > 0 ? valSlp : null);
+              combinedSlep.push(valSlp);
           });
       }
   });
@@ -960,7 +968,9 @@ function toggleDetalleRadar1Basico() {
     btn.textContent = 'Ver detalle';
     subtitulo.textContent = 'Conciencia fonológica / Principio alfabético / Lectura de palabras · 2025 vs 2026';
   }
-  update();
+  // Solo cambia el agrupamiento de este radar -- redibuja directo desde el cache en vez
+  // de update(), que recorreria DATA_RAW.rows completo para recalcular todo el dashboard.
+  updateRadarPorAnio(charts['1basico-radar-intermedio'], lecturaInicialCache, 'Intermedio', mostrarDetalle1BasicoIntermedio ? DETALLE_LECTURA_INICIAL_INTERMEDIO : GRUPOS_LECTURA_INICIAL_INTERMEDIO);
 }
 const GRUPOS_LECTURA_INICIAL_CIERRE = {
   'Lectura de palabras': ['Lectura de palabras'],
@@ -971,6 +981,14 @@ const GRUPOS_LECTURA_INICIAL_CIERRE = {
 // Promedia (suma/cantidad) los ejes de cada grupo, para un año y etapa dados. Compartido
 // entre el radar y la barra de "1 basico por categoria, comparado entre anios" -- ambos
 // necesitan el mismo numero, solo cambia como se dibuja.
+// Estilo compartido para series por año (2025 vs 2026), usado por el radar y la barra
+// de "comparar 1 basico entre años" -- dash/point solo los usa el radar, la barra los
+// ignora.
+const ESTILO_POR_ANIO = {
+  '2025': { color: COLORS[3], dash: [5, 5], point: 'triangle' },
+  '2026': { color: COLORS[0], dash: [], point: 'circle' }
+};
+
 function promediarGruposPorAnio(dataObj, gruposMap, stIdx, agno) {
   return Object.keys(gruposMap).map(grupo => {
     let sum = 0, count = 0;
@@ -994,16 +1012,11 @@ function updateRadarPorAnio(chart, dataObj, etapaNombre, gruposMap) {
 
   const promediarGrupoAnio = (agno) => promediarGruposPorAnio(dataObj, gruposMap, stIdx, agno);
 
-  const estiloPorAnio = {
-    '2025': { color: COLORS[3], dash: [5, 5], point: 'triangle' },
-    '2026': { color: COLORS[0], dash: [], point: 'circle' }
-  };
-
   let datasets = [];
   ['2025', '2026'].forEach(agno => {
     const data = promediarGrupoAnio(agno);
     if (data.some(v => v !== null)) {
-      const estilo = estiloPorAnio[agno];
+      const estilo = ESTILO_POR_ANIO[agno];
       datasets.push({
         label: agno,
         data,
@@ -1036,16 +1049,11 @@ function updateBarPorAnio(chart, dataObj, etapaNombre, gruposMap) {
     return;
   }
 
-  const estiloPorAnio = {
-    '2025': { color: COLORS[3] },
-    '2026': { color: COLORS[0] }
-  };
-
   let datasets = [];
   ['2025', '2026'].forEach(agno => {
     const data = promediarGruposPorAnio(dataObj, gruposMap, stIdx, agno);
     if (data.some(v => v !== null)) {
-      const estilo = estiloPorAnio[agno];
+      const estilo = ESTILO_POR_ANIO[agno];
       datasets.push({
         label: agno,
         data,
@@ -1060,182 +1068,6 @@ function updateBarPorAnio(chart, dataObj, etapaNombre, gruposMap) {
   chart.data.labels = grupos;
   chart.data.datasets = datasets;
   chart.update();
-}
-
-function updateSocioBarGrouped(chart, dataObj, slepObj, masterKeys = null) {
-  if (!chart) return;
-  chart.data.datasets = [];
-  if (!dataObj || Object.keys(dataObj).length === 0) {
-    chart.update();
-    return;
-  }
-
-  let colorIdx = 0;
-  Object.keys(dataObj).sort().forEach(eje => {
-    let cIdx = colorIdx;
-    if (masterKeys && masterKeys.includes(eje)) {
-        cIdx = masterKeys.indexOf(eje);
-    }
-    const color = COLORS[cIdx % COLORS.length];
-    
-    const agnos = Object.keys(dataObj[eje]).sort();
-
-    agnos.forEach(agno => {
-      const isLatest = (agno === '2026'); 
-      
-      const dataEscuela = STAGES.map((_, stIdx) => {
-        if (dataObj[eje][agno] && dataObj[eje][agno][stIdx][1] > 0) {
-          return dataObj[eje][agno][stIdx][0] / dataObj[eje][agno][stIdx][1];
-        }
-        return null;
-      });
-
-      chart.data.datasets.push({
-        label: isLatest ? eje : `${eje} (${agno})`,
-        data: dataEscuela,
-        backgroundColor: color + 'CC', 
-        borderColor: color,
-        borderWidth: 1,
-        borderRadius: 4
-      });
-
-      if (slepObj && slepObj[eje] && slepObj[eje][agno]) {
-        const dataSlep = STAGES.map((_, stIdx) => {
-          if (slepObj[eje][agno][stIdx][1] > 0) {
-            return slepObj[eje][agno][stIdx][1] > 0 ? (slepObj[eje][agno][stIdx][0] / slepObj[eje][agno][stIdx][1]) : null;
-          }
-          return null;
-        });
-
-        chart.data.datasets.push({
-          label: isLatest ? `Promedio SLEP - ${eje}` : `Promedio SLEP - ${eje} (${agno})`,
-          data: dataSlep,
-          backgroundColor: color + '22', 
-          borderColor: color,          
-          borderWidth: 2,              
-          borderDash: [5, 5], 
-          borderRadius: 4
-        });
-      }
-    });
-    colorIdx++;
-  });
-
-  chart.data.datasets.push({ type: 'line', label: 'Umbral 60%', data: Array(3).fill(UMBRAL_LOGRO), borderColor: 'transparent', borderWidth: 0, pointRadius: 0, fill: false });
-
-  chart.update();
-}
-
-function updateSocioEspecial(chartRadar, chartHbar, dataObj, slepObj = null) {
-  if (!chartRadar && !chartHbar) return;
-  
-  if (!dataObj || Object.keys(dataObj).length === 0) {
-    if (chartRadar) { chartRadar.data.labels = []; chartRadar.data.datasets = []; chartRadar.update(); }
-    if (chartHbar) { chartHbar.data.labels = []; chartHbar.data.datasets = []; chartHbar.update(); }
-    return;
-  }
-  
-  const ejes = Object.keys(dataObj).sort();
-  
-  let latestStageIdx = -1;
-  STAGES.forEach((_, idx) => {
-     ejes.forEach(eje => {
-        if (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][idx][1] > 0) {
-          latestStageIdx = Math.max(latestStageIdx, idx);
-        }
-     });
-  });
-
-  if (latestStageIdx === -1) {
-    if (chartRadar) { chartRadar.data.labels = []; chartRadar.data.datasets = []; chartRadar.update(); }
-    if (chartHbar) { chartHbar.data.labels = []; chartHbar.data.datasets = []; chartHbar.update(); }
-    return;
-  }
-
-  const baseColor = COLORS[latestStageIdx % COLORS.length];
-
-  if (chartRadar) {
-      let radarDatasets = [];
-      let dataEscuelaRadar = ejes.map(eje => {
-         if (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) {
-            return dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1];
-         }
-         return null;
-      });
-      
-      radarDatasets.push({
-        label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
-        data: dataEscuelaRadar,
-        borderColor: baseColor,
-        backgroundColor: baseColor + '33', 
-        borderWidth: 2,
-        pointBackgroundColor: baseColor,
-        pointStyle: 'circle'
-      });
-
-      if (slepObj) {
-        let dataSlepRadar = ejes.map(eje => {
-           if (slepObj[eje] && slepObj[eje]['2026'] && slepObj[eje]['2026'][latestStageIdx][1] > 0) {
-              return slepObj[eje]['2026'][latestStageIdx][0] / slepObj[eje]['2026'][latestStageIdx][1];
-           }
-           return null;
-        });
-        radarDatasets.push({
-          label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
-          data: dataSlepRadar,
-          borderColor: baseColor,
-          backgroundColor: 'transparent', 
-          borderWidth: 2,
-          borderDash: [5, 5], 
-          pointBackgroundColor: baseColor,
-          pointStyle: 'triangle'
-        });
-      }
-
-      chartRadar.data.labels = ejes;
-      chartRadar.data.datasets = radarDatasets;
-      chartRadar.update();
-  }
-
-  if (chartHbar) {
-      let rankingData = [];
-      ejes.forEach(eje => {
-         let valEsc = (dataObj[eje] && dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) ? dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1] : 0;
-         let valSlp = (slepObj && slepObj[eje] && slepObj[eje]['2026'] && slepObj[eje]['2026'][latestStageIdx][1] > 0) ? slepObj[eje]['2026'][latestStageIdx][0] / slepObj[eje]['2026'][latestStageIdx][1] : 0;
-         
-         if (valEsc > 0 || valSlp > 0) {
-            rankingData.push({ eje: eje, valEscuela: valEsc, valSlep: valSlp });
-         }
-      });
-      
-      rankingData.sort((a, b) => b.valEscuela - a.valEscuela);
-      
-      let hbarDatasets = [];
-      hbarDatasets.push({
-         label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
-         data: rankingData.map(d => d.valEscuela > 0 ? d.valEscuela : null),
-         backgroundColor: baseColor + 'CC', 
-         borderColor: baseColor,
-         borderWidth: 1,
-         borderRadius: 4
-      });
-
-      if (slepObj) {
-        hbarDatasets.push({
-           label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
-           data: rankingData.map(d => d.valSlep > 0 ? d.valSlep : null),
-           backgroundColor: baseColor + '22', 
-           borderColor: baseColor,
-           borderWidth: 2,
-           borderDash: [5, 5], 
-           borderRadius: 4
-        });
-      }
-
-      chartHbar.data.labels = rankingData.map(d => d.eje);
-      chartHbar.data.datasets = hbarDatasets;
-      chartHbar.update();
-  }
 }
 
 function updateLineChart(chart, dataObj, isSingle, forcedColor = null, slepObj = null, masterKeys = null) {
@@ -1370,84 +1202,9 @@ function initCharts() {
     };
   };
 
-  const barGroupedOpt = (showLegend) => {
-    const isDark = document.body.classList.contains('dark-theme');
-    const gridColor = isDark ? '#21262d' : '#e5e7eb';
-    const textColor = isDark ? '#7d8590' : '#57606a';
-    return { 
-      responsive: true, 
-      maintainAspectRatio: false, 
-      scales: { 
-        y: { grace: '10%', ticks: { color: textColor, callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: gridColor } }, 
-        x: { ticks: { color: textColor }, grid: { display: false } } 
-      }, 
-      plugins: { 
-        legend: { 
-          display: showLegend, 
-          position: 'bottom', 
-          labels: { 
-            color: textColor,
-            generateLabels: function(chart) {
-              const hasSlep = chart.data.datasets.some(ds => ds.label.includes('SLEP'));
-              
-              const labels = [{
-                  text: 'Establecimiento',
-                  fillStyle: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                  strokeStyle: 'transparent',
-                  lineWidth: 0,
-                  hidden: false
-              }];
-
-              if (hasSlep) {
-                labels.push({
-                  text: 'Promedio SLEP',
-                  fillStyle: 'transparent',
-                  strokeStyle: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)',
-                  lineWidth: 2,
-                  lineDash: [5, 5],
-                  hidden: false
-                });
-              }
-
-              return labels;
-            }
-          },
-          onClick: function(e, legendItem, legend) {
-            const chart = legend.chart;
-            const isSlepClick = legendItem.text === 'Promedio SLEP';
-            
-            chart.data.datasets.forEach((dataset, index) => {
-               const isSlepDataset = dataset.label.includes('SLEP');
-               if ((isSlepClick && isSlepDataset) || (!isSlepClick && !isSlepDataset && !dataset.label.includes('Umbral'))) {
-                  const meta = chart.getDatasetMeta(index);
-                  meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
-               }
-            });
-            chart.update();
-          }
-        }, 
-        tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } },
-        datalabels: {
-          display: function(context) {
-            if (context.dataset.type === 'line') return false; 
-            return context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] > 0;
-          },
-          anchor: 'end',
-          align: 'end',
-          offset: 2,
-          color: textColor,
-          font: { weight: 'bold', size: 10, family: "'Archivo', sans-serif" },
-          formatter: function(value) {
-            return (value * 100).toFixed(0) + '%';
-          }
-        }
-      } 
-    };
-  };
-
-  // Version simplificada de barGroupedOpt, sin el legend/tooltip especiales de
-  // "Establecimiento vs Promedio SLEP" (que no aplican aca): las series son años
-  // (2025/2026), asi que basta el legend por defecto de Chart.js.
+  // Sin el legend/tooltip especiales de "Establecimiento vs Promedio SLEP" (que no
+  // aplican aca): las series son años (2025/2026), asi que basta el legend por
+  // defecto de Chart.js.
   const barPorAnioOpt = () => {
     const isDark = document.body.classList.contains('dark-theme');
     const gridColor = isDark ? '#21262d' : '#e5e7eb';
@@ -1502,37 +1259,6 @@ function initCharts() {
           formatter: function(value) { return (value * 100).toFixed(0) + '%'; }
         }
       }
-    };
-  };
-
-  const getHbarOpt = (showLegend) => {
-    const isDark = document.body.classList.contains('dark-theme');
-    const gridColor = isDark ? '#21262d' : '#e5e7eb';
-    const textColor = isDark ? '#7d8590' : '#57606a';
-    return { 
-      responsive: true, maintainAspectRatio: false, 
-      indexAxis: 'y',
-      scales: { 
-        x: { grace: '10%', ticks: { color: textColor, callback: v => (v * 100).toFixed(0) + '%' }, grid: { color: gridColor } }, 
-        y: { ticks: { color: textColor }, grid: { display: false } } 
-      }, 
-      plugins: { 
-        legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor } }, 
-        tooltip: { callbacks: { label: (ctx) => { return ctx.dataset.label + ': ' + (ctx.raw * 100).toFixed(1) + '%'; } } },
-        datalabels: {
-          display: function(context) {
-             return context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] > 0;
-          },
-          anchor: 'end',
-          align: 'end',
-          offset: 4,
-          color: textColor,
-          font: { weight: 'bold', size: 10, family: "'Archivo', sans-serif" },
-          formatter: function(value) {
-             return (value * 100).toFixed(0) + '%';
-          }
-        }
-      } 
     };
   };
 
