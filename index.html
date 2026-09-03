@@ -119,6 +119,7 @@
     .filter-group-tag { display: inline-flex; align-items: center; margin: 0 0.5rem 0.5rem 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
     .filter-group-label { padding: 4px 8px; font-size: 0.65rem; font-weight: 800; color: var(--leng); background: rgba(56,189,248,0.05); border-right: 1px solid var(--border); cursor: pointer; }
     .filter-value-tag { padding: 4px 10px; font-size: 0.75rem; color: var(--text); cursor: pointer; display: flex; align-items: center; border-right: 1px solid var(--border); }
+    .filter-value-tag:hover { text-decoration: line-through; color: var(--red); }
 
     .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
     .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1.1rem 1.25rem; position: relative; min-width: 0; transition: background 0.3s, border-color 0.3s; }
@@ -1082,12 +1083,12 @@ function updateLineChart(chart, dataObj, isSingle, forcedColor = null, slepObj =
     const isEvo = (groupKey === '2025' || groupKey === '2026'), color = isSingle ? forcedColor : COLORS[cIdx % COLORS.length];
     
     if (isEvo) {
-      chart.data.datasets.push(createDS(groupKey, dataObj[groupKey], color, groupKey === '2026'));
-      if (slepObj && slepObj[groupKey]) chart.data.datasets.push(createDS(`SLEP ${groupKey}`, slepObj[groupKey], color, groupKey === '2026', true));
+      chart.data.datasets.push(createDS(groupKey, dataObj[groupKey], color, groupKey === '2025'));
+      if (slepObj && slepObj[groupKey]) chart.data.datasets.push(createDS(`SLEP ${groupKey}`, slepObj[groupKey], color, groupKey === '2025', true));
     } else {
       Object.keys(dataObj[groupKey]).sort().forEach(agno => {
-        chart.data.datasets.push(createDS(`${groupKey} (${agno})`, dataObj[groupKey][agno], color, agno === '2026'));
-        if (slepObj && slepObj[groupKey] && slepObj[groupKey][agno]) chart.data.datasets.push(createDS(`SLEP ${groupKey} (${agno})`, slepObj[groupKey][agno], color, agno === '2026', true));
+        chart.data.datasets.push(createDS(`${groupKey} (${agno})`, dataObj[groupKey][agno], color, agno === '2025'));
+        if (slepObj && slepObj[groupKey] && slepObj[groupKey][agno]) chart.data.datasets.push(createDS(`SLEP ${groupKey} (${agno})`, slepObj[groupKey][agno], color, agno === '2025', true));
       });
     }
     colorIdx++;
@@ -1101,37 +1102,86 @@ function createDS(label, points, color, isDashed, isSlep = false) {
   return { label, data: points.map(d => d[1] > 0 ? d[0] / d[1] : null), borderColor: finalColor, borderDash: isDashed ? [5, 5] : [], backgroundColor: isSlep ? 'transparent' : finalColor + '22', borderWidth: isSlep ? 1.5 : 3, fill: !isDashed && !isSlep && label.length <= 4, pointStyle: isDashed ? 'triangle' : 'circle', pointRadius: isSlep ? 2 : (isDashed ? 5 : 4), tension: 0.3 };
 }
 
+// Estado de orden por tabla (persiste entre re-renders que dispara cada cambio de
+// filtro) y cache del último dataObj usado, para poder re-renderizar con el mismo
+// orden sin tener que recorrer DATA_RAW.rows de nuevo.
+let tableSortState = {};
+let lastVarTableData = {};
+
 function renderVariationsTable(dataObj, elementId, isEjes) {
   const container = document.getElementById(elementId);
   if (!container || !dataObj) return;
+  lastVarTableData[elementId] = { dataObj, isEjes };
+
   let hasComp = false;
-  if (!isEjes) { if (dataObj['2025'] && dataObj['2026']) hasComp = true; } 
+  if (!isEjes) { if (dataObj['2025'] && dataObj['2026']) hasComp = true; }
   else { Object.keys(dataObj).forEach(e => { if (dataObj[e]['2025'] && dataObj[e]['2026']) hasComp = true; }); }
   if (!hasComp) { container.innerHTML = ''; return; }
 
-  let html = `<div class="var-table-wrapper"><div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); margin-bottom:0.5rem;">VARIACIÓN 2026 VS 2025</div><table class="var-table"><thead><tr><th>${isEjes ? 'Dimensión / Eje' : 'Asignatura'}</th><th>Diagnóstico</th><th>Intermedio</th><th>Cierre</th></tr></thead><tbody>`;
+  // Filas como datos crudos (label + diff numérico o null por etapa) para poder
+  // ordenar antes de pintar -- separado del formateo a badge.
+  let rows = [];
   if (!isEjes) {
-    html += `<tr><td>Promedio General</td>`;
-    STAGES.forEach((s, idx) => html += `<td>${getVariationCell(dataObj, idx)}</td>`);
-    html += `</tr>`;
+    rows.push({ label: 'Promedio General', diffs: STAGES.map((s, idx) => getVariationDiff(dataObj, idx)) });
   } else {
     Object.keys(dataObj).sort().forEach(e => {
-      if (dataObj[e]['2025'] && dataObj[e][ '2026']) {
-        html += `<tr><td>${e}</td>`;
-        STAGES.forEach((s, idx) => html += `<td>${getVariationCell(dataObj[e], idx)}</td>`);
-        html += `</tr>`;
+      if (dataObj[e]['2025'] && dataObj[e]['2026']) {
+        rows.push({ label: e, diffs: STAGES.map((s, idx) => getVariationDiff(dataObj[e], idx)) });
       }
     });
   }
-  container.innerHTML = html + `</tbody></table></div>`;
+
+  const state = tableSortState[elementId] || { col: null, dir: 'asc' };
+  if (state.col !== null) {
+    rows.sort((a, b) => {
+      if (state.col === 0) {
+        const cmp = a.label.localeCompare(b.label, 'es', { sensitivity: 'base' });
+        return state.dir === 'asc' ? cmp : -cmp;
+      }
+      const va = a.diffs[state.col - 1], vb = b.diffs[state.col - 1];
+      if (va === null && vb === null) return 0;
+      if (va === null) return 1; // sin dato siempre al final, sea asc o desc
+      if (vb === null) return -1;
+      return state.dir === 'asc' ? va - vb : vb - va;
+    });
+  }
+
+  const headers = [isEjes ? 'Dimensión / Eje' : 'Asignatura', 'Diagnóstico', 'Intermedio', 'Cierre'];
+  const headHtml = headers.map((h, i) => {
+    const indicator = state.col === i ? (state.dir === 'asc' ? ' ▲' : ' ▼') : '';
+    return `<th data-col-idx="${i}" style="cursor:pointer; user-select:none;">${h}${indicator}</th>`;
+  }).join('');
+
+  const bodyHtml = rows.map(r => `<tr><td>${r.label}</td>${r.diffs.map(formatVariationCell).join('')}</tr>`).join('');
+
+  container.innerHTML = `<div class="var-table-wrapper"><div style="font-size:0.68rem; font-weight:700; color:var(--text-muted); margin-bottom:0.5rem;">VARIACIÓN 2026 VS 2025</div><table class="var-table"><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table></div>`;
+
+  // El thead se recrea entero en cada render (mismo patrón que ya usaba esta función
+  // via innerHTML), así que los <th> son nodos nuevos: no hay listeners viejos que
+  // pisar ni que se acumulen. El estado de orden (tableSortState) es lo que persiste.
+  container.querySelectorAll('th[data-col-idx]').forEach(th => {
+    th.onclick = () => {
+      const idx = parseInt(th.dataset.colIdx, 10);
+      const cur = tableSortState[elementId] || { col: null, dir: 'asc' };
+      if (cur.col === idx) cur.dir = cur.dir === 'asc' ? 'desc' : 'asc';
+      else { cur.col = idx; cur.dir = 'asc'; }
+      tableSortState[elementId] = cur;
+      const cached = lastVarTableData[elementId];
+      renderVariationsTable(cached.dataObj, elementId, cached.isEjes);
+    };
+  });
 }
 
-function getVariationCell(node, idx) {
-  if (!node['2025'] || !node['2026'] || node['2025'][idx][1] === 0 || node['2026'][idx][1] === 0) return `<span class="var-badge empty">—</span>`;
-  const diff = ((node['2026'][idx][0]/node['2026'][idx][1]) - (node['2025'][idx][0]/node['2025'][idx][1])) * 100;
-  if (diff > 0.1) return `<span class="var-badge up">↑ ${diff.toFixed(1)}%</span>`;
-  if (diff < -0.1) return `<span class="var-badge down">↓ ${Math.abs(diff).toFixed(1)}%</span>`;
-  return `<span class="var-badge neutral">= 0.0%</span>`;
+function getVariationDiff(node, idx) {
+  if (!node['2025'] || !node['2026'] || node['2025'][idx][1] === 0 || node['2026'][idx][1] === 0) return null;
+  return ((node['2026'][idx][0]/node['2026'][idx][1]) - (node['2025'][idx][0]/node['2025'][idx][1])) * 100;
+}
+
+function formatVariationCell(diff) {
+  if (diff === null) return `<td><span class="var-badge empty">—</span></td>`;
+  if (diff > 0.1) return `<td><span class="var-badge up">↑ ${diff.toFixed(1)}%</span></td>`;
+  if (diff < -0.1) return `<td><span class="var-badge down">↓ ${Math.abs(diff).toFixed(1)}%</span></td>`;
+  return `<td><span class="var-badge neutral">= 0.0%</span></td>`;
 }
 
 // NUEVA FUNCIÓN: Captura fotográfica de la tarjeta completa
@@ -1169,6 +1219,34 @@ function descargarGrafico(btn) {
   });
 }
 
+// Detecta doble click sobre un ítem de la leyenda (dos clicks al mismo dataset dentro
+// de 400ms) para mostrar todas las series de nuevo -- sin pisar el toggle normal de un
+// solo click, que sigue mostrando/ocultando esa serie como siempre. Cada gráfico llama
+// a esta función una vez (dentro de lineOpt/barPorAnioOpt/radarOpt) para tener su propio
+// estado de "último click", en vez de compartirlo entre gráficos distintos.
+function makeLegendOnClick() {
+  let lastIndex = null, lastTime = 0;
+  return (e, legendItem, legend) => {
+    const chart = legend.chart;
+    const now = Date.now();
+    if (lastIndex === legendItem.datasetIndex && now - lastTime < 400) {
+      chart.data.datasets.forEach((_, i) => chart.setDatasetVisibility(i, true));
+      chart.update();
+      lastIndex = null; lastTime = 0;
+      return;
+    }
+    lastIndex = legendItem.datasetIndex; lastTime = now;
+    const index = legendItem.datasetIndex;
+    if (chart.isDatasetVisible(index)) {
+      chart.hide(index);
+      legendItem.hidden = true;
+    } else {
+      chart.show(index);
+      legendItem.hidden = false;
+    }
+  };
+}
+
 function initCharts() {
   const lineOpt = (showLegend) => {
     const isDark = document.body.classList.contains('dark-theme');
@@ -1182,7 +1260,7 @@ function initCharts() {
         x: { ticks: { color: textColor }, grid: { display: false } } 
       }, 
       plugins: { 
-        legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor, filter: (it) => !it.text.includes('Umbral') && !(it.text.includes('SLEP')) } }, 
+        legend: { display: showLegend, position: 'bottom', onClick: makeLegendOnClick(), labels: { usePointStyle: true, color: textColor, filter: (it) => !it.text.includes('Umbral') && !(it.text.includes('SLEP')) } },
         tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } },
         datalabels: {
           display: function(context) {
@@ -1217,7 +1295,7 @@ function initCharts() {
         x: { ticks: { color: textColor }, grid: { display: false } }
       },
       plugins: {
-        legend: { display: true, position: 'bottom', labels: { color: textColor } },
+        legend: { display: true, position: 'bottom', onClick: makeLegendOnClick(), labels: { color: textColor } },
         tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%' } },
         datalabels: {
           display: (context) => context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] !== undefined,
@@ -1247,7 +1325,7 @@ function initCharts() {
         }
       },
       plugins: {
-        legend: { display: showLegend, position: 'bottom', labels: { usePointStyle: true, color: textColor } },
+        legend: { display: showLegend, position: 'bottom', onClick: makeLegendOnClick(), labels: { usePointStyle: true, color: textColor } },
         tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.raw * 100).toFixed(1) + '%' } },
         datalabels: {
           display: function(context) {
