@@ -175,11 +175,17 @@ actualizado. Si algo similar vuelve a pasar: verificar `netstat -ano | grep <pue
 duplicados, y forzar hard-reload (Ctrl+Shift+R) o `fetch(..., {cache:'no-store'})` para descartar caché
 del navegador antes de sospechar de un bug real en el código.
 
+## Actualización (2026-09-22, sesión posterior): `ui-stitch` ya está en `main`
+Contradice el estado "pendiente de aprobación" descrito arriba — quedó desactualizado.
+Otra sesión en paralelo mergeó `ui-stitch` → `main` (PR #2 `merge-ui-stitch-oficial`,
+commit `3562541`, autorizado explícitamente por Sebastián sin esperar el visto bueno
+formal de jefatura). El rediseño (paleta, gobCL, logo, Socioemocional Intermedio
+incluido) está en producción en `https://s-car1.github.io/dashboard-dia/`. Detalle
+completo en el registro de memoria del proyecto `DIA_Intermedio` (sesión que hizo el
+merge) — no se repite aquí para no duplicar.
+
 ## Pendientes
-- [ ] Revisar el rediseño en local (`python -m http.server` en esta carpeta, rama
-      `ui-stitch`) con login real contra Apps Script (las pruebas saltaron el login).
-- [ ] Decidir si se sube a producción (commit + push/merge a `main`), y replicar en
-      `dashboard-dia-ep`, `Proyecto_Asistencia` y `SLEP`.
+- [x] Decidir si se sube a producción — sí, mergeado a `main` (`3562541`).
 - [ ] Probar en un teléfono/tablet físico y con Safari/Firefox (pruebas hechas solo en Edge).
 - [ ] La rama `isEjes = true` de `renderVariationsTable` (tabla con múltiples
       filas/ejes) no tiene ningún caller real hoy en `updateImmediate()` — el
@@ -191,9 +197,12 @@ del navegador antes de sospechar de un bug real en el código.
 - [ ] Al filtrar solo 2026 (o un año) los deltas muestran `—`: no hay base 2025 en ese filtro.
       Igual comportamiento que la tabla de variación.
 - [ ] Sin filtro de año el KPI mezcla 2025 y 2026 y no lo dice; evaluar rotularlo.
-- [ ] Esperar comentarios / visto bueno de jefatura sobre la versión de revisión actualizada
-      (ya incluye Socioemocional Intermedio) y aplicar cambios si piden algo.
-- [ ] Al aprobarse: mergear `ui-stitch` → `main` en este repo (esto también trae los datos de
-      `feature/socio-intermedio`, que aún no está en `main`) y borrar `dashboard-dia-revision`.
-- [ ] Replicar el rediseño en `dashboard-dia-ep`, `Proyecto_Asistencia` y `SLEP` una vez aprobado.
+- [x] Esperar visto bueno / mergear a `main` — hecho, ver nota de actualización arriba.
+- [x] Replicar el rediseño en `dashboard-dia-ep` y `Proyecto_Asistencia` — hecho
+  (2026-09-22), ambos en producción. Ver `UnificacionDashboards/CONTEXTO.md` para
+  el resumen de los 4 repos y el `CONTEXTO.md` de cada uno para el detalle.
+- [x] `SLEP`: replicado en rama local `ui-stitch` (2026-09-22, sin commit todavía, sin
+      tema oscuro por no existir en ese repo) — detalle en `GitHub/SLEP/CONTEXTO.md`.
+      Convención usada ahí en adelante: solo rama local, sin repo `-revision` aparte
+      (ese repo fue solo para la primera vez, este mismo `dashboard-dia`).
 - [ ] La jefatura necesita usuario/clave válidos para el login (mismo Apps Script).
