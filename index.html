@@ -319,7 +319,7 @@
 
   <div class="filter-bar">
     <div class="filter-group" style="flex: 0.6;" data-label="AÑO ▾"><select id="f-agno" multiple placeholder="Año..."></select></div>
-    <div class="filter-group" style="flex: 0.8;" data-label="ETAPA ▾"><select id="f-etapa" multiple placeholder="Etapa..."></select></div>
+    <div class="filter-group" id="filter-group-etapa" style="flex: 0.8;" data-label="ETAPA ▾"><select id="f-etapa" multiple placeholder="Etapa..."></select></div>
     <div class="filter-group" style="flex: 0.8;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Nivel..."></select></div>
     <div class="filter-group" id="filter-group-curso" style="flex: 0.8;" data-label="CURSO ▾"><select id="f-curso" multiple placeholder="Curso..."></select></div>
     
@@ -484,22 +484,39 @@
   </div>
 
   <div id="tab-convivencia-socio" class="tab-content" style="display:none;">
-    <div class="section-title">Sección: Convivencia</div>
+    <div class="section-title">Sección: Socioemocional</div>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin: -0.5rem 0 1rem;">
+      Las rondas Diagnóstico e Intermedio usan instrumentos distintos: no son comparables entre sí.
+    </p>
     <div class="charts-grid">
-      <div class="chart-block full-width">
+      <div class="chart-block">
         <div class="chart-card">
           <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
           <div class="chart-header">
-            <div><div class="chart-title">Convivencia<span>Perfil Integrado (Radar Año 2026)</span></div></div>
+            <div><div class="chart-title">Socioemocional<span>Perfil Integrado (2026 · Diagnóstico)</span></div></div>
           </div>
-          <div class="chart-wrap" style="min-height: 450px;"><canvas id="canvas-convivencia-super-radar"></canvas></div>
+          <div class="chart-wrap" style="min-height: 380px;"><div id="overlay-socio-super-radar" class="empty-state-container" style="display:none; position:absolute; inset:0; z-index:2;"><h3>Sin resultados en esta ronda</h3></div><canvas id="canvas-socio-super-radar"></canvas></div>
+        </div>
+      </div>
+      <div class="chart-block">
+        <div class="chart-card">
+          <button class="btn-download" onclick="descargarGrafico(this)" title="Descargar Gráfico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <div class="chart-header">
+            <div><div class="chart-title">Socioemocional<span>Perfil Integrado (2026 · Intermedio)</span></div></div>
+          </div>
+          <div class="chart-wrap" style="min-height: 380px;"><div id="overlay-socio-int-radar" class="empty-state-container" style="display:none; position:absolute; inset:0; z-index:2;"><h3>Sin resultados en esta ronda</h3></div><canvas id="canvas-socio-int-radar"></canvas></div>
         </div>
       </div>
     </div>
 
-    <div class="section-title">Sección: Socioemocional</div>
+    <div class="section-title">Sección: Convivencia</div>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin: -0.5rem 0 1rem;">
+      Solo existe en la ronda Diagnóstico.
+    </p>
     <div class="charts-grid">
       <div class="chart-block full-width">
         <div class="chart-card">
@@ -507,9 +524,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
           <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Perfil Integrado (Radar Año 2026)</span></div></div>
+            <div><div class="chart-title">Convivencia<span>Perfil Integrado (2026 · Diagnóstico)</span></div></div>
           </div>
-          <div class="chart-wrap" style="min-height: 450px;"><canvas id="canvas-socio-super-radar"></canvas></div>
+          <div class="chart-wrap" style="min-height: 380px;"><div id="overlay-convivencia-super-radar" class="empty-state-container" style="display:none; position:absolute; inset:0; z-index:2;"><h3>Sin resultados en esta ronda</h3></div><canvas id="canvas-convivencia-super-radar"></canvas></div>
         </div>
       </div>
     </div>
@@ -521,6 +538,29 @@
 if (typeof ChartDataLabels !== 'undefined') {
   Chart.register(ChartDataLabels);
 }
+
+// Dibuja una linea divisoria sobre la fila en blanco que updateBarrasCombinado inserta
+// antes de "Valoración de la educación" -- no hace nada si el chart no tiene esa fila
+// (busca la categoria vacia por nombre, no depende de que sea siempre el mismo indice).
+const dividerBarrasPlugin = {
+  id: 'dividerBarras',
+  afterDraw(chart) {
+    const idx = chart.data.labels.findIndex(l => Array.isArray(l) && l.length === 1 && l[0] === '');
+    if (idx === -1) return;
+    const { ctx, chartArea, scales } = chart;
+    if (!scales.y) return;
+    const y = scales.y.getPixelForTick(idx);
+    ctx.save();
+    ctx.strokeStyle = document.body.classList.contains('dark-theme') ? '#30363d' : '#d0d7de';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(chartArea.left, y);
+    ctx.lineTo(chartArea.right, y);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+Chart.register(dividerBarrasPlugin);
 
 const UMBRAL_LOGRO = 0.6;
 // Mismo endpoint de validación de credenciales que usa Proyecto_Asistencia (la lógica de
@@ -541,7 +581,8 @@ let showSlep = false;
 // varios lugares del archivo.
 const SUBJECTS = [
   'Lenguaje', 'Matemática', 'Lectura Inicial', 'Desarrollo', 'Gestión',
-  'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'
+  'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad',
+  'Bienestar', 'Ansiedad ante evaluaciones', 'Convivencia digital', 'Valoración de la educación'
 ];
 
 function crearActiveEjesVacio() {
@@ -679,6 +720,9 @@ function startDashboard() {
 
 // Pestañas donde el filtro de Curso no aplica (no tienen desglose por curso).
 const TABS_SIN_CURSO = ['tab-1basico', 'tab-convivencia-socio'];
+// Pestañas donde el filtro de Etapa no aplica (muestran todas las etapas a la vez, cada
+// una en su propia sección -- filtrar por una sola vaciaría las demás secciones).
+const TABS_SIN_ETAPA = ['tab-convivencia-socio'];
 
 function showTab(tabId, e) {
   document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
@@ -702,6 +746,25 @@ function showTab(tabId, e) {
       cursoGroup.style.opacity = '1';
       cursoGroup.style.pointerEvents = 'auto';
       cursoGroup.setAttribute('data-label', 'CURSO ▾');
+    }
+  }
+
+  const etapaGroup = document.getElementById('filter-group-etapa');
+
+  if (TABS_SIN_ETAPA.includes(tabId)) {
+    ts['etapa'].clear(true);
+    ts['etapa'].disable();
+    if (etapaGroup) {
+      etapaGroup.style.opacity = '0.4';
+      etapaGroup.style.pointerEvents = 'none';
+      etapaGroup.setAttribute('data-label', 'ETAPA (No aplica)');
+    }
+  } else {
+    ts['etapa'].enable();
+    if (etapaGroup) {
+      etapaGroup.style.opacity = '1';
+      etapaGroup.style.pointerEvents = 'auto';
+      etapaGroup.setAttribute('data-label', 'ETAPA ▾');
     }
   }
 }
@@ -813,7 +876,7 @@ function updateImmediate() {
 
     if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
 
-    const asignaturasEspeciales = ['Lectura Inicial', 'Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad'];
+    const asignaturasEspeciales = ['Lectura Inicial', 'Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad', 'Bienestar', 'Ansiedad ante evaluaciones', 'Convivencia digital', 'Valoración de la educación'];
     if (!asignaturasEspeciales.includes(asigV)) {
       res.kpi.sum += p; res.kpi.count++; 
     }
@@ -864,9 +927,9 @@ function updateImmediate() {
   updateBarPorAnio(charts['1basico-bar'], res.ejes['Lectura Inicial'], 'Intermedio', DETALLE_LECTURA_INICIAL_INTERMEDIO);
   updateRadarPorAnio(charts['1basico-radar-intermedio'], res.ejes['Lectura Inicial'], 'Intermedio', mostrarDetalle1BasicoIntermedio ? DETALLE_LECTURA_INICIAL_INTERMEDIO : GRUPOS_LECTURA_INICIAL_INTERMEDIO);
   updateRadarPorAnio(charts['1basico-radar-cierre'], res.ejes['Lectura Inicial'], 'Cierre', GRUPOS_LECTURA_INICIAL_CIERRE);
-  // Convivencia y Socioemocional quedan reducidas a un unico "super radar" cada una
+  // Convivencia y Socioemocional quedan reducidas a un unico grafico de barras cada una
   // (combina sus sub-dimensiones en un solo grafico), sin filtro de eje por click.
-  updateSuperRadarCombinado(
+  updateBarrasCombinado(
       charts['convivencia-super-radar'],
       {
          'Promoción universal': res.ejes['Promoción universal'],
@@ -881,11 +944,21 @@ function updateImmediate() {
       ['Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad']
   );
 
-  updateSuperRadarCombinado(
+  updateBarrasCombinado(
       charts['socio-super-radar'],
       { Desarrollo: res.ejes.Desarrollo, Gestión: res.ejes.Gestión },
       sData ? { Desarrollo: slep.ejes.Desarrollo, Gestión: slep.ejes.Gestión } : null,
       ['Desarrollo', 'Gestión']
+  );
+
+  // "Valoración de la educación" se integra como una barra mas (solo IV medio, 13 RBD,
+  // a diferencia de las otras que son SLEP completo) -- updateBarrasCombinado la pinta
+  // de otro color para dejar claro que no tiene la misma cobertura que el resto.
+  updateBarrasCombinado(
+      charts['socio-int-radar'],
+      { Bienestar: res.ejes.Bienestar, 'Ansiedad ante evaluaciones': res.ejes['Ansiedad ante evaluaciones'], 'Convivencia digital': res.ejes['Convivencia digital'], 'Valoración de la educación': res.ejes['Valoración de la educación'] },
+      sData ? { Bienestar: slep.ejes.Bienestar, 'Ansiedad ante evaluaciones': slep.ejes['Ansiedad ante evaluaciones'], 'Convivencia digital': slep.ejes['Convivencia digital'], 'Valoración de la educación': slep.ejes['Valoración de la educación'] } : null,
+      ['Bienestar', 'Ansiedad ante evaluaciones', 'Convivencia digital', 'Valoración de la educación']
   );
 
   renderEjeMasterCards(res.ejes.Lenguaje, 'master-leng-tray', 'Lenguaje');
@@ -935,11 +1008,16 @@ function renderEjeMasterCards(dataObj, trayId, asig) {
 }
 
 // Combina varias "asignaturas especiales" (Desarrollo/Gestión, o Promoción
-// universal/Apoyos focalizados/Intervenciones) en un unico radar de multiples ejes,
-// mostrando siempre la ultima etapa con datos. Generica: sirve tanto para
-// Convivencia como para Socioemocional, se le pasa la lista de asignaturas a combinar.
-function updateSuperRadarCombinado(chart, resData, slepData, subjects) {
+// universal/Apoyos focalizados/Intervenciones) en un unico grafico de barras horizontales
+// de multiples ejes, mostrando siempre la ultima etapa con datos. Generica: sirve tanto
+// para Convivencia como para Socioemocional, se le pasa la lista de asignaturas a combinar.
+function updateBarrasCombinado(chart, resData, slepData, subjects) {
   if (!chart) return;
+
+  // Overlay "Sin resultados en esta ronda" -- deriva el id del propio canvas (convivencia,
+  // socio diagnóstico y socio intermedio comparten esta función), no requiere tocar cada
+  // llamada.
+  const overlay = document.getElementById('overlay-' + chart.canvas.id.replace('canvas-', ''));
 
   let latestStageIdx = -1;
 
@@ -960,19 +1038,34 @@ function updateSuperRadarCombinado(chart, resData, slepData, subjects) {
       chart.data.labels = [];
       chart.data.datasets = [];
       chart.update();
+      if (overlay) overlay.style.display = 'flex';
       return;
   }
+  if (overlay) overlay.style.display = 'none';
 
   let combinedLabels = [];
   let combinedEscuela = [];
   let combinedSlep = [];
 
+  // "Valoración de la educación" no tiene la misma cobertura que el resto de asignaturas
+  // de un grafico combinado (solo IV medio, no todo el SLEP) -- se marca aparte para
+  // etiquetarla distinto y separarla del resto, en vez de mezclarla como si fuera una
+  // asignatura mas con cobertura completa.
+  const COBERTURA_PARCIAL = 'Valoración de la educación';
+
   subjects.forEach(subj => {
       const dataObj = resData[subj];
       if (dataObj) {
+          // Separa "Valoración de la educación" del resto con una fila en blanco (en vez
+          // de un color evidentemente distinto) -- misma paleta, solo mas espacio antes.
+          if (subj === COBERTURA_PARCIAL && combinedLabels.length > 0) {
+              combinedLabels.push(['']);
+              combinedEscuela.push(null);
+              combinedSlep.push(null);
+          }
           Object.keys(dataObj).sort().forEach(eje => {
-              combinedLabels.push([eje, `(${subj})`]);
-              
+              combinedLabels.push(subj === COBERTURA_PARCIAL ? [subj, '(solo IV° Medio)'] : [eje, `(${subj})`]);
+
               let valEsc = null;
               if (dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) {
                   valEsc = dataObj[eje]['2026'][latestStageIdx][0] / dataObj[eje]['2026'][latestStageIdx][1];
@@ -994,23 +1087,18 @@ function updateSuperRadarCombinado(chart, resData, slepData, subjects) {
   datasets.push({
       label: 'Establecimiento (' + STAGES[latestStageIdx] + ')',
       data: combinedEscuela,
-      borderColor: baseColor,
-      backgroundColor: baseColor + '33', 
-      borderWidth: 2,
-      pointBackgroundColor: baseColor,
-      pointStyle: 'circle'
+      backgroundColor: baseColor,
+      borderRadius: 4,
+      barThickness: 18
   });
 
   if (slepData) {
       datasets.push({
           label: 'Promedio SLEP (' + STAGES[latestStageIdx] + ')',
           data: combinedSlep,
-          borderColor: baseColor,
-          backgroundColor: 'transparent', 
-          borderWidth: 2,
-          borderDash: [5, 5], 
-          pointBackgroundColor: baseColor,
-          pointStyle: 'triangle'
+          backgroundColor: baseColor + '55',
+          borderRadius: 4,
+          barThickness: 18
       });
   }
 
@@ -1468,12 +1556,45 @@ function initCharts() {
     };
   };
 
+  // Barras horizontales para Convivencia/Socioemocional -- reemplaza el radar que usaban
+  // antes: mismos ejes combinados de varias asignaturas, pero un valor exacto por barra se
+  // lee mas directo que comparar angulo+distancia en un poligono, y ocupa menos alto.
+  const barrasOpt = (showLegend) => {
+    const isDark = document.body.classList.contains('dark-theme');
+    const gridColor = isDark ? '#21262d' : '#e5e7eb';
+    const textColor = isDark ? '#7d8590' : '#57606a';
+    return {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { min: 0, max: 1, grid: { color: gridColor }, ticks: { display: false }, border: { display: false } },
+        y: { grid: { display: false }, ticks: { color: textColor, font: { size: 11, family: "'gobCL', sans-serif" } } }
+      },
+      plugins: {
+        legend: { display: showLegend, position: 'bottom', onClick: makeLegendOnClick(), labels: { usePointStyle: true, color: textColor } },
+        tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.raw !== null && ctx.raw !== undefined ? (ctx.raw * 100).toFixed(1) + '%' : '—') } },
+        datalabels: {
+          display: function(context) {
+            const v = context.dataset.data[context.dataIndex];
+            return v !== null && v !== undefined;
+          },
+          color: textColor,
+          anchor: 'end', align: 'end',
+          font: { weight: 'bold', size: 10, family: "'gobCL', sans-serif" },
+          formatter: function(value) { return (value * 100).toFixed(0) + '%'; }
+        }
+      }
+    };
+  };
+
   ['leng-evo', 'mate-evo', 'curso-evo'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(true) }); });
   ['leng-ejes', 'mate-ejes'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'line', data: { labels: STAGES, datasets: [] }, options: lineOpt(false) }); });
 
   ['1basico-bar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: barPorAnioOpt() }); });
-  
-  ['1basico-radar-intermedio', '1basico-radar-cierre', 'convivencia-super-radar', 'socio-super-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
+
+  ['1basico-radar-intermedio', '1basico-radar-cierre'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'radar', data: { labels: [], datasets: [] }, options: radarOpt(true) }); });
+
+  ['convivencia-super-radar', 'socio-super-radar', 'socio-int-radar'].forEach(id => { charts[id] = new Chart(document.getElementById(`canvas-${id}`), { type: 'bar', data: { labels: [], datasets: [] }, options: barrasOpt(true) }); });
 }
 
 document.querySelectorAll('.btn-toggle').forEach(btn => {
