@@ -142,14 +142,38 @@ agregar los datos del Intermedio Socioemocional a `datos.json` y a esta pestaña
 publicación). Nada aplicado todavía. Decisión pendiente ahí mismo: partir en
 `dashboard-dia-piloto` o en una rama nueva de este repo.
 
-## EN HOLD (2026-09-22): rediseño Stitch pausado
-La revisión de jefatura de `ui-stitch` / `dashboard-dia-revision` queda en pausa. Antes se
-agregarán al `main` (original) los datos del **DIA Monitoreo Intermedio 2026 — Socioemocional**
-(proyecto `Informes DIA Intermedio (Socioemocional)`, ver su `CONTEXTO.md` y
-`PLAN_integracion_dashboard.md`): cambia `datos.json` (+1.878 filas, Asignaturas/Ejes nuevos) y
-también la UI de la pestaña Convivencia/Socioemocional (apartado nuevo y separado por ronda, no
-comparables entre sí). Una vez aplicado eso sobre `main`, corresponde **adaptar `ui-stitch`** a
-esos cambios y volver a duplicar a `dashboard-dia-revision`. Sebastián avisa cuándo retomar.
+## Socioemocional Intermedio fusionado en ui-stitch (2026-09-22)
+Sebastián aplicó los datos del DIA Monitoreo Intermedio 2026 — Socioemocional en `main` (rama
+`feature/socio-intermedio`, commits `c393929` + `bd0cf66`, sin mergear a `main` todavía): `datos.json`
++1.878 filas (4 asignaturas nuevas: Bienestar, Ansiedad ante evaluaciones, Convivencia digital,
+Valoración de la educación) y la pestaña Convivencia/Socioemocional pasó de radar a gráficos de
+barras horizontales, reordenada en 2 secciones ("Socioemocional" con Diagnóstico + Intermedio side
+by side, "Convivencia" solo Diagnóstico abajo), con overlay "Sin resultados en esta ronda" y filtro
+Etapa deshabilitado en esa pestaña (`TABS_SIN_ETAPA`).
+
+Se fusionó `feature/socio-intermedio` en `ui-stitch` (`git merge --no-ff`, commit `1bb5eed`):
+automático, sin conflictos (las áreas que tocaba cada rama no se solapaban). Único ajuste manual:
+la función nueva `barrasOpt()` traía 2 referencias de fuente `'Archivo'` en vez de `'gobCL'`
+(no existía en `ui-stitch` al momento de la conversión general de fuentes) — corregido.
+
+Verificado en local (servidor `python -m http.server`, bypass de login `IS_ADMIN=true;
+startDashboard()`): 0 errores de consola, las 12 asignaturas cargan (`DATA_RAW.maps[5].length`),
+el gráfico de barras "Socioemocional · Intermedio" renderiza con el divisor antes de "Valoración
+de la educación" tal como en el plan. Comparación de responsive contra `main` (versión oficial) al
+mismo ancho: a 1084px la oficial solapa "Tema Claro"/"Promedio SLEP" con el texto de las pestañas
+(bug real, rango 641-1280px); este rediseño no, los baja a su propia fila.
+
+Subido: `ui-stitch` pusheado a GitHub (commit `1bb5eed`) y copiado a `dashboard-dia-revision`
+(commit `7965739`, con título `[REVISIÓN]` + `noindex` repuestos) para que jefatura vea la versión
+actualizada. Pendiente su visto bueno para decidir si se adopta como oficial.
+
+Nota de troubleshooting: al probar en local con Claude in Chrome, dos servidores `http.server`
+compitiendo en el mismo puerto (uno viejo de otra sesión) sirvieron contenido desactualizado sin
+avisar error — y por separado, el navegador cacheó `datos.json` (17 MB, sin `Cache-Control`) entre
+navegaciones al mismo puerto, mostrando datos viejos pese a que el archivo en disco ya estaba
+actualizado. Si algo similar vuelve a pasar: verificar `netstat -ano | grep <puerto>` por servidores
+duplicados, y forzar hard-reload (Ctrl+Shift+R) o `fetch(..., {cache:'no-store'})` para descartar caché
+del navegador antes de sospechar de un bug real en el código.
 
 ## Pendientes
 - [ ] Revisar el rediseño en local (`python -m http.server` en esta carpeta, rama
@@ -167,6 +191,9 @@ esos cambios y volver a duplicar a `dashboard-dia-revision`. Sebastián avisa cu
 - [ ] Al filtrar solo 2026 (o un año) los deltas muestran `—`: no hay base 2025 en ese filtro.
       Igual comportamiento que la tabla de variación.
 - [ ] Sin filtro de año el KPI mezcla 2025 y 2026 y no lo dice; evaluar rotularlo.
-- [ ] Esperar comentarios / visto bueno de jefatura sobre la versión de revisión y aplicar cambios.
-- [ ] Al aprobarse: subir a `dashboard-dia` (commit + push a `main`) y borrar `dashboard-dia-revision`.
+- [ ] Esperar comentarios / visto bueno de jefatura sobre la versión de revisión actualizada
+      (ya incluye Socioemocional Intermedio) y aplicar cambios si piden algo.
+- [ ] Al aprobarse: mergear `ui-stitch` → `main` en este repo (esto también trae los datos de
+      `feature/socio-intermedio`, que aún no está en `main`) y borrar `dashboard-dia-revision`.
+- [ ] Replicar el rediseño en `dashboard-dia-ep`, `Proyecto_Asistencia` y `SLEP` una vez aprobado.
 - [ ] La jefatura necesita usuario/clave válidos para el login (mismo Apps Script).
