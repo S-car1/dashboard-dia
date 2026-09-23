@@ -79,6 +79,37 @@
     .btn-login:hover { filter: brightness(1.15); transform: translateY(-1px); }
     #login-error { color: var(--red); font-size: 0.8rem; margin-top: 1rem; display: none; font-weight: 600; }
 
+    /* MODAL DE AYUDA */
+    .help-btn {
+      width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border);
+      background: var(--surface-2); color: var(--text-muted); font-weight: 800; font-size: 0.85rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+      flex-shrink: 0;
+    }
+    .help-btn:hover { border-color: var(--brand); color: var(--brand); }
+    #help-overlay {
+      position: fixed; inset: 0; background: rgba(15,18,33,0.5); z-index: 6000;
+      display: none; align-items: center; justify-content: center; padding: 2rem;
+    }
+    #help-overlay.open { display: flex; }
+    .help-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+      padding: 1.8rem 2rem; width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto;
+      box-shadow: 0 12px 40px rgba(37,48,107,0.2);
+    }
+    body.dark-theme .help-card { box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+    .help-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+    .help-card-header h2 { font-size: 1.05rem; font-weight: 800; color: var(--brand); }
+    .help-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.5rem; line-height: 1; padding: 0.1rem 0.4rem; }
+    .help-close:hover { color: var(--text); }
+    .help-section { margin-bottom: 1.2rem; }
+    .help-section:last-child { margin-bottom: 0; }
+    .help-section h3 { font-size: 0.78rem; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+    .help-section p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 0.4rem; }
+    .help-section ul { padding-left: 1.1rem; margin: 0.3rem 0 0; }
+    .help-section li { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0.3rem; }
+    .help-section li b { color: var(--text); }
+
     /* DASHBOARD — ENCABEZADO (logo + filtros + pestañas en un solo bloque fijo) */
     .sticky-top-section { position: sticky; top: 0; z-index: 1000; background: var(--surface); border-bottom: 1px solid var(--border); transition: background 0.3s, border-color 0.3s; }
     /* Línea fina con los 6 colores del logo (detalle de marca, se puede quitar borrando esta regla) */
@@ -340,6 +371,7 @@
 
   <nav class="tabs-nav">
     <div class="theme-toggle-wrapper">
+      <button class="help-btn" onclick="abrirAyuda()" title="Ayuda">?</button>
       <span class="theme-toggle-label" id="theme-label-text">Tema Claro</span>
       <label class="switch">
         <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
@@ -1678,7 +1710,47 @@ document.querySelectorAll('.btn-toggle').forEach(btn => {
   };
 });
 
+function abrirAyuda() { document.getElementById('help-overlay').classList.add('open'); }
+function cerrarAyuda() { document.getElementById('help-overlay').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarAyuda(); });
+
 initData();
 </script>
+
+<div id="help-overlay" onclick="if (event.target === this) cerrarAyuda()">
+  <div class="help-card">
+    <div class="help-card-header">
+      <h2>Cómo usar este dashboard</h2>
+      <button class="help-close" onclick="cerrarAyuda()" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="help-section">
+      <h3>Filtros</h3>
+      <p>Año, Etapa, Nivel, Curso, Comuna y Unidad Educativa se pueden combinar y seleccionar varios valores a la vez. "Limpiar Filtros" los resetea todos. Los filtros activos aparecen como etiquetas bajo la barra — se pueden quitar una por una con clic.</p>
+    </div>
+    <div class="help-section">
+      <h3>Pestañas</h3>
+      <ul>
+        <li><b>Académico:</b> evolución de Lectura y Matemática, 2025 vs 2026.</li>
+        <li><b>Académico por Ejes:</b> mismo detalle pero desglosado por eje/habilidad.</li>
+        <li><b>1° Básico:</b> resultados de Lectura Inicial.</li>
+        <li><b>Convivencia y Socioemocional:</b> Diagnóstico e Intermedio se muestran por separado porque usan instrumentos distintos, no son comparables entre sí.</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h3>Gráficos</h3>
+      <ul>
+        <li>Pasar el mouse sobre un punto o barra muestra el valor exacto.</li>
+        <li>Doble clic sobre un ítem de la leyenda reactiva todas las series si alguna quedó oculta.</li>
+        <li>El ícono ↓ descarga el gráfico como imagen.</li>
+        <li>En las tablas de variación, clic en un encabezado de columna ordena por esa columna.</li>
+        <li>"Promedio SLEP" (arriba a la derecha) agrega una línea de comparación contra el SLEP completo al filtrar por un establecimiento.</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h3>Escalas de los gráficos</h3>
+      <p>Cuando un eje no parte en 0, es porque se ajustó al rango real de los datos para que se note mejor la variación — el valor exacto siempre está sobre el punto o la barra.</p>
+    </div>
+  </div>
+</div>
 </body>
 </html>
