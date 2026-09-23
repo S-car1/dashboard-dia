@@ -508,6 +508,10 @@
           <div class="chart-header">
             <div><div class="chart-title">Socioemocional<span>Perfil Integrado (2026 · Intermedio)</span></div></div>
           </div>
+          <p style="color: var(--text-muted); font-size: 0.8rem; margin: -0.5rem 0 0.75rem;">
+            En todas las barras, más alto = más favorable. En "Sin ansiedad ante evaluaciones" el % indica
+            estudiantes que NO presentan ansiedad (igual criterio que el informe de la Agencia).
+          </p>
           <div class="chart-wrap" style="min-height: 380px;"><div id="overlay-socio-int-radar" class="empty-state-container" style="display:none; position:absolute; inset:0; z-index:2;"><h3>Sin resultados en esta ronda</h3></div><canvas id="canvas-socio-int-radar"></canvas></div>
         </div>
       </div>
@@ -1064,7 +1068,15 @@ function updateBarrasCombinado(chart, resData, slepData, subjects) {
               combinedSlep.push(null);
           }
           Object.keys(dataObj).sort().forEach(eje => {
-              combinedLabels.push(subj === COBERTURA_PARCIAL ? [subj, '(solo IV° Medio)'] : [eje, `(${subj})`]);
+              // Ansiedad-Experiencia se rotula distinto: el % es de quienes NO sienten
+              // ansiedad (igual criterio que el informe de la Agencia), y "más alto = más
+              // favorable" se presta a leerse al revés si no se aclara.
+              const esAnsiedadExperiencia = subj === 'Ansiedad ante evaluaciones' && eje === 'Experiencia';
+              if (esAnsiedadExperiencia) {
+                  combinedLabels.push(['Sin ansiedad ante evaluaciones', '(% que NO la experimenta)']);
+              } else {
+                  combinedLabels.push(subj === COBERTURA_PARCIAL ? [subj, '(solo IV° Medio)'] : [eje, `(${subj})`]);
+              }
 
               let valEsc = null;
               if (dataObj[eje]['2026'] && dataObj[eje]['2026'][latestStageIdx][1] > 0) {
