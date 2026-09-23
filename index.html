@@ -506,7 +506,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
           <div class="chart-header">
-            <div><div class="chart-title">Socioemocional<span>Perfil Integrado (2026 · Intermedio)</span></div></div>
+            <div><div class="chart-title">Socioemocional<span id="socio-int-subtitle">Perfil Integrado (2026 · Intermedio)</span></div></div>
           </div>
           <p style="color: var(--text-muted); font-size: 0.8rem; margin: -0.5rem 0 0.75rem;">
             En todas las barras, más alto = más favorable. En "Sin ansiedad ante evaluaciones" el % indica
@@ -589,20 +589,62 @@ const SUBJECTS = [
   'Bienestar', 'Ansiedad ante evaluaciones', 'Convivencia digital', 'Valoración de la educación'
 ];
 
+// Las 4 asignaturas del Socioemocional Intermedio se ponderan por N de cuestionarios
+// (ver N_SOCIO / claveNSocio más abajo) -- todas las demás asignaturas pesan 1 por fila,
+// sin cambios.
+const ASIGNATURAS_SOCIO_PONDERADAS = ['Bienestar', 'Ansiedad ante evaluaciones', 'Convivencia digital', 'Valoración de la educación'];
+
 function crearActiveEjesVacio() {
   return Object.fromEntries(SUBJECTS.map(s => [s, new Set()]));
 }
 let activeEjes = crearActiveEjesVacio();
 let IS_ADMIN = false;
 let SESSION_RBD = null;
+// N de cuestionarios por "RBD|Nivel_fix" para ponderar el Socioemocional Intermedio (ver
+// PLAN_N_cuestionarios.md). null = no se pudo cargar o falta cobertura -> se usa promedio
+// simple, igual que antes de esto, sin mezclar filas ponderadas con filas sin N.
+let N_SOCIO = null;
+
+function claveNSocio(r) {
+  const rbdNum = DATA_RAW.maps[I.RBD][r[I.RBD]].split(' ')[0];
+  return rbdNum + '|' + DATA_RAW.maps[I.NIVEL][r[I.NIVEL]];
+}
 
 async function initData() {
   try {
     const res = await fetch('datos.json');
     DATA_RAW = await res.json();
+    await cargarNSocio();
     setupFiltersStable();
     initCharts();
   } catch (e) { console.error(e); }
+}
+
+// Carga n_socio_intermedio.json y valida que cubra TODAS las filas del Socioemocional
+// Intermedio antes de activar la ponderación -- si falta el archivo o falta la clave de
+// alguna fila, N_SOCIO queda en null y el dashboard sigue igual que hoy (promedio simple),
+// nunca mezcla filas ponderadas con filas sin N.
+async function cargarNSocio() {
+  try {
+    const res = await fetch('n_socio_intermedio.json');
+    const data = await res.json();
+    const faltantes = new Set();
+    DATA_RAW.rows.forEach(r => {
+      const asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]];
+      if (ASIGNATURAS_SOCIO_PONDERADAS.includes(asigV) && !(claveNSocio(r) in data.n)) {
+        faltantes.add(claveNSocio(r));
+      }
+    });
+    if (faltantes.size > 0) {
+      console.warn('n_socio_intermedio.json no cubre todas las filas, se usa promedio simple:', faltantes);
+      N_SOCIO = null;
+      return;
+    }
+    N_SOCIO = data;
+  } catch (e) {
+    console.warn('No se pudo cargar n_socio_intermedio.json, se usa promedio simple:', e);
+    N_SOCIO = null;
+  }
 }
 
 async function handleLogin() {
@@ -843,7 +885,8 @@ function updateImmediate() {
     kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() },
     evo: Object.fromEntries(SUBJECTS.map(s => [s, {}])),
     ejes: Object.fromEntries(SUBJECTS.map(s => [s, {}])),
-    cursos: {}
+    cursos: {},
+    nSocioClaves: new Set()  // RBD|grado únicos del Socioemocional Intermedio, para el subtítulo
   };
   const slep = {
     evo: Object.fromEntries(SUBJECTS.map(s => [s, {}])),
@@ -863,13 +906,18 @@ function updateImmediate() {
     const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]], etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]], asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]], p = r[I.PUNTAJE], stIdx = STAGES.indexOf(etapaV);
     if (stIdx === -1) return;
 
+    // Ponderación por N de cuestionarios (solo Socioemocional Intermedio, solo si N_SOCIO
+    // cargó y cubre todo -- ver cargarNSocio()). w=1 en cualquier otro caso deja el
+    // promedio simple de siempre, sin tocar el resto de asignaturas.
+    const wSocio = (N_SOCIO && ASIGNATURAS_SOCIO_PONDERADAS.includes(asigV)) ? N_SOCIO.n[claveNSocio(r)] : 1;
+
     if (!slep.evo[asigV][agnoV]) slep.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-    slep.evo[asigV][agnoV][stIdx][0] += p; slep.evo[asigV][agnoV][stIdx][1]++;
+    slep.evo[asigV][agnoV][stIdx][0] += p * wSocio; slep.evo[asigV][agnoV][stIdx][1] += wSocio;
     const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
     if (ejeV) {
       if (!slep.ejes[asigV][ejeV]) slep.ejes[asigV][ejeV] = {};
       if (!slep.ejes[asigV][ejeV][agnoV]) slep.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      slep.ejes[asigV][ejeV][agnoV][stIdx][0] += p; slep.ejes[asigV][ejeV][agnoV][stIdx][1]++;
+      slep.ejes[asigV][ejeV][agnoV][stIdx][0] += p * wSocio; slep.ejes[asigV][ejeV][agnoV][stIdx][1] += wSocio;
     }
     if (asigV === currentAsigFilter) {
       const nV = DATA_RAW.maps[I.NIVEL][r[I.NIVEL]];
@@ -885,16 +933,17 @@ function updateImmediate() {
       res.kpi.sum += p; res.kpi.count++; 
     }
     res.kpi.rbds.add(r[I.RBD]);
-    
+
     if (asigV === 'Lenguaje') { res.kpi.lSum += p; res.kpi.lC++; } else if (asigV === 'Matemática') { res.kpi.mSum += p; res.kpi.mC++; }
-    
+
     if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-    res.evo[asigV][agnoV][stIdx][0] += p; res.evo[asigV][agnoV][stIdx][1]++;
+    res.evo[asigV][agnoV][stIdx][0] += p * wSocio; res.evo[asigV][agnoV][stIdx][1] += wSocio;
     if (ejeV) {
       if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
       if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      res.ejes[asigV][ejeV][agnoV][stIdx][0] += p; res.ejes[asigV][ejeV][agnoV][stIdx][1]++;
+      res.ejes[asigV][ejeV][agnoV][stIdx][0] += p * wSocio; res.ejes[asigV][ejeV][agnoV][stIdx][1] += wSocio;
     }
+    if (ASIGNATURAS_SOCIO_PONDERADAS.includes(asigV)) res.nSocioClaves.add(claveNSocio(r));
     if (filters.rbd.length && asigV === currentAsigFilter) {
       const cV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
       if (!res.cursos[cV]) res.cursos[cV] = {};
@@ -958,6 +1007,18 @@ function updateImmediate() {
   // "Valoración de la educación" se integra como una barra mas (solo IV medio, 13 RBD,
   // a diferencia de las otras que son SLEP completo) -- updateBarrasCombinado la pinta
   // de otro color para dejar claro que no tiene la misma cobertura que el resto.
+  const subtituloSocioInt = document.getElementById('socio-int-subtitle');
+  if (subtituloSocioInt) {
+    // Suma el N de cada RBD|grado UNA sola vez (res.nSocioClaves ya está deduplicado) --
+    // sumar directo [1] de res.ejes contaría el mismo grado una vez por cada uno de sus
+    // 6-7 ejes.
+    const totalCuestionarios = N_SOCIO
+        ? Array.from(res.nSocioClaves).reduce((sum, clave) => sum + (N_SOCIO.n[clave] || 0), 0)
+        : 0;
+    subtituloSocioInt.innerText = N_SOCIO
+        ? `Perfil Integrado (2026 · Intermedio) · ${totalCuestionarios.toLocaleString('es-CL')} cuestionarios`
+        : 'Perfil Integrado (2026 · Intermedio) · promedio simple por grado';
+  }
   updateBarrasCombinado(
       charts['socio-int-radar'],
       { Bienestar: res.ejes.Bienestar, 'Ansiedad ante evaluaciones': res.ejes['Ansiedad ante evaluaciones'], 'Convivencia digital': res.ejes['Convivencia digital'], 'Valoración de la educación': res.ejes['Valoración de la educación'] },
