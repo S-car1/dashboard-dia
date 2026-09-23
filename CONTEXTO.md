@@ -216,7 +216,8 @@ merge) — no se repite aquí para no duplicar.
 - **Decisión confirmada por Sebastián**: se mantienen las comparaciones académicas
   Diagnóstico→Intermedio y 2025 vs 2026, aunque el informe 2026 (p.1) las desaconseja —
   sin cambios en el dashboard por este punto.
-- **Modal de ayuda**: ícono "?" junto al toggle de tema, commit `b2f2475`. Detalle del patrón
+- **Modal de ayuda**: ícono "?" en la esquina superior derecha del header (commit `b2f2475`,
+  reubicado en `56ac858` — quedaba apretado junto al toggle de tema). Detalle del patrón
   compartido en `UnificacionDashboards/CONTEXTO.md` (Pase 5).
 - **Seguridad revisada**: `DIA_Socioemocional.py` (tenía una API key de Gemini escrita) ya no
   existe en el proyecto; búsqueda de la key en toda la carpeta `Documents/Proyectos` = 0
