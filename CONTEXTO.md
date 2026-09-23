@@ -227,7 +227,8 @@ merge) — no se repite aquí para no duplicar.
   scope con `gh auth refresh -h github.com -s delete_repo` para que se pueda hacer desde acá.
 
 ## Pendientes
-- [ ] Push/merge de `feature/n-socio` a `main` — pendiente tu ok (ver sesión 2026-09-23 arriba).
+- [x] Push/merge de `feature/n-socio` a `main` — hecho (2026-09-23), merge commit `1c21703`,
+  en producción.
 - [ ] Borrar el repo `dashboard-dia-revision` (local + GitHub) — pendiente, ver nota arriba.
 - [x] Decidir si se sube a producción — sí, mergeado a `main` (`3562541`).
 - [ ] Probar en un teléfono/tablet físico y con Safari/Firefox (pruebas hechas solo en Edge).
