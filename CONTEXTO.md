@@ -184,7 +184,51 @@ incluido) está en producción en `https://s-car1.github.io/dashboard-dia/`. Det
 completo en el registro de memoria del proyecto `DIA_Intermedio` (sesión que hizo el
 merge) — no se repite aquí para no duplicar.
 
+## Sesión 2026-09-23: etiqueta Ansiedad + ponderación por N de cuestionarios
+- **Etiqueta de Ansiedad-Experiencia** (en producción, commit `ec3401c`): el eje se rotulaba
+  "Experiencia (Ansiedad ante evaluaciones)" con el % de quienes SÍ la sienten, pero el valor
+  real es el % que NO la siente (igual criterio que el informe de la Agencia) — se prestaba a
+  leerse al revés. Cambiado a "Sin ansiedad ante evaluaciones (% que NO la experimenta)" en
+  `updateBarrasCombinado()`, + nota bajo el título de la sección "Perfil Integrado (2026 ·
+  Intermedio)". Verificado en vivo (Chrome, bypass admin): sin errores de consola, texto legible.
+- **`PLAN_N_cuestionarios.md` ejecutado** (rama local `feature/n-socio`, commits `190a773` +
+  `581a69b`, **sin pushear — pendiente tu ok**): el Socioemocional Intermedio ya no pesa cada
+  fila (RBD×grado×eje) por igual; ahora pondera por N de cuestionarios de esa fila. Detalle:
+  - `n_socio_intermedio.json` (339 claves `RBD|Nivel_fix` → N), generado por
+    `generar_base_socio.py` (carpeta `Informes DIA Intermedio (Socioemocional)`, ahora también
+    escribe este archivo y lo valida contra las 1.878 filas del Excel: 0 huérfanas en ambos
+    sentidos). Archivo aparte de `datos.json` a propósito — `consolidar.py` no lo toca.
+  - `index.html`: `N_SOCIO` se carga en `initData()` y se valida contra TODAS las filas
+    Intermedio-Socio antes de activarse (`cargarNSocio()`); si falta el archivo o falta
+    cobertura, `N_SOCIO = null` y el dashboard se comporta exactamente igual que antes
+    (promedio simple, con un `console.warn`). El peso solo afecta a las 4 asignaturas del
+    Intermedio (`ASIGNATURAS_SOCIO_PONDERADAS`); nada más cambia. Subtítulo del gráfico:
+    total de cuestionarios (SLEP sin filtro = 12.050) o "promedio simple por grado" si
+    `N_SOCIO` es null.
+  - Verificado en local (`http.server`, `datos.json` real, 713.208 filas): SLEP sin filtros
+    calza 7/7 con la tabla "Ponderado" del plan; RBD 10542 (Bienestar-Contexto escolar,
+    71,74%) calza con cálculo independiente en Python; filtrar 1 solo grado da ponderado =
+    simple (95,37% = valor crudo); sin `n_socio_intermedio.json` cae a los valores "Simple"
+    de siempre + warn en consola; RBD sin datos (10588) sigue mostrando el overlay "Sin
+    resultados en esta ronda"; 0 errores de consola en todos los casos.
+  - Pendiente de una segunda etapa (decisión ya tomada en el plan, no se hizo ahora): tooltip
+    "n = X cuestionarios" por barra.
+- **Decisión confirmada por Sebastián**: se mantienen las comparaciones académicas
+  Diagnóstico→Intermedio y 2025 vs 2026, aunque el informe 2026 (p.1) las desaconseja —
+  sin cambios en el dashboard por este punto.
+- **Seguridad revisada**: `DIA_Socioemocional.py` (tenía una API key de Gemini escrita) ya no
+  existe en el proyecto; búsqueda de la key en toda la carpeta `Documents/Proyectos` = 0
+  resultados. Nada que revocar.
+- **`dashboard-dia-revision`** (repo público, ya no tiene función porque jefatura dio el visto
+  bueno sobre `main`): Sebastián pidió borrarlo. Carpeta local + repo GitHub siguen existiendo
+  — no se pudo borrar el repo remoto en esta sesión (el token de `gh` no tiene el scope
+  `delete_repo`, y Chrome no estaba loggeado en GitHub). Pendiente: Sebastián lo borra a mano
+  (github.com/S-car1/dashboard-dia-revision/settings, sección "Danger Zone") o autoriza el
+  scope con `gh auth refresh -h github.com -s delete_repo` para que se pueda hacer desde acá.
+
 ## Pendientes
+- [ ] Push/merge de `feature/n-socio` a `main` — pendiente tu ok (ver sesión 2026-09-23 arriba).
+- [ ] Borrar el repo `dashboard-dia-revision` (local + GitHub) — pendiente, ver nota arriba.
 - [x] Decidir si se sube a producción — sí, mergeado a `main` (`3562541`).
 - [ ] Probar en un teléfono/tablet físico y con Safari/Firefox (pruebas hechas solo en Edge).
 - [ ] La rama `isEjes = true` de `renderVariationsTable` (tabla con múltiples
