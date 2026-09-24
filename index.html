@@ -135,7 +135,7 @@
     /* BARRA DE NAVEGACIÓN Y MENÚS */
     .tabs-nav { position: relative; background: var(--surface); padding: 0 2rem; display: flex; justify-content: center; gap: 2.5rem; border-top: 1px solid var(--border); transition: background 0.3s, border-color 0.3s; }
     .tabs-scroll { display: flex; gap: 2.2rem; }
-    .tab-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.9rem; font-weight: 700; padding: 0.95rem 0; cursor: pointer; position: relative; transition: 0.2s; white-space: nowrap; }
+    .tab-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.9rem; font-weight: 700; padding: 0.85rem 0; cursor: pointer; position: relative; transition: 0.2s; white-space: nowrap; }
     .tab-btn svg { width: 17px; height: 17px; flex: none; }
     .tab-btn:hover { color: var(--text); }
     .tab-btn.active { color: var(--brand); }
@@ -793,6 +793,10 @@ function applyThemeToCharts() {
 function startDashboard() {
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('navbar').style.display = 'block';
+  // Header (franja de colores + logo/título) se va con el scroll; filtros y pestañas quedan fijos.
+  // top negativo = alto del header; se recalcula si cambia (resize, chips de filtros activos).
+  const navbarEl = document.getElementById('navbar'), headerEl = navbarEl.querySelector('.header');
+  new ResizeObserver(() => { navbarEl.style.top = -(Math.ceil(headerEl.getBoundingClientRect().height) + 3) + 'px'; }).observe(headerEl);
   document.getElementById('dashboard').style.display = 'block';
 
   if (!IS_ADMIN && SESSION_RBD) {

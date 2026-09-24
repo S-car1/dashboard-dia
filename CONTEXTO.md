@@ -14,6 +14,9 @@ con ícono en el header (23-sep). El detalle de cada uno está más abajo en est
 y en `UnificacionDashboards/CONTEXTO.md` (Pases 4 y 5). Suelto sin trackear:
 `datos.json.bak_20260922_135015` (respaldo previo al merge del Intermedio).
 
+### Header compacto (2026-09-24)
+Replica el Pase 6 de `Proyecto_Asistencia`: franja de colores + logo/título salen con el scroll (`ResizeObserver` en `startDashboard()` fija `top` negativo en `#navbar`); filtros y pestañas quedan fijos. Pestañas con padding 0.85rem. Parte fija a 1366x768: de 190px (25%) a ~115px (15%).
+
 ### Vista de colegio sin etiqueta (2026-09-24, sin commitear)
 Al entrar con un RBD se quitó la etiqueta "UNIDAD EDUCATIVA:" del recuadro fijo (`#static-rbd-container`): queda solo el nombre, el recuadro crece (flex 5) y el nombre completo va en tooltip. Replica lo hecho en `Proyecto_Asistencia` (adc1b6b). `SLEP` no aplica (no tiene login por RBD).
 
