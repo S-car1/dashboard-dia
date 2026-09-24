@@ -6,7 +6,18 @@ Pino: archivo único `index.html` (Chart.js + chartjs-plugin-datalabels + tom-se
 consume `datos.json` local. Login contra un endpoint de Apps Script compartido con
 Proyecto_Asistencia.
 
-## Último estado (actualizado: 2026-08-29)
+## Último estado (actualizado: 2026-09-23)
+Al día con `main` (origin/main, `df1de42`): rediseño Kit Digital SLEP (22-sep),
+Socioemocional Intermedio 2026 con 1.878 filas / 70 RBD (`c393929`), ponderación por
+N de cuestionarios (`n_socio_intermedio.json`, merge feature/n-socio) y modal de ayuda
+con ícono en el header (23-sep). El detalle de cada uno está más abajo en este archivo
+y en `UnificacionDashboards/CONTEXTO.md` (Pases 4 y 5). Suelto sin trackear:
+`datos.json.bak_20260922_135015` (respaldo previo al merge del Intermedio).
+
+### Cambio local sin commitear (2026-09-24)
+Toggle de tema con ícono dentro de la perilla (☀ claro / ☾ oscuro) en vez del texto "Tema Claro/Oscuro", replicado de `Proyecto_Asistencia`. CSS puro escopado a `.theme-switch` para no afectar el toggle "Promedio SLEP" (que comparte la clase `.switch`); el JS de `toggleTheme()` no cambió (el texto sigue escribiéndose en `#theme-label-text`, oculto con `display:none`). Verificado en local, ambos temas.
+
+### Anterior (2026-08-29)
 Pase de auditoría/prototipo local sobre 7 puntos de calidad de front-end (encoding,
 colisiones de variables globales, reset de leyendas, debounce, tabla ordenable,
 tooltips/datalabels, recálculo de promedios). Este repo es la implementación de

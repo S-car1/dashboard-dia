@@ -155,6 +155,13 @@
     input:checked + .slider { background-color: var(--brand-soft); border-color: var(--brand); }
     input:checked + .slider:before { transform: translateX(20px); background-color: var(--brand); }
 
+    /* Tema como ícono dentro del toggle: la perilla muestra ☀ (claro) o ☾ (oscuro).
+       Se escopa a .theme-switch para no tocar el toggle "Promedio SLEP" (que usa .switch igual).
+       El JS sigue escribiendo "Tema Claro/Oscuro" en #theme-label-text, pero queda oculto. */
+    .theme-toggle-label { display: none; }
+    .theme-switch .slider:before { content: '\2600\FE0E'; height: 18px; width: 18px; left: 2px; bottom: 2px; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; color: var(--surface); }
+    .theme-switch input:checked + .slider:before { content: '\263E\FE0E'; }
+
     .main { max-width: 1560px; margin: 0 auto; padding: 1.5rem 2rem 3rem 2rem; display: flex; flex-direction: column; gap: 1.5rem; }
 
     /* FILTROS (tom-select): campo enmarcado; la etiqueta (data-label) queda dentro y se oculta al enfocar */
@@ -373,7 +380,7 @@
   <nav class="tabs-nav">
     <div class="theme-toggle-wrapper">
       <span class="theme-toggle-label" id="theme-label-text">Tema Claro</span>
-      <label class="switch">
+      <label class="switch theme-switch" title="Cambiar tema">
         <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
         <span class="slider round"></span>
       </label>
