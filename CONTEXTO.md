@@ -14,8 +14,11 @@ con ícono en el header (23-sep). El detalle de cada uno está más abajo en est
 y en `UnificacionDashboards/CONTEXTO.md` (Pases 4 y 5). Suelto sin trackear:
 `datos.json.bak_20260922_135015` (respaldo previo al merge del Intermedio).
 
-### Cambio local sin commitear (2026-09-24)
-Toggle de tema con ícono dentro de la perilla (☀ claro / ☾ oscuro) en vez del texto "Tema Claro/Oscuro", replicado de `Proyecto_Asistencia`. CSS puro escopado a `.theme-switch` para no afectar el toggle "Promedio SLEP" (que comparte la clase `.switch`); el JS de `toggleTheme()` no cambió (el texto sigue escribiéndose en `#theme-label-text`, oculto con `display:none`). Verificado en local, ambos temas.
+### Vista de colegio sin etiqueta (2026-09-24, sin commitear)
+Al entrar con un RBD se quitó la etiqueta "UNIDAD EDUCATIVA:" del recuadro fijo (`#static-rbd-container`): queda solo el nombre, el recuadro crece (flex 5) y el nombre completo va en tooltip. Replica lo hecho en `Proyecto_Asistencia` (adc1b6b). `SLEP` no aplica (no tiene login por RBD).
+
+### Toggle de tema con ☀/☾ (2026-09-24, commits cfa6e09 y f0bf44f, pusheados)
+Toggle de tema con ☀ y ☾ siempre visibles a los lados del switch (la perilla marca el activo; un ícono único dentro de la perilla se probó y se descartó por poco claro) en vez del texto "Tema Claro/Oscuro", replicado de `Proyecto_Asistencia`. CSS puro escopado a `.theme-switch` para no afectar el toggle "Promedio SLEP" (que comparte la clase `.switch`); el JS de `toggleTheme()` no cambió (el texto sigue escribiéndose en `#theme-label-text`, oculto con `display:none`). Verificado en local, ambos temas.
 
 ### Anterior (2026-08-29)
 Pase de auditoría/prototipo local sobre 7 puntos de calidad de front-end (encoding,
