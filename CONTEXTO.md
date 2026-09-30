@@ -6,14 +6,17 @@ Pino: archivo único `index.html` (Chart.js + chartjs-plugin-datalabels + tom-se
 consume `datos.json` local. Login contra un endpoint de Apps Script compartido con
 Proyecto_Asistencia.
 
-## Último estado (actualizado: 2026-09-23)
+## Último estado (actualizado: 2026-09-30)
+- 2026-09-30: nombre unificado a "Visor": "Visor de datos" en título/header, "Visor" en el modal de ayuda ("Cómo usar este visor"). Ayuda actualizada (KPI con delta pp, filtro Etapa deshabilitado en Socioemocional, ponderación por N de cuestionarios, "Ver detalle" del radar 1° Básico). Solo texto visible; IDs/funciones internas (`#dashboard`, `startDashboard()`) y nombres de repo no se tocaron.
+
+### Estado previo (2026-09-23)
 Al día con `main` (origin/main, `df1de42`): rediseño Kit Digital SLEP (22-sep),
 Socioemocional Intermedio 2026 con 1.878 filas / 70 RBD (`c393929`), ponderación por
 N de cuestionarios (`n_socio_intermedio.json`, merge feature/n-socio) y modal de ayuda
 con ícono en el header (23-sep). El detalle de cada uno está más abajo en este archivo
 y en `UnificacionDashboards/CONTEXTO.md` (Pases 4 y 5). Suelto sin trackear:
 `datos.json.bak_20260922_135015` (respaldo previo al merge del Intermedio).
-
+
 ### Header compacto (2026-09-24)
 Replica el Pase 6 de `Proyecto_Asistencia`: franja de colores + logo/título salen con el scroll (`ResizeObserver` en `startDashboard()` fija `top` negativo en `#navbar`); filtros y pestañas quedan fijos. Pestañas con padding 0.85rem. Parte fija a 1366x768: de 190px (25%) a ~115px (15%).
 

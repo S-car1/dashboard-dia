@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard DIA · SLEP Del Pino</title>
+  <title>Visor de datos DIA · SLEP Del Pino</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
   
   <!-- Tipografía oficial del Kit Digital SLEP (gobCL), servida desde /fonts -->
@@ -355,7 +355,7 @@
     <div class="header-info">
       <img class="header-logo logo-light" src="logo3.png" alt="Logo SLEP Del Pino"><img class="header-logo logo-dark" src="logo-blanco.png" alt="Logo SLEP Del Pino">    
       <div>
-        <div class="header-title">Dashboard resultados DIA</div>
+        <div class="header-title">Visor de datos resultados DIA</div>
         <div class="header-sub">SLEP Del Pino</div>
       </div>
     </div>
@@ -1736,7 +1736,7 @@ initData();
 <div id="help-overlay" onclick="if (event.target === this) cerrarAyuda()">
   <div class="help-card">
     <div class="help-card-header">
-      <h2>Cómo usar este dashboard</h2>
+      <h2>Cómo usar este visor</h2>
       <button class="help-close" onclick="cerrarAyuda()" aria-label="Cerrar">&times;</button>
     </div>
     <div class="help-section">
@@ -1748,9 +1748,17 @@ initData();
       <ul>
         <li><b>Académico:</b> evolución de Lectura y Matemática, 2025 vs 2026.</li>
         <li><b>Académico por Ejes:</b> mismo detalle pero desglosado por eje/habilidad.</li>
-        <li><b>1° Básico:</b> resultados de Lectura Inicial.</li>
-        <li><b>Convivencia y Socioemocional:</b> Diagnóstico e Intermedio se muestran por separado porque usan instrumentos distintos, no son comparables entre sí.</li>
+        <li><b>1° Básico:</b> resultados de Lectura Inicial. En el radar del Intermedio, "Ver detalle" separa las habilidades agrupadas (sílabas, sonidos, vocales, consonantes) y "Ver agrupado" vuelve a la vista resumida.</li>
+        <li><b>Convivencia y Socioemocional:</b> "Socioemocional" muestra Diagnóstico e Intermedio lado a lado; "Convivencia" solo tiene Diagnóstico. Son instrumentos distintos, no son comparables entre sí. En esta pestaña el filtro Etapa se desactiva.</li>
       </ul>
+    </div>
+    <div class="help-section">
+      <h3>Indicadores (KPI)</h3>
+      <p>Bajo cada promedio aparece la variación en puntos porcentuales (pp) de 2026 vs 2025, calculada en la última etapa que tiene datos en ambos años (se indica cuál). Muestra "—" si hay muy pocos datos o si el filtro no incluye ambos años.</p>
+    </div>
+    <div class="help-section">
+      <h3>Socioemocional Intermedio</h3>
+      <p>Los promedios se ponderan por el número de cuestionarios de cada curso, así los cursos con más respuestas pesan más. Bajo el título del gráfico se indica el total de cuestionarios considerados.</p>
     </div>
     <div class="help-section">
       <h3>Gráficos</h3>
