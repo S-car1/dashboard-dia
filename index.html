@@ -480,6 +480,29 @@
     .vistas-enlace:hover { background: var(--brand-soft); border-color: var(--brand); }
     .vistas-nota { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4; }
 
+    /* Recorrido de bienvenida */
+    #tour-overlay { position: fixed; inset: 0; z-index: 8000; display: none; }
+    #tour-overlay.activo { display: block; }
+    #tour-spot { position: fixed; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(15,18,33,0.62), 0 0 0 2px var(--brand); pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    #tour-pop { position: fixed; width: min(340px, calc(100vw - 20px)); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.1rem; box-shadow: 0 16px 40px rgba(0,0,0,0.35); transition: top 0.3s, left 0.3s; }
+    .tour-paso { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+    .tour-titulo { font-size: 0.95rem; font-weight: 800; color: var(--brand); margin: 0.2rem 0 0.3rem; }
+    .tour-texto { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0.8rem; }
+    .tour-pie { display: flex; align-items: center; gap: 0.5rem; }
+    .tour-puntos { flex: 1; display: flex; gap: 4px; }
+    .tour-puntos i { width: 6px; height: 6px; border-radius: 50%; background: var(--border-2); }
+    .tour-puntos i.on { background: var(--brand); }
+    .tour-btn { border: 1px solid var(--border); background: transparent; color: var(--text-muted); border-radius: 8px; padding: 0.4rem 0.8rem; font-family: var(--font); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+    .tour-btn:hover { color: var(--brand); border-color: var(--brand); }
+    .tour-btn.primario { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
+    .tour-omitir { background: none; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.72rem; text-decoration: underline; cursor: pointer; padding: 0 0.2rem; }
+    .btn-recorrido { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--brand-soft); color: var(--brand); border: 1px solid var(--brand); border-radius: 999px; padding: 0.3rem 0.8rem; font-family: var(--font); font-size: 0.74rem; font-weight: 800; cursor: pointer; margin-left: auto; margin-right: 0.6rem; }
+    .btn-recorrido:hover { background: var(--brand); color: var(--on-brand); }
+    .btn-recorrido svg { width: 12px; height: 12px; }
+
+    /* Durante el cambio de tema no hay transiciones: todo (fondos, menús y gráficos) cambia en el mismo instante */
+    html.sin-transiciones *, html.sin-transiciones *::before, html.sin-transiciones *::after { transition: none !important; }
+
     /* Aviso breve */
     #toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translate(-50%, 20px); background: var(--brand); color: var(--on-brand); padding: 0.6rem 1.1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,0.25); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 9000; max-width: calc(100vw - 2rem); text-align: center; }
     #toast.visible { opacity: 1; transform: translate(-50%, 0); }
@@ -1143,6 +1166,8 @@ function registrarAcceso(usuario) {
 }
 
 function toggleTheme() {
+  document.documentElement.classList.add('sin-transiciones');
+  const antes = { leng: cssVar('--leng'), mate: cssVar('--mate') };
   const checkbox = document.getElementById('theme-toggle');
   const labelText = document.getElementById('theme-label-text');
   
@@ -1155,14 +1180,23 @@ function toggleTheme() {
     labelText.innerText = 'Tema Claro';
     labelText.style.color = 'var(--text-muted)';
   }
-  // El tema cambia al instante (CSS); el repintado de gráficos va después, con la barra superior,
-  // para que la pantalla no parezca congelada (recalcular el visor general toma ~1 s).
-  const enPV = document.body.classList.contains('modo-pv');
-  if (enPV) window.__temaGeneralPendiente = true;   // se repinta el general al volver a él
-  requestAnimationFrame(() => setTimeout(() => {
-    if (!enPV) { applyThemeToCharts(); conCarga('dashboard', updateImmediate, 'no'); }  // las series de evolución toman su color según el tema
-    else if (window.PV) PV.repintar();
-  }, 0));
+  // Todo en el mismo cuadro y sin recalcular datos: los gráficos solo cambian de color
+  recolorSeriesTema(antes);
+  applyThemeToCharts();
+  if (window.PV) PV.repintar();
+  requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.remove('sin-transiciones')));
+}
+
+// Las series de evolución (Lectura/Matemática) usan --leng/--mate, que cambian con el tema: se recolorean
+// sustituyendo el color anterior por el nuevo (conservando el sufijo de transparencia), sin recalcular datos.
+function recolorSeriesTema(antes) {
+  const nuevo = { leng: cssVar('--leng'), mate: cssVar('--mate') };
+  [['leng-evo', 'leng'], ['mate-evo', 'mate']].forEach(([id, k]) => {
+    const ch = charts[id]; if (!ch || antes[k] === nuevo[k]) return;
+    ch.data.datasets.forEach(ds => ['borderColor', 'backgroundColor', 'pointBorderColor', 'pointBackgroundColor'].forEach(p => {
+      if (typeof ds[p] === 'string' && ds[p].toLowerCase().startsWith(antes[k].toLowerCase())) ds[p] = nuevo[k] + ds[p].slice(antes[k].length);
+    }));
+  });
 }
 
 function applyThemeToCharts() {
@@ -1190,7 +1224,7 @@ function applyThemeToCharts() {
     if (chart.options.plugins.datalabels) {
       chart.options.plugins.datalabels.color = textColor;
     }
-    chart.update();
+    chart.update('none');
   });
 }
 
@@ -2043,15 +2077,22 @@ function initCharts() {
         legend: { display: showLegend, position: 'bottom', onClick: makeLegendOnClick(), labels: { usePointStyle: true, color: textColor, filter: (it) => !it.text.includes('Umbral') && !(it.text.includes('SLEP')) } },
         tooltip: { callbacks: { label: (ctx) => { let l = ctx.dataset.label || ''; if(l.includes('Umbral')) return null; return l + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%'; } } },
         datalabels: {
-          display: function(context) {
+          // 'auto' oculta solo las etiquetas que se pisarían entre sí (el valor exacto sigue en el tooltip).
+                    display: function(context) {
             const label = context.dataset.label || '';
             if (label.includes('Umbral')) return false;
             const v = context.dataset.data[context.dataIndex];
-            return v !== null && v !== undefined;
+            return (v !== null && v !== undefined) ? 'auto' : false;
           },
-          align: 'top',
-          anchor: 'end',
-          offset: 4,
+          align: function(context) {
+            // En cada punto, la serie más alta escribe su número arriba y las demás abajo (así 2025 y 2026 no se pisan, estén como estén)
+            const v = context.dataset.data[context.dataIndex], ds = context.chart.data.datasets;
+            const otros = ds.filter((d, k) => d !== context.dataset && context.chart.isDatasetVisible(k) && !(d.label || '').includes('Umbral') && !(d.label || '').includes('SLEP') && d.data[context.dataIndex] != null);
+            return otros.every(d => v >= d.data[context.dataIndex]) ? 'top' : 'bottom';
+          },
+          anchor: 'center',
+          clamp: true,
+          offset: 6,
           color: textColor,
           font: { weight: 'bold', size: 9, family: "'gobCL', sans-serif" },
           formatter: function(value) { return (value * 100).toFixed(1) + '%'; }
@@ -2169,11 +2210,82 @@ document.querySelectorAll('.btn-toggle').forEach(btn => {
   };
 });
 
-function abrirAyuda() { document.getElementById('help-overlay').classList.add('open'); }
+function abrirAyuda() {
+  let visto = false; try { visto = localStorage.getItem('dia_tour_visto_v1') === '1'; } catch (e) {}
+  if (!visto && typeof Recorrido !== 'undefined') { Recorrido.iniciar({ omitirAbreAyuda: true }); return; }   // primer clic en "?": recorrido (se puede omitir)
+  document.getElementById('help-overlay').classList.add('open');
+}
 function cerrarAyuda() { document.getElementById('help-overlay').classList.remove('open'); }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarAyuda(); });
 
 initData();
+</script>
+
+<div id="tour-overlay" role="dialog" aria-modal="true" aria-label="Recorrido de bienvenida"><div id="tour-spot"></div><div id="tour-pop"></div></div>
+
+<script>
+/* ===== RECORRIDO DE BIENVENIDA =====
+   Se ofrece la primera vez que alguien presiona "?" (siempre se puede omitir) y queda disponible en el botón "Ver recorrido" de la ayuda.
+   Los pasos se arman según el visor activo (general o Parvularia) y se saltan los controles que no se ven. */
+const Recorrido = (function () {
+  const $ = id => document.getElementById(id);
+  const visible = el => el && el.getClientRects().length > 0;
+  let pasos = [], i = 0, opts = {};
+
+  function armar() {
+    const pv = document.body.classList.contains('modo-pv');
+    const L = [
+      { q: pv ? '#pv-filtros' : '#gen-filtros', t: 'Filtros', x: pv ? 'Combina período, nivel, curso, ámbito, núcleo, O.A. y establecimiento. Puedes elegir varios valores a la vez.' : 'Combina año, etapa, nivel, curso, comuna y establecimiento. Puedes elegir varios valores a la vez; los resultados se actualizan solos.' },
+      { q: pv ? '#vistas-pv' : '#vistas-gen', t: 'Mis vistas', x: 'Guarda tus filtros favoritos con un nombre para volver a ellos con un clic, o copia un enlace a la vista actual.' },
+      { q: pv ? '#pv-tabs' : '#gen-tabs', t: 'Pestañas', x: pv ? 'Visión General resume logro, riesgo y distribución; Análisis Detallado muestra el mapa de calor y las rúbricas más débiles.' : 'Cada pestaña muestra un tipo de resultado: académico, por ejes, 1° básico y convivencia/socioemocional.' },
+      { q: '.slep-toggle-wrapper', t: 'Promedio SLEP', x: 'Actívalo para comparar tu selección con el promedio de todo el SLEP.' },
+      { q: '.theme-toggle-wrapper', t: 'Tema claro u oscuro', x: 'Cambia la apariencia del visor según tu comodidad.' },
+      { q: '#modo-selector', t: 'DIA general | DIA Parvularia', x: 'Cambia entre el visor general y el de Parvularia (NT1 y NT2).' },
+      { q: '.help-btn', t: 'Ayuda', x: 'Aquí puedes volver a abrir la ayuda y repetir este recorrido cuando quieras.' }
+    ];
+    return L.map(p => Object.assign(p, { nodo: document.querySelector(p.q) })).filter(p => visible(p.nodo));
+  }
+
+  function mostrar() {
+    const p = pasos[i], r = p.nodo.getBoundingClientRect(), pad = 6, spot = $('tour-spot'), pop = $('tour-pop');
+    Object.assign(spot.style, { top: (r.top - pad) + 'px', left: (r.left - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' });
+    pop.innerHTML = `<div class="tour-paso">Paso ${i + 1} de ${pasos.length}</div><div class="tour-titulo">${p.t}</div><div class="tour-texto">${p.x}</div>
+      <div class="tour-pie"><div class="tour-puntos">${pasos.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>
+      <button class="tour-omitir" type="button" data-a="omitir">Omitir</button>
+      ${i > 0 ? '<button class="tour-btn" type="button" data-a="ant">Anterior</button>' : ''}
+      <button class="tour-btn primario" type="button" data-a="sig">${i === pasos.length - 1 ? 'Finalizar' : 'Siguiente'}</button></div>`;
+    const w = pop.offsetWidth, h = pop.offsetHeight;
+    let top = r.bottom + pad + 12; if (top + h > innerHeight - 10) top = Math.max(10, r.top - pad - 12 - h);
+    pop.style.top = top + 'px'; pop.style.left = Math.min(Math.max(10, r.left + r.width / 2 - w / 2), innerWidth - w - 10) + 'px';
+    pop.querySelectorAll('[data-a]').forEach(b => b.onclick = () => ({ omitir: () => cerrar(true), ant: () => { i--; mostrar(); }, sig: () => { if (i === pasos.length - 1) cerrar(false); else { i++; mostrar(); } } })[b.dataset.a]());
+    const sig = pop.querySelector('[data-a="sig"]'); if (sig) sig.focus();
+  }
+
+  function cerrar(omitido) {
+    $('tour-overlay').classList.remove('activo');
+    document.removeEventListener('keydown', teclas); window.removeEventListener('resize', reubicar);
+    if (omitido && opts.omitirAbreAyuda) $('help-overlay').classList.add('open');
+  }
+  const reubicar = () => { if ($('tour-overlay').classList.contains('activo') && pasos[i]) mostrar(); };
+  function teclas(e) {
+    if (e.key === 'Escape') { e.stopImmediatePropagation(); cerrar(true); }
+    else if (e.key === 'ArrowRight') { if (i < pasos.length - 1) { i++; mostrar(); } }
+    else if (e.key === 'ArrowLeft') { if (i > 0) { i--; mostrar(); } }
+  }
+
+  function iniciar(o) {
+    opts = o || {};
+    try { localStorage.setItem('dia_tour_visto_v1', '1'); } catch (e) {}
+    const cc = $('coach'); if (cc) cc.classList.remove('visible');
+    window.scrollTo(0, 0);
+    pasos = armar(); i = 0;
+    if (!pasos.length) { if (opts.omitirAbreAyuda) $('help-overlay').classList.add('open'); return; }
+    $('tour-overlay').classList.add('activo');
+    document.addEventListener('keydown', teclas, true); window.addEventListener('resize', reubicar);
+    mostrar();
+  }
+  return { iniciar };
+})();
 </script>
 
 <script>
@@ -2307,6 +2419,7 @@ window.PV = (function () {
 
   let D = null, ts = {}, pvCharts = {};
   let iniciado = false, disponible = false, activo = false, animando = false;
+  let sinAnimar = false;
   let slep = false, tabActual = 'pv-tab-general', verTodas = false, rubData = {}, pvPrimera = true;
   let orden = { key: 'nombre', dir: 1 };
 
@@ -2558,6 +2671,7 @@ window.PV = (function () {
   function nuevo(boxId, alto, cfg) {
     limpiar(boxId);
     const b = $(boxId); b.style.height = alto + 'px'; b.innerHTML = '<canvas></canvas>';
+    if (sinAnimar) cfg.options.animation = false;
     pvCharts[boxId] = new Chart(b.firstChild, cfg);
   }
   const palette = () => [cv('--c-noev'), cv('--c-com'), cv('--c-des'), cv('--c-con'), cv('--c-pro')];
@@ -2748,7 +2862,6 @@ window.PV = (function () {
     if (haciaPV) { marcarVisto(); render(); }
     else {
       try { Object.values(charts_general()).forEach(c => c.resize()); } catch (e) {}
-      if (window.__temaGeneralPendiente) { window.__temaGeneralPendiente = false; applyThemeToCharts(); conCarga('dashboard', updateImmediate, 'no'); }
     }
   }
   const charts_general = () => (typeof charts !== 'undefined' ? charts : {});  // `charts` global de la página general
@@ -2777,7 +2890,7 @@ window.PV = (function () {
 
   return {
     init, ir, showTab, descargar, cerrarCoach, disponible: () => disponible,
-    repintar: () => { if (activo) conCarga('pv-dashboard', renderInterno, 'no'); },
+    repintar: () => { if (!D) return; sinAnimar = true; try { if (activo) renderInterno(); } finally { sinAnimar = false; } },
     setSlep: on => { slep = on; render(); },
     toggleRubricas: () => { verTodas = !verTodas; graficoRubricas(); },
     ordenar: k => { orden = { key: k, dir: orden.key === k ? -orden.dir : (k === 'nombre' || k === 'debil' ? 1 : -1) }; render(); },
@@ -2790,11 +2903,12 @@ window.PV = (function () {
   <div class="help-card">
     <div class="help-card-header">
       <h2>Cómo usar este visor</h2>
+      <button class="btn-recorrido" type="button" onclick="cerrarAyuda(); Recorrido.iniciar()"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21"/></svg>Ver recorrido</button>
       <button class="help-close" onclick="cerrarAyuda()" aria-label="Cerrar">&times;</button>
     </div>
     <div class="help-section">
       <h3>Selector de visor, Mis vistas y enlace</h3>
-      <p>Si tu establecimiento tiene resultados de Parvularia, arriba aparece el selector <b>DIA general | DIA Parvularia</b>. En "Mis vistas" (junto a "Limpiar Filtros") puedes guardar tus filtros favoritos con un nombre y volver a ellos con un clic; se guardan en este navegador. "Copiar enlace" genera un enlace a la vista actual: quien lo abra debe ingresar igualmente con su usuario y contraseña.</p>
+      <p>Si tu establecimiento tiene resultados de Parvularia, arriba aparece el selector <b>DIA general | DIA Parvularia</b>. El interruptor ☀/☾ (arriba a la izquierda) cambia entre tema claro y oscuro, y "Ver recorrido" (arriba, en esta ventana) repasa los controles principales. En "Mis vistas" (junto a "Limpiar Filtros") puedes guardar tus filtros favoritos con un nombre y volver a ellos con un clic; se guardan en este navegador. "Copiar enlace" genera un enlace a la vista actual: quien lo abra debe ingresar igualmente con su usuario y contraseña.</p>
     </div>
     <div id="help-pv" class="pv-help">
       <div class="help-section">
