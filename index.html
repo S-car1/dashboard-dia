@@ -325,6 +325,74 @@
       .kpi-val { font-size: 1.5rem; }
       .var-table th, .var-table td { padding-left: 0.6rem; padding-right: 0.6rem; }
     }
+
+    /* ===== MÓDULO PARVULARIA (se muestra al "dar vuelta" la página con el botón del encabezado) ===== */
+    :root { --c-noev: #9ca3af; --c-com: #ef4444; --c-des: #f59e0b; --c-con: #84cc16; --c-pro: #22c55e; }
+
+    /* Botón de giro (encabezado) */
+    .btn-flip { float: right; margin-right: 0.8rem; display: none; align-items: center; gap: 0.45rem; height: 28px; padding: 0 0.85rem; border-radius: 999px; border: 1.5px solid var(--brand); background: var(--brand-soft); color: var(--brand); font-family: var(--font); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.03em; cursor: pointer; transition: 0.2s; }
+    .btn-flip.visible { display: inline-flex; }
+    .btn-flip:hover { background: var(--brand); color: var(--on-brand); }
+    .btn-flip svg { width: 15px; height: 15px; flex: none; }
+
+    /* Qué se ve en cada modo */
+    #pv-filtros, #pv-active-filters-tray, #pv-tabs, #pv-dashboard, .pv-only { display: none; }
+    body.modo-pv #gen-filtros, body.modo-pv #active-filters-tray, body.modo-pv #gen-tabs, body.modo-pv #dashboard, body.modo-pv .gen-only { display: none !important; }
+    body.modo-pv #pv-filtros { display: flex; }
+    body.modo-pv #pv-active-filters-tray { display: block; }
+    body.modo-pv #pv-tabs { display: flex; }
+    body.modo-pv #pv-dashboard { display: flex; }
+    body.modo-pv .pv-only { display: inline; }
+
+    /* Pestañas de Parvularia (mismo aspecto que .tab-btn) */
+    .pv-tab-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: none; color: var(--text-muted); font-family: var(--font); font-size: 0.9rem; font-weight: 700; padding: 0.85rem 0; cursor: pointer; position: relative; transition: 0.2s; white-space: nowrap; }
+    .pv-tab-btn svg { width: 17px; height: 17px; flex: none; }
+    .pv-tab-btn:hover { color: var(--text); }
+    .pv-tab-btn.active { color: var(--brand); }
+    .pv-tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--brand); }
+    #pv-filtros .ts-dropdown { min-width: 230px; }
+
+    /* Tarjetas KPI de Parvularia: línea de comparación bajo el número */
+    .kpi-sublabel { font-size: 0.55rem; color: var(--text-muted); text-transform: none; display: block; margin-top: 2px; letter-spacing: 0; font-weight: 400; }
+    .kpi-compare { font-size: 0.72rem; font-weight: 700; margin-top: 4px; display: block; color: var(--text-muted); }
+    .pv-nota { font-size: 0.68rem; color: var(--text-muted); margin: -0.9rem 0 1.3rem; }
+    .pv-nota-uso { max-width: 1100px; margin: 2rem auto 1rem; padding: 0 2rem; font-size: 0.68rem; color: var(--text-muted); opacity: 0.75; text-align: center; }
+    .pv-hdr-actions { display: flex; gap: 0.5rem; align-items: center; }
+    .btn-pv-sec { background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-family: var(--font); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 0.35rem 0.7rem; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+    .btn-pv-sec:hover { color: var(--brand); border-color: var(--brand); }
+    .pv-links { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.4rem; line-height: 1.8; }
+    .pv-links a { color: var(--brand); text-decoration: none; margin-right: 0.9rem; white-space: nowrap; }
+    .pv-links a:hover { text-decoration: underline; }
+
+    /* Tabla de establecimientos */
+    .pv-tabla-wrap { overflow-x: auto; max-height: 640px; overflow-y: auto; }
+    .pv-tabla { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .pv-tabla th { text-align: left; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); cursor: pointer; white-space: nowrap; user-select: none; position: sticky; top: 0; background: var(--surface); }
+    .pv-tabla th:hover { color: var(--brand); }
+    .pv-tabla td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--border); }
+    .pv-tabla tr.fila { cursor: pointer; }
+    .pv-tabla tr.fila:hover td { background: var(--brand-soft); }
+    .pv-tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* Mapa de calor núcleo × curso (tabla de colores) */
+    .pv-heat-wrap { overflow-x: auto; }
+    .pv-heat { border-collapse: separate; border-spacing: 3px; width: 100%; min-width: 420px; }
+    .pv-heat th { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); padding: 0.3rem 0.5rem; text-align: center; }
+    .pv-heat th.fila { text-align: right; font-weight: 700; color: var(--text); max-width: 300px; }
+    .pv-heat td { text-align: center; font-weight: 700; font-size: 0.85rem; padding: 0.7rem 0.4rem; border-radius: 6px; color: var(--text); }
+    .pv-heat td.bajo { background: var(--surface-2); }
+    .pv-heat td.medio { background: #fca5a5; color: #1b1f33; }
+    .pv-heat td.alto { background: #dc2626; color: #fff; }
+    .pv-heat td.vacio { background: transparent; color: var(--text-muted); font-weight: 400; }
+    .pv-heat-leyenda { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: 0.72rem; color: var(--text-muted); margin-top: 0.8rem; }
+    .pv-heat-leyenda i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 0.35rem; vertical-align: -1px; }
+
+    @media (max-width: 640px) { .btn-flip span { display: none; } .btn-flip { padding: 0 0.55rem; } #pv-filtros .filter-group { flex: 1 1 calc(50% - 0.4rem) !important; min-width: 0; } #pv-group-rbd, #pv-static-rbd { flex-basis: 100% !important; } .pv-nota-uso { padding: 0 1rem; } }
+    @media (max-width: 1180px) { .tabs-scroll .pv-tab-btn:first-child { margin-left: auto; } .tabs-scroll .pv-tab-btn:last-child { margin-right: auto; } }
+    #pv-box-nucleo, #pv-box-distrib, #pv-box-stacked { flex: none; width: 100%; }
+    body:not(.modo-pv) #help-pv, body.modo-pv #help-gen { display: none; }
+    body:not(.modo-pv) #pv-nota-periodos, body:not(.modo-pv) #pv-active-filters-tray { display: none !important; }
+    @media (prefers-reduced-motion: reduce) { .btn-flip { transition: none; } }
   </style>
 </head>
 <body>
@@ -355,14 +423,15 @@
     <div class="header-info">
       <img class="header-logo logo-light" src="logo3.png" alt="Logo SLEP Del Pino"><img class="header-logo logo-dark" src="logo-blanco.png" alt="Logo SLEP Del Pino">    
       <div>
-        <div class="header-title">Visor de datos resultados DIA</div>
+        <div class="header-title">Visor de datos resultados DIA<span class="pv-only"> Parvularia</span></div>
         <div class="header-sub">SLEP Del Pino</div>
       </div>
     </div>
     <button class="help-btn" onclick="abrirAyuda()" title="Ayuda" style="float: right;">?</button>
+    <button class="btn-flip" id="btn-flip" onclick="PV.flip()" title="Cambiar entre el DIA general y el DIA Parvularia (NT1 y NT2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span id="btn-flip-text">Parvularia</span></button>
   </header>
 
-  <div class="filter-bar">
+  <div class="filter-bar" id="gen-filtros">
     <div class="filter-group" style="flex: 0.6;" data-label="AÑO ▾"><select id="f-agno" multiple placeholder="Año..."></select></div>
     <div class="filter-group" id="filter-group-etapa" style="flex: 0.8;" data-label="ETAPA ▾"><select id="f-etapa" multiple placeholder="Etapa..."></select></div>
     <div class="filter-group" style="flex: 0.8;" data-label="NIVEL ▾"><select id="f-nivel" multiple placeholder="Nivel..."></select></div>
@@ -382,6 +451,25 @@
 
   <div id="active-filters-tray" class="active-filters-tray" style="display: none;"></div>
 
+  <!-- Filtros de Parvularia (se muestran en lugar de los generales al dar vuelta la página) -->
+  <div class="filter-bar" id="pv-filtros">
+    <div class="filter-group" style="flex: 0.8 1 0; min-width: 104px;" data-label="PERIODO ▾"><select id="pv-f-periodo" multiple placeholder="Periodo..."></select></div>
+    <div class="filter-group" style="flex: 0.55 1 0; min-width: 84px;" data-label="NIVEL ▾"><select id="pv-f-nivel" multiple placeholder="Nivel..."></select></div>
+    <div class="filter-group" style="flex: 0.55 1 0; min-width: 84px;" data-label="CURSO ▾"><select id="pv-f-curso" multiple placeholder="Curso..."></select></div>
+    <div class="filter-group" style="flex: 0.9 1 0; min-width: 112px;" data-label="ÁMBITO ▾"><select id="pv-f-ambito" multiple placeholder="Ámbito..."></select></div>
+    <div class="filter-group" style="flex: 0.9 1 0; min-width: 118px;" data-label="NÚCLEO ▾"><select id="pv-f-nucleo" multiple placeholder="Núcleo..."></select></div>
+    <div class="filter-group" style="flex: 0.55 1 0; min-width: 84px;" data-label="O.A. ▾"><select id="pv-f-oa" multiple placeholder="Objetivo..."></select></div>
+    <div class="filter-group" id="pv-group-rbd" style="flex: 3 1 0; min-width: 220px;" data-label="UNIDAD EDUCATIVA ▾"><select id="pv-f-rbd" multiple placeholder="Buscar unidad educativa..."></select></div>
+    <div id="pv-static-rbd" class="filter-group" style="display:none; flex: 5 1 0; min-width: 220px;">
+      <div style="background: var(--brand-soft); border: 1px solid var(--brand); border-radius: 8px; padding: 0 12px; height: 34px; display: flex; align-items: center; overflow: hidden;">
+        <span id="pv-static-rbd-text" style="font-size: 0.85rem; font-weight: 700; color: var(--brand); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+      </div>
+    </div>
+    <button class="btn-clear-text" id="pv-btn-clear">Limpiar Filtros</button>
+  </div>
+  <div id="pv-active-filters-tray" class="active-filters-tray"></div>
+  <div id="pv-nota-periodos" style="display:none; padding: 0 2rem 0.5rem; font-size: 0.68rem; color: var(--text-muted); opacity: 0.65;">Hay más de un período seleccionado: los resultados se suman. Para ver una sola ronda, deja un solo período en el filtro.</div>
+
   <nav class="tabs-nav">
     <div class="theme-toggle-wrapper">
       <span class="theme-toggle-label" id="theme-label-text">Tema Claro</span>
@@ -391,7 +479,12 @@
       </label>
     </div>
 
-    <div class="tabs-scroll">
+    <div class="tabs-scroll" id="pv-tabs">
+      <button class="pv-tab-btn active" onclick="PV.showTab('pv-tab-general', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Visión General</button>
+      <button class="pv-tab-btn" onclick="PV.showTab('pv-tab-detallado', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Análisis Detallado</button>
+    </div>
+
+    <div class="tabs-scroll" id="gen-tabs">
       <button class="tab-btn active" onclick="showTab('tab-general', event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>Académico</button>
       <button class="tab-btn" onclick="showTab('tab-ejes', event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>Académico por Ejes</button>
       <button class="tab-btn" onclick="showTab('tab-1basico', event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h7a3 3 0 0 1 3 3v14a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v14a2 2 0 0 1 2-2h8z"/></svg>1° Básico</button>
@@ -582,6 +675,87 @@
 
 </main>
 
+<!-- ===== DIA PARVULARIA (NT1 y NT2): se muestra al dar vuelta la página con el botón del encabezado ===== -->
+<main class="main" id="pv-dashboard">
+  <div id="pv-tab-general" class="pv-tab-content">
+    <div class="kpi-grid" style="margin-bottom: 1.5rem;">
+      <div class="kpi" style="--kpi-c: var(--text)">
+        <div class="kpi-label">Total Estudiantes Evaluados</div>
+        <div class="kpi-val" id="pv-kpi-total">—</div>
+        <div class="kpi-compare" id="pv-kpi-total-prev" style="display:none;"></div>
+        <div class="kpi-compare" id="pv-kpi-total-slep" style="display:none;"></div>
+      </div>
+      <div class="kpi" style="--kpi-c: var(--total)">
+        <div class="kpi-label">% Logro Esperado <span class="kpi-sublabel">(Consolidando + Profundizando)</span></div>
+        <div class="kpi-val" id="pv-kpi-logro">—</div>
+        <div class="kpi-compare" id="pv-kpi-logro-prev" style="display:none;"></div>
+        <div class="kpi-compare" id="pv-kpi-logro-slep" style="display:none;"></div>
+      </div>
+      <div class="kpi" style="--kpi-c: var(--red)">
+        <div class="kpi-label">% Nivel de Riesgo <span class="kpi-sublabel">(Comenzando)</span></div>
+        <div class="kpi-val" id="pv-kpi-riesgo">—</div>
+        <div class="kpi-compare" id="pv-kpi-riesgo-prev" style="display:none;"></div>
+        <div class="kpi-compare" id="pv-kpi-riesgo-slep" style="display:none;"></div>
+      </div>
+      <div class="kpi" style="--kpi-c: var(--text-muted)">
+        <div class="kpi-label">% Sin Registro <span class="kpi-sublabel">(No Evaluado: dato faltante, no es nivel de aprendizaje)</span></div>
+        <div class="kpi-val" id="pv-kpi-sinreg">—</div>
+        <div class="kpi-compare" id="pv-kpi-sinreg-prev" style="display:none;"></div>
+        <div class="kpi-compare" id="pv-kpi-sinreg-slep" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="pv-nota" id="pv-kpi-nota" style="display:none;"></div>
+
+    <div class="charts-grid">
+      <div class="chart-block full-width">
+        <div class="chart-card" style="min-height: 0;">
+          <button class="btn-download" onclick="PV.descargar(this)" title="Descargar Gráfico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+          <div class="chart-header"><div class="chart-title">% Logro por Núcleo<span>(Consolidando + Profundizando), del núcleo más débil al más fuerte</span></div></div>
+          <div class="chart-wrap" id="pv-box-nucleo"></div>
+        </div>
+      </div>
+      <div class="chart-block full-width">
+        <div class="chart-card" style="min-height: 0;">
+          <button class="btn-download" onclick="PV.descargar(this)" title="Descargar Gráfico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+          <div class="chart-header"><div class="chart-title">Distribución por Categoría<span>Proporción de estudiantes en cada categoría de logro</span></div></div>
+          <div class="chart-wrap" id="pv-box-distrib"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pv-tab-detallado" class="pv-tab-content" style="display:none;">
+    <div class="charts-grid">
+      <div class="chart-block full-width" id="pv-card-colegios" style="display:none;">
+        <div class="chart-card" style="min-height: 0;">
+          <button class="btn-download" onclick="PV.descargar(this)" title="Descargar Gráfico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+          <div class="chart-header"><div class="chart-title">Establecimientos<span>Orden alfabético; clic en un encabezado para ordenar. Clic en una fila para ver solo ese establecimiento.</span></div></div>
+          <div class="pv-tabla-wrap"><table class="pv-tabla" id="pv-tabla-colegios"></table></div>
+        </div>
+      </div>
+
+      <div class="chart-block full-width">
+        <div class="chart-card" style="min-height: 0;">
+          <button class="btn-download" onclick="PV.descargar(this)" title="Descargar Gráfico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+          <div class="chart-header"><div class="chart-title">Mapa de Calor: Riesgo por Núcleo y Curso<span>% de estudiantes en "Comenzando" (rojo = mayor riesgo). El sin registro se ve aparte, en las tarjetas.</span></div></div>
+          <div class="pv-heat-wrap" id="pv-box-heat"></div>
+        </div>
+      </div>
+
+      <div class="chart-block full-width">
+        <div class="chart-card" style="min-height: 0;">
+          <button class="btn-download" onclick="PV.descargar(this)" title="Descargar Gráfico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+          <div class="chart-header"><div class="chart-title">Desglose por Rúbrica Evaluada<span id="pv-sub-rubricas">Composición al 100% por categoría de logro</span></div>
+            <div class="pv-hdr-actions"><button class="btn-pv-sec" id="pv-btn-rubricas" onclick="PV.toggleRubricas()">Ver todas las rúbricas</button></div></div>
+          <div class="chart-wrap" id="pv-box-stacked"></div>
+          <div class="pv-links" id="pv-links-rubricas"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="pv-nota-uso">Herramienta de uso interno y formativo (Agencia de Calidad de la Educación): los resultados orientan las decisiones pedagógicas del equipo. No corresponden a una calificación de los niños ni a una evaluación de docentes, y las variaciones entre períodos comparan generaciones distintas.</p>
+</main>
+
 <script>
 if (typeof ChartDataLabels !== 'undefined') {
   Chart.register(ChartDataLabels);
@@ -759,6 +933,7 @@ function toggleTheme() {
   }
   applyThemeToCharts();
   updateImmediate(); // las series de evolucion toman su color de --leng/--mate segun el tema
+  if (window.PV) PV.repintar();
 }
 
 function applyThemeToCharts() {
@@ -810,6 +985,7 @@ function startDashboard() {
     }
   }
   update();
+  if (window.PV) PV.init();  // prepara el módulo Parvularia (decide si este usuario ve el botón)
 }
 
 // Pestañas donde el filtro de Curso no aplica (no tienen desglose por curso).
@@ -864,8 +1040,10 @@ function showTab(tabId, e) {
 }
 
 function toggleSlep() {
-  showSlep = document.getElementById('slep-toggle').checked;
-  document.getElementById('slep-label-text').style.color = showSlep ? 'var(--leng)' : 'var(--text-muted)';
+  const on = document.getElementById('slep-toggle').checked;
+  document.getElementById('slep-label-text').style.color = on ? 'var(--leng)' : 'var(--text-muted)';
+  if (document.body.classList.contains('modo-pv')) { PV.setSlep(on); return; }  // en Parvularia el interruptor es de ese módulo
+  showSlep = on;
   update();
 }
 
@@ -1733,12 +1911,509 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarAyuda(
 initData();
 </script>
 
+<script>
+/* ===== MÓDULO DIA PARVULARIA (NT1 y NT2) =====
+   Todo vive dentro de `PV` para no chocar con los nombres del visor general (I, ts, update, etc.).
+   Datos: datos_parvularia.json (generado desde Base_DIA_Parvularia_Global.xlsx con generar_datos_json.py).
+   Usa de la página general: IS_ADMIN, SESSION_RBD, makeLegendOnClick(), Chart, TomSelect, html2canvas. */
+window.PV = (function () {
+  const I = { RBD: 0, NIVEL: 1, CURSO: 2, RUBRICA: 3, OA: 4, NUCLEO: 5, AMBITO: 6, PERIODO: 7, NO_EV: 8, COM: 9, DES: 10, CON: 11, PRO: 12 };
+  const CATS = ['No Evaluado', 'Comenzando', 'Desarrollando', 'Consolidando', 'Profundizando'];
+  const KEYS = ['periodo', 'nivel', 'curso', 'ambito', 'nucleo', 'oa', 'rbd'];
+  const FONT = "'gobCL', sans-serif";
+  const RUBRICAS_URL = 'https://diagnosticointegral.agenciaeducacion.cl/documentosep/rubricas/';
+
+  let D = null, ts = {}, pvCharts = {};
+  let iniciado = false, disponible = false, activo = false, animando = false;
+  let slep = false, tabActual = 'pv-tab-general', verTodas = false, rubData = {};
+  let orden = { key: 'nombre', dir: 1 };
+
+  const $ = id => document.getElementById(id);
+  const cv = n => getComputedStyle(document.body).getPropertyValue(n).trim();
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const sumArr = a => a.reduce((x, y) => x + y, 0);
+  const pct = (n, d) => d > 0 ? n / d * 100 : 0;
+  // logro = Consolidando + Profundizando; riesgo = Comenzando; sin registro = No Evaluado (dato faltante, no es un nivel)
+  const metricas = s => { const t = sumArr(s); return { logro: pct(s[3] + s[4], t), riesgo: pct(s[1], t), sinReg: pct(s[0], t) }; };
+  const rowCats = r => [r[I.NO_EV], r[I.COM], r[I.DES], r[I.CON], r[I.PRO]];
+  const addTo = (a, c) => { for (let i = 0; i < 5; i++) a[i] += c[i]; };
+  const debounce = (fn, w) => { let t; return () => { clearTimeout(t); t = setTimeout(fn, w); }; };
+  const renderDeb = debounce(() => render(), 150);
+  const wrap = (t, n) => {
+    const L = []; let c = '';
+    String(t).split(' ').forEach(w => { if ((c + ' ' + w).trim().length > n && c) { L.push(c); c = w; } else c = (c + ' ' + w).trim(); });
+    if (c) L.push(c);
+    return L.length > 1 ? L : L[0];
+  };
+
+  // ---------- Inicio: carga datos y decide si este usuario ve el botón ----------
+  async function init() {
+    if (iniciado) return; iniciado = true;
+    try {
+      const res = await fetch('datos_parvularia.json', { cache: 'no-cache' });
+      D = await res.json();
+    } catch (e) { console.warn('No se pudo cargar datos_parvularia.json; el módulo Parvularia queda oculto.', e); return; }
+    const miRbd = (typeof SESSION_RBD !== 'undefined' && SESSION_RBD) ? D.maps[I.RBD].findIndex(t => t.split(' ')[0] === String(SESSION_RBD)) : -1;
+    disponible = IS_ADMIN || miRbd !== -1;
+    if (!disponible) return;
+    setupFiltros();
+    if (!IS_ADMIN && miRbd !== -1) {
+      ts.rbd.setValue([String(miRbd)], true);
+      defaultPeriodo(miRbd);
+      $('pv-group-rbd').style.display = 'none';
+      $('pv-static-rbd').style.display = 'block';
+      $('pv-static-rbd-text').innerText = D.maps[I.RBD][miRbd];
+      $('pv-static-rbd-text').title = D.maps[I.RBD][miRbd];
+    }
+    $('btn-flip').classList.add('visible');
+  }
+
+  // Sin período seleccionado se sumarían todas las rondas, así que se parte en el más reciente
+  // (para un colegio: el más reciente en que tiene datos).
+  function defaultPeriodo(rbdId) {
+    let last = D.maps[I.PERIODO].length - 1;
+    if (rbdId !== undefined) {
+      const mios = new Set(D.rows.filter(r => r[I.RBD] === rbdId).map(r => r[I.PERIODO]));
+      if (mios.size) last = Math.max(...mios);
+    }
+    ts.periodo.setValue([String(last)], true);
+  }
+
+  function setupFiltros() {
+    KEYS.forEach(k => {
+      ts[k] = new TomSelect('#pv-f-' + k, {
+        plugins: ['checkbox_options'], maxOptions: 300, closeAfterSelect: false,
+        sortField: [{ field: 'num_index', direction: 'asc' }, { field: 'text', direction: 'asc' }],
+        onChange: () => renderDeb()
+      });
+      D.maps[I[k.toUpperCase()]].forEach((text, index) => {
+        if (text && text.trim() !== '') {
+          const m = text.match(/\d+/);
+          ts[k].addOption({ value: String(index), text: text, num_index: m ? parseInt(m[0], 10) : 999999 });
+        }
+      });
+    });
+    defaultPeriodo();
+    $('pv-btn-clear').onclick = () => {
+      KEYS.forEach(k => { if (!IS_ADMIN && k === 'rbd') return; ts[k].clear(true); });
+      const mi = (!IS_ADMIN && SESSION_RBD) ? D.maps[I.RBD].findIndex(t => t.split(' ')[0] === String(SESSION_RBD)) : undefined;
+      defaultPeriodo(mi === -1 ? undefined : mi);
+      render();
+    };
+  }
+
+  const filtros = () => { const f = {}; KEYS.forEach(k => f[k] = ts[k].getValue()); return f; };
+
+  function bandeja(f) {
+    const tray = $('pv-active-filters-tray'); tray.innerHTML = ''; let hay = false;
+    KEYS.forEach(key => {
+      const sel = ts[key].getValue();
+      if (!sel.length || (!IS_ADMIN && key === 'rbd')) return;
+      hay = true;
+      const g = document.createElement('div'); g.className = 'filter-group-tag';
+      const l = document.createElement('span'); l.className = 'filter-group-label'; l.innerText = key.toUpperCase();
+      l.onclick = () => { ts[key].clear(true); render(); };
+      g.appendChild(l);
+      sel.forEach(v => {
+        const t = document.createElement('span'); t.className = 'filter-value-tag'; t.innerText = ts[key].options[v].text;
+        t.onclick = () => ts[key].removeItem(v);
+        g.appendChild(t);
+      });
+      tray.appendChild(g);
+    });
+    tray.style.display = hay ? 'block' : 'none';
+  }
+
+  // ---------- Cálculo ----------
+  function pasa(r, f, o = {}) {
+    const per = o.periodo !== undefined ? [String(o.periodo)] : f.periodo;
+    if (per.length && !per.includes(String(r[I.PERIODO]))) return false;
+    if (f.nivel.length && !f.nivel.includes(String(r[I.NIVEL]))) return false;
+    if (f.curso.length && !f.curso.includes(String(r[I.CURSO]))) return false;
+    if (f.ambito.length && !f.ambito.includes(String(r[I.AMBITO]))) return false;
+    if (f.nucleo.length && !f.nucleo.includes(String(r[I.NUCLEO]))) return false;
+    if (f.oa.length && !f.oa.includes(String(r[I.OA]))) return false;
+    if (!o.sinRbd && f.rbd.length && !f.rbd.includes(String(r[I.RBD]))) return false;
+    return true;
+  }
+  // Clave de comparación entre períodos: establecimiento + nivel + rúbrica
+  const claveFila = r => r[I.RBD] + '|' + r[I.NIVEL] + '|' + r[I.RUBRICA];
+  function clavesDe(f, periodo) {
+    const S = new Set();
+    D.rows.forEach(r => { if (pasa(r, f, periodo === undefined ? {} : { periodo })) S.add(claveFila(r)); });
+    return S;
+  }
+  // o.sinRbd = ignora el filtro de establecimiento (territorio); o.periodo = fuerza otro período; o.claves = solo esas combinaciones
+  function agregar(f, o = {}) {
+    const A = { sums: [0, 0, 0, 0, 0], rubrica: {}, nucleo: {}, nucCurso: {}, aulas: {}, total: 0 };
+    D.rows.forEach(r => {
+      if (!pasa(r, f, o)) return;
+      if (o.claves && !o.claves.has(claveFila(r))) return;
+      const c = rowCats(r), tot = sumArr(c);
+      const rub = D.maps[I.RUBRICA][r[I.RUBRICA]], nuc = D.maps[I.NUCLEO][r[I.NUCLEO]];
+      const cur = D.maps[I.NIVEL][r[I.NIVEL]] + ' ' + D.maps[I.CURSO][r[I.CURSO]];
+      addTo(A.sums, c);
+      addTo(A.rubrica[rub] = A.rubrica[rub] || [0, 0, 0, 0, 0], c);
+      addTo(A.nucleo[nuc] = A.nucleo[nuc] || [0, 0, 0, 0, 0], c);
+      A.nucCurso[nuc] = A.nucCurso[nuc] || {};
+      addTo(A.nucCurso[nuc][cur] = A.nucCurso[nuc][cur] || [0, 0, 0, 0, 0], c);
+      // N real: por aula (período-RBD-nivel-curso), el máximo de la suma de categorías entre rúbricas
+      const key = r[I.PERIODO] + '-' + r[I.RBD] + '-' + r[I.NIVEL] + '-' + r[I.CURSO];
+      if (!A.aulas[key] || tot > A.aulas[key]) A.aulas[key] = tot;
+    });
+    A.total = sumArr(Object.values(A.aulas));
+    return A;
+  }
+  function agregarPorColegio(f) {
+    const M = {};
+    D.rows.forEach(r => {
+      if (!pasa(r, f, { sinRbd: true })) return;
+      const c = rowCats(r), tot = sumArr(c), id = r[I.RBD];
+      const o = M[id] = M[id] || { sums: [0, 0, 0, 0, 0], nuc: {}, aulas: {} };
+      addTo(o.sums, c);
+      addTo(o.nuc[D.maps[I.NUCLEO][r[I.NUCLEO]]] = o.nuc[D.maps[I.NUCLEO][r[I.NUCLEO]]] || [0, 0, 0, 0, 0], c);
+      const key = r[I.PERIODO] + '-' + r[I.NIVEL] + '-' + r[I.CURSO];
+      if (!o.aulas[key] || tot > o.aulas[key]) o.aulas[key] = tot;
+    });
+    return M;
+  }
+  // Período del año anterior con la misma ronda (ej. "2026 Inicio" -> "2025 Inicio"); solo si hay un período seleccionado
+  function periodoAnterior(f) {
+    if (f.periodo.length !== 1) return null;
+    const m = D.maps[I.PERIODO][f.periodo[0]].match(/^(\d{4})\s+(.+)$/);
+    if (!m) return null;
+    const idx = D.maps[I.PERIODO].indexOf((parseInt(m[1], 10) - 1) + ' ' + m[2]);
+    return idx === -1 ? null : idx;
+  }
+
+  // ---------- Dibujo ----------
+  function render() {
+    if (!activo || !D) return;
+    const f = filtros();
+    bandeja(f);
+    $('pv-nota-periodos').style.display = f.periodo.length === 1 ? 'none' : 'block';
+    const loc = agregar(f), sl = agregar(f, { sinRbd: true });
+    if (tabActual === 'pv-tab-general') {
+      // Comparación con el mismo período del año anterior, solo sobre establecimiento-nivel-rúbrica con datos en ambos
+      let prev = null;
+      const pi = periodoAnterior(f);
+      if (pi !== null) {
+        const full = agregar(f, { periodo: pi });
+        if (full.total > 0) {
+          prev = { nombre: D.maps[I.PERIODO][pi], total: full.total, comparable: false };
+          const kPrev = clavesDe(f, pi), comunes = new Set([...clavesDe(f)].filter(k => kPrev.has(k)));
+          if (comunes.size) {
+            const a1 = agregar(f, { claves: comunes }), a0 = agregar(f, { periodo: pi, claves: comunes });
+            if (sumArr(a1.sums) >= 20 && sumArr(a0.sums) >= 20) Object.assign(prev, { comparable: true, loc: a1, ant: a0 });
+          }
+        }
+      }
+      kpis(loc, sl, prev); graficoNucleo(loc, sl, prev); graficoDistrib(loc, sl);
+    } else {
+      rubData = loc.rubrica;
+      graficoRubricas(); mapaCalor(loc, sl); tablaColegios(f);
+    }
+  }
+
+  function kpis(loc, sl, prev) {
+    const m = metricas(loc.sums), ms = metricas(sl.sums);
+    const set = (id, txt, tip) => {
+      const e = $(id);
+      if (txt === null) { e.style.display = 'none'; return; }
+      e.style.display = 'block'; e.innerText = txt; e.title = tip || '';
+    };
+    // Variación en puntos porcentuales (pp), en color neutro: compara generaciones distintas
+    const pp = (d, ref) => Math.abs(d) < 0.05 ? `= 0.0 pp vs ${ref}` : `${d > 0 ? '↑' : '↓'} ${Math.abs(d).toFixed(1)} pp vs ${ref}`;
+    $('pv-kpi-total').innerText = loc.total.toLocaleString('es-CL');
+    $('pv-kpi-logro').innerText = m.logro.toFixed(1) + '%';
+    $('pv-kpi-riesgo').innerText = m.riesgo.toFixed(1) + '%';
+    $('pv-kpi-sinreg').innerText = m.sinReg.toFixed(1) + '%';
+    const nota = $('pv-kpi-nota');
+    if (prev) {
+      const tip = 'Variación en puntos porcentuales sobre los establecimientos, niveles y rúbricas con datos en ambos períodos. Compara generaciones distintas de niños.';
+      set('pv-kpi-total-prev', `vs ${prev.total.toLocaleString('es-CL')} en ${prev.nombre}`);
+      if (prev.comparable) {
+        const a = metricas(prev.loc.sums), b = metricas(prev.ant.sums);
+        set('pv-kpi-logro-prev', pp(a.logro - b.logro, prev.nombre), tip);
+        set('pv-kpi-riesgo-prev', pp(a.riesgo - b.riesgo, prev.nombre), tip);
+        set('pv-kpi-sinreg-prev', pp(a.sinReg - b.sinReg, prev.nombre), tip);
+        nota.style.display = 'block';
+        nota.innerText = 'Variaciones en puntos porcentuales (pp) calculadas solo sobre los establecimientos, niveles y rúbricas con datos en ambos períodos. Comparan generaciones distintas de niños.';
+      } else {
+        ['logro', 'riesgo', 'sinreg'].forEach(k => set('pv-kpi-' + k + '-prev', `— sin datos comparables vs ${prev.nombre}`));
+        nota.style.display = 'none';
+      }
+    } else {
+      ['total', 'logro', 'riesgo', 'sinreg'].forEach(k => set('pv-kpi-' + k + '-prev', null));
+      nota.style.display = 'none';
+    }
+    if (slep) {
+      set('pv-kpi-total-slep', `Territorio: ${sl.total.toLocaleString('es-CL')} est.`);
+      set('pv-kpi-logro-slep', pp(m.logro - ms.logro, 'el SLEP'));
+      set('pv-kpi-riesgo-slep', pp(m.riesgo - ms.riesgo, 'el SLEP'));
+      set('pv-kpi-sinreg-slep', pp(m.sinReg - ms.sinReg, 'el SLEP'));
+    } else ['total', 'logro', 'riesgo', 'sinreg'].forEach(k => set('pv-kpi-' + k + '-slep', null));
+  }
+
+  // --- helpers de Chart.js ---
+  // Largo de línea de las etiquetas del eje según el ancho disponible (en celular se parten en más líneas)
+  const anchoLinea = max => { const w = window.innerWidth; return w < 520 ? Math.round(max * 0.45) : w < 900 ? Math.round(max * 0.7) : max; };
+  function limpiar(boxId) { if (pvCharts[boxId]) { pvCharts[boxId].destroy(); delete pvCharts[boxId]; } }
+  function vacio(boxId) {
+    limpiar(boxId);
+    const b = $(boxId); b.style.height = 'auto';
+    b.innerHTML = '<div class="empty-state-container" style="padding:3rem;">Filtros sin resultados</div>';
+  }
+  function nuevo(boxId, alto, cfg) {
+    limpiar(boxId);
+    const b = $(boxId); b.style.height = alto + 'px'; b.innerHTML = '<canvas></canvas>';
+    pvCharts[boxId] = new Chart(b.firstChild, cfg);
+  }
+  const palette = () => [cv('--c-noev'), cv('--c-com'), cv('--c-des'), cv('--c-con'), cv('--c-pro')];
+  const labelColors = ['#1b1f33', '#ffffff', '#1b1f33', '#1b1f33', '#ffffff'];  // texto legible sobre cada categoría
+  const leyenda = (t) => ({ display: true, position: 'top', align: 'start', onClick: makeLegendOnClick(), labels: { usePointStyle: true, color: t, font: { family: FONT } } });
+
+  // % de logro por núcleo en barras horizontales; con año anterior y SLEP opcionales
+  function graficoNucleo(loc, sl, prev) {
+    const t = cv('--text-muted'), g = cv('--border');
+    const logro = (A, n) => A && A.nucleo[n] ? pct(A.nucleo[n][3] + A.nucleo[n][4], sumArr(A.nucleo[n])) : 0;
+    // Con comparación al año anterior ambas series usan la misma base (lo que tiene datos en los dos períodos)
+    const conPrev = prev && prev.comparable;
+    const A = conPrev ? prev.loc : loc, B = conPrev ? prev.ant : null;
+    const nucleos = Object.keys(A.nucleo).sort((a, b) => logro(A, a) - logro(A, b) || a.localeCompare(b));
+    if (!nucleos.length) return vacio('pv-box-nucleo');
+    const ds = [{ label: conPrev ? 'Esta selección (comparable)' : 'Esta selección', data: nucleos.map(n => +logro(A, n).toFixed(1)), backgroundColor: cv('--leng') }];
+    if (conPrev) ds.push({ label: prev.nombre + ' (comparable)', data: nucleos.map(n => +logro(B, n).toFixed(1)), backgroundColor: cv('--text-muted') });
+    if (slep) ds.push({ label: 'Promedio SLEP', data: nucleos.map(n => +logro(sl, n).toFixed(1)), backgroundColor: cv('--purple') });
+    ds.forEach(d => d.borderRadius = 3);
+    nuevo('pv-box-nucleo', Math.max(300, nucleos.length * (ds.length * 17 + 16) + 80), {
+      type: 'bar', data: { labels: nucleos.map(n => wrap(n, anchoLinea(38))), datasets: ds },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { right: 34 } },
+        scales: {
+          x: { min: 0, max: 100, grid: { color: g }, border: { display: false }, ticks: { color: t, callback: v => v + '%' } },
+          y: { grid: { display: false }, ticks: { color: t, autoSkip: false, font: { size: 11, family: FONT } } }
+        },
+        plugins: {
+          legend: Object.assign(leyenda(t), { display: ds.length > 1 }),
+          tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.raw.toFixed(1) + '%' } },
+          datalabels: { color: t, anchor: 'end', align: 'end', formatter: v => v.toFixed(1) + '%', font: { weight: 'bold', size: 10, family: FONT } }
+        }
+      }
+    });
+  }
+
+  // Una barra apilada por grupo (selección / SLEP)
+  function graficoDistrib(loc, sl) {
+    if (sumArr(loc.sums) === 0) return vacio('pv-box-distrib');
+    const t = cv('--text-muted'), g = cv('--border'), pal = palette();
+    const grupos = [{ n: 'Esta selección', s: loc.sums }];
+    if (slep) grupos.push({ n: 'Promedio SLEP', s: sl.sums });
+    const ds = CATS.map((c, i) => ({ label: c, data: grupos.map(x => +pct(x.s[i], sumArr(x.s)).toFixed(1)), backgroundColor: pal[i], borderColor: cv('--surface'), borderWidth: 1 }));
+    nuevo('pv-box-distrib', 110 + grupos.length * 44, {
+      type: 'bar', data: { labels: grupos.map(x => x.n), datasets: ds },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { stacked: true, min: 0, max: 100, grid: { color: g }, border: { display: false }, ticks: { color: t, callback: v => v + '%' } },
+          y: { stacked: true, grid: { display: false }, ticks: { color: t, font: { size: 12, family: FONT } } }
+        },
+        plugins: {
+          legend: leyenda(t),
+          tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.raw.toFixed(1) + '%' } },
+          datalabels: { display: c => c.dataset.data[c.dataIndex] >= 4, color: c => labelColors[c.datasetIndex], formatter: v => v.toFixed(1) + '%', font: { weight: 'bold', size: 11, family: FONT } }
+        }
+      }
+    });
+  }
+
+  // Rúbricas ordenadas de más a menos riesgo (% Comenzando); por defecto solo las 5 más débiles
+  function graficoRubricas() {
+    let rub = Object.keys(rubData).sort((a, b) => (pct(rubData[b][1], sumArr(rubData[b])) - pct(rubData[a][1], sumArr(rubData[a]))) || a.localeCompare(b));
+    const total = rub.length;
+    $('pv-btn-rubricas').style.display = total > 5 ? '' : 'none';
+    $('pv-btn-rubricas').innerText = verTodas ? 'Ver solo las 5 más débiles' : `Ver las ${total} rúbricas`;
+    $('pv-sub-rubricas').innerText = (verTodas || total <= 5)
+      ? 'Composición al 100% por categoría, de más a menos estudiantes en "Comenzando"'
+      : 'Las 5 rúbricas con más estudiantes en "Comenzando" (composición al 100% por categoría)';
+    if (!verTodas) rub = rub.slice(0, 5);
+    if (!rub.length) { $('pv-links-rubricas').innerHTML = ''; return vacio('pv-box-stacked'); }
+    const t = cv('--text-muted'), g = cv('--border'), pal = palette();
+    const ds = CATS.map((c, i) => ({
+      label: c, backgroundColor: pal[i], borderColor: cv('--surface'), borderWidth: 1,
+      data: rub.map(r => +pct(rubData[r][i], sumArr(rubData[r])).toFixed(1)), cnt: rub.map(r => rubData[r][i])
+    }));
+    nuevo('pv-box-stacked', Math.max(260, rub.length * 40 + 100), {
+      type: 'bar', data: { labels: rub.map(r => wrap(r, anchoLinea(46))), datasets: ds },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { stacked: true, min: 0, max: 100, grid: { color: g }, border: { display: false }, ticks: { color: t, callback: v => v + '%' } },
+          y: { stacked: true, grid: { display: false }, ticks: { color: t, autoSkip: false, font: { size: 11, family: FONT } } }
+        },
+        plugins: {
+          legend: leyenda(t),
+          tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.raw.toFixed(1) + '% (' + c.dataset.cnt[c.dataIndex] + ' estudiantes)' } },
+          datalabels: { display: c => c.dataset.data[c.dataIndex] >= 6, color: c => labelColors[c.datasetIndex], formatter: v => Math.round(v) + '%', font: { weight: 'bold', size: 10, family: FONT } }
+        }
+      }
+    });
+    // Enlaces a la rúbrica oficial (PDF de la Agencia) de las rúbricas que se muestran
+    $('pv-links-rubricas').innerHTML = 'Rúbrica oficial (Agencia): ' + rub.map(r => `<a href="${urlRubrica(r)}" target="_blank" rel="noopener">${esc(r.replace(/^(\d+)\..*/, 'N° $1'))}</a>`).join('');
+  }
+  function urlRubrica(nombre) {
+    const n = parseInt(nombre.match(/^(\d+)/)[1], 10), nn = String(n).padStart(2, '0');
+    const f = n === 1 || n === 2 ? `Rubrica ${nn} DIA EP 2025 (1).pdf` : n === 8 ? `Rúbrica ${nn} DIA EP 2025.pdf` : `Rubrica ${nn} DIA EP 2025.pdf`;
+    return RUBRICAS_URL + encodeURIComponent(f);
+  }
+
+  // Mapa de calor núcleo × curso: % de estudiantes en "Comenzando"
+  function mapaCalor(loc, sl) {
+    const cur = new Set();
+    Object.values(loc.nucCurso).forEach(m => Object.keys(m).forEach(c => cur.add(c)));
+    const cursos = [...cur].sort(), nucleos = Object.keys(loc.nucCurso).sort();
+    const box = $('pv-box-heat');
+    if (!nucleos.length || !cursos.length) { box.innerHTML = '<div class="empty-state-container" style="padding:3rem;">Filtros sin resultados</div>'; return; }
+    const cols = slep ? cursos.concat(['PROMEDIO SLEP']) : cursos;
+    const celda = c => {
+      if (!c || sumArr(c) === 0) return '<td class="vacio">—</td>';
+      const v = Math.round(pct(c[1], sumArr(c)));
+      return `<td class="${v <= 20 ? 'bajo' : v <= 40 ? 'medio' : 'alto'}" title="${v}% en Comenzando">${v}%</td>`;
+    };
+    box.innerHTML = '<table class="pv-heat"><thead><tr><th></th>' + cols.map(c => `<th>${esc(c)}</th>`).join('') + '</tr></thead><tbody>' +
+      nucleos.map(n => `<tr><th class="fila">${esc(n)}</th>` + cols.map(c => celda(c === 'PROMEDIO SLEP' ? sl.nucleo[n] : loc.nucCurso[n][c])).join('') + '</tr>').join('') +
+      '</tbody></table><div class="pv-heat-leyenda"><span><i style="background:var(--surface-2);border:1px solid var(--border)"></i>Riesgo bajo (≤20%)</span><span><i style="background:#fca5a5"></i>Riesgo medio (21-40%)</span><span><i style="background:#dc2626"></i>Riesgo alto (&gt;40%)</span></div>';
+  }
+
+  // Tabla de establecimientos (solo administrador y sin un establecimiento filtrado)
+  function tablaColegios(f) {
+    const card = $('pv-card-colegios');
+    if (!IS_ADMIN || f.rbd.length > 0) { card.style.display = 'none'; return; }
+    const M = agregarPorColegio(f);
+    const filas = Object.keys(M).map(id => {
+      const o = M[id], m = metricas(o.sums);
+      let debil = null, dv = 101;
+      Object.keys(o.nuc).forEach(n => { const v = pct(o.nuc[n][3] + o.nuc[n][4], sumArr(o.nuc[n])); if (v < dv) { dv = v; debil = n; } });
+      return { id: parseInt(id, 10), nombre: D.maps[I.RBD][id], n: sumArr(Object.values(o.aulas)), logro: m.logro, riesgo: m.riesgo, sinReg: m.sinReg, debil: debil ? `${debil} (${dv.toFixed(0)}%)` : '' };
+    });
+    if (!filas.length) { card.style.display = 'none'; return; }
+    const { key, dir } = orden;
+    filas.sort((a, b) => (typeof a[key] === 'string' ? a[key].localeCompare(b[key]) : a[key] - b[key]) * dir);
+    const sombra = (v, max, color) => `background: color-mix(in srgb, ${color} ${Math.min(55, v / max * 55).toFixed(0)}%, transparent);`;
+    const cab = [['nombre', 'Establecimiento'], ['n', 'Estudiantes'], ['logro', '% Logro'], ['riesgo', '% Riesgo'], ['sinReg', '% Sin registro'], ['debil', 'Núcleo más débil (% logro)']];
+    const flecha = k => k === key ? (dir === 1 ? ' ▲' : ' ▼') : '';
+    $('pv-tabla-colegios').innerHTML =
+      '<thead><tr>' + cab.map(([k, tt]) => `<th onclick="PV.ordenar('${k}')">${tt}${flecha(k)}</th>`).join('') + '</tr></thead><tbody>' +
+      filas.map(r => `<tr class="fila" onclick="PV.verColegio(${r.id})"><td>${esc(r.nombre)}</td><td class="num">${r.n.toLocaleString('es-CL')}</td>` +
+        `<td class="num" style="${sombra(r.logro, 40, 'var(--total)')}">${r.logro.toFixed(1)}%</td>` +
+        `<td class="num" style="${sombra(r.riesgo, 60, 'var(--red)')}">${r.riesgo.toFixed(1)}%</td>` +
+        `<td class="num" style="${sombra(r.sinReg, 60, 'var(--text-muted)')}">${r.sinReg.toFixed(1)}%</td><td>${esc(r.debil)}</td></tr>`).join('') + '</tbody>';
+    card.style.display = 'block';
+  }
+
+  // ---------- Interacción ----------
+  function showTab(id, btn) {
+    document.querySelectorAll('.pv-tab-content').forEach(e => e.style.display = 'none');
+    document.querySelectorAll('.pv-tab-btn').forEach(e => e.classList.remove('active'));
+    $(id).style.display = 'block'; if (btn) btn.classList.add('active');
+    tabActual = id; render();
+  }
+  function descargar(btn) {
+    const card = btn.closest('.chart-card');
+    const acc = card.querySelectorAll('.btn-download, .pv-hdr-actions');
+    acc.forEach(a => a.style.visibility = 'hidden');
+    const tt = card.querySelector('.chart-title');
+    const nombre = ((tt ? (tt.childNodes[0].textContent || '').trim() : 'Grafico DIA Parvularia').replace(/[^\wÁÉÍÓÚÜÑáéíóúüñ]+/g, '_').replace(/^_+|_+$/g, '')) + '.png';
+    html2canvas(card, { backgroundColor: cv('--surface'), scale: 2 }).then(c => {
+      const a = document.createElement('a'); a.download = nombre; a.href = c.toDataURL('image/png'); a.click();
+    }).finally(() => acc.forEach(a => a.style.visibility = ''));
+  }
+
+  // Da vuelta la página: el contenido gira hasta quedar de canto, se cambia de módulo y gira de vuelta.
+  const visibles = () => [...document.querySelectorAll('#gen-filtros,#pv-filtros,#active-filters-tray,#pv-active-filters-tray,.tabs-nav,#dashboard,#pv-dashboard')]
+    .filter(e => getComputedStyle(e).display !== 'none');
+  function cambiarModo(haciaPV) {
+    document.body.classList.toggle('modo-pv', haciaPV);
+    activo = haciaPV;
+    $('btn-flip-text').innerText = haciaPV ? 'DIA general' : 'Parvularia';
+    const sw = $('slep-toggle'); sw.checked = haciaPV ? slep : showSlep;
+    $('slep-label-text').style.color = sw.checked ? 'var(--leng)' : 'var(--text-muted)';
+    window.scrollTo(0, 0);
+    if (haciaPV) render();
+    else { try { Object.values(charts_general()).forEach(c => c.resize()); } catch (e) {} }
+  }
+  const charts_general = () => (typeof charts !== 'undefined' ? charts : {});  // `charts` global de la página general
+  function flip() {
+    if (!disponible || animando) return;
+    const haciaPV = !document.body.classList.contains('modo-pv');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const antes = visibles();
+    if (reduce || !antes.length || !antes[0].animate) { cambiarModo(haciaPV); return; }
+    animando = true;
+    const rot = a => `perspective(1600px) rotateY(${a}deg)`;
+    antes.forEach(e => e.style.transformOrigin = '50% 0');
+    Promise.all(antes.map(e => e.animate([{ transform: rot(0), opacity: 1 }, { transform: rot(90), opacity: 0.15 }], { duration: 220, easing: 'ease-in', fill: 'forwards' }).finished))
+      .then(() => {
+        cambiarModo(haciaPV);
+        antes.forEach(e => e.getAnimations().forEach(a => a.cancel()));
+        const despues = visibles();
+        despues.forEach(e => e.style.transformOrigin = '50% 0');
+        return Promise.all(despues.map(e => e.animate([{ transform: rot(-90), opacity: 0.15 }, { transform: rot(0), opacity: 1 }], { duration: 280, easing: 'ease-out' }).finished));
+      })
+      .catch(() => {})
+      .finally(() => { animando = false; visibles().forEach(e => { e.style.transformOrigin = ''; e.getAnimations().forEach(a => a.cancel()); }); });
+  }
+
+  return {
+    init, flip, showTab, descargar,
+    repintar: () => { if (activo) render(); },
+    setSlep: on => { slep = on; render(); },
+    toggleRubricas: () => { verTodas = !verTodas; graficoRubricas(); },
+    ordenar: k => { orden = { key: k, dir: orden.key === k ? -orden.dir : (k === 'nombre' || k === 'debil' ? 1 : -1) }; render(); },
+    verColegio: id => ts.rbd.setValue([String(id)])
+  };
+})();
+</script>
+
 <div id="help-overlay" onclick="if (event.target === this) cerrarAyuda()">
   <div class="help-card">
     <div class="help-card-header">
       <h2>Cómo usar este visor</h2>
       <button class="help-close" onclick="cerrarAyuda()" aria-label="Cerrar">&times;</button>
     </div>
+    <div id="help-pv" class="pv-help">
+      <div class="help-section">
+        <h3>DIA Parvularia (NT1 y NT2)</h3>
+        <p>Resultados del DIA de Educación Parvularia. Es una evaluación voluntaria, de uso interno y formativo: orienta las decisiones pedagógicas del equipo y no califica a los niños ni a los docentes. El botón "DIA general" (arriba) vuelve al visor principal.</p>
+      </div>
+      <div class="help-section">
+        <h3>Filtros</h3>
+        <p>Período, Nivel, Curso, Ámbito, Núcleo, Objetivo de Aprendizaje (O.A.) y Unidad Educativa se pueden combinar y seleccionar varios valores a la vez. "Limpiar Filtros" los resetea.</p>
+        <p><b>Período:</b> cada ronda de evaluación (ej. 2025 Inicio, 2026 Inicio). El visor parte en el período más reciente; si eliges varios, los resultados se suman.</p>
+      </div>
+      <div class="help-section">
+        <h3>Pestañas</h3>
+        <ul>
+          <li><b>Visión General:</b> % de logro, riesgo y sin registro (con el cambio respecto al mismo período del año anterior cuando existe), logro por núcleo y distribución por categoría.</li>
+          <li><b>Análisis Detallado:</b> ranking de establecimientos (solo administrador), mapa de calor núcleo × curso y rúbricas más débiles.</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>Gráficos</h3>
+        <ul>
+          <li>Pasar el mouse sobre una barra o celda muestra el valor exacto. Doble clic sobre la leyenda reactiva todas las series.</li>
+          <li>Riesgo = estudiantes en "Comenzando". "Sin registro" = "No Evaluado": falta el dato, no indica un nivel de aprendizaje. En el mapa de calor, rojo = mayor riesgo.</li>
+          <li>Las variaciones respecto al año anterior se muestran en puntos porcentuales (pp), solo sobre los establecimientos, niveles y rúbricas con datos en ambos períodos, y comparan generaciones distintas de niños.</li>
+          <li>El ícono ↓ de cada gráfico lo descarga como imagen. Bajo el desglose por rúbrica hay enlaces a la rúbrica oficial de la Agencia.</li>
+          <li>"Promedio SLEP" agrega una comparación contra el SLEP completo.</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>¿Quién ve este módulo?</h3>
+        <p>Administradores y establecimientos con NT1/NT2 que cargaron resultados del DIA Parvularia. Si tu establecimiento no tiene esos datos, el botón no aparece.</p>
+      </div>
+    </div>
+    <div id="help-gen">
     <div class="help-section">
       <h3>Filtros</h3>
       <p>Año, Etapa, Nivel, Curso, Comuna y Unidad Educativa se pueden combinar y seleccionar varios valores a la vez. "Limpiar Filtros" los resetea todos. Los filtros activos aparecen como etiquetas bajo la barra — se pueden quitar una por una con clic.</p>
@@ -1774,6 +2449,7 @@ initData();
       <h3>Escalas de los gráficos</h3>
       <p>Cuando un eje no parte en 0, es porque se ajustó al rango real de los datos para que se note mejor la variación — el valor exacto siempre está sobre el punto o la barra.</p>
     </div>
+    </div><!-- /help-gen -->
   </div>
 </div>
 </body>
