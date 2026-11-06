@@ -483,7 +483,7 @@
     /* Recorrido de bienvenida */
     #tour-overlay { position: fixed; inset: 0; z-index: 8000; display: none; }
     #tour-overlay.activo { display: block; }
-    #tour-spot { position: fixed; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(15,18,33,0.62), 0 0 0 2px var(--brand); pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    #tour-spot { position: fixed; border-radius: 10px; display: none; box-shadow: 0 0 0 9999px rgba(15,18,33,0.62), 0 0 0 2px var(--brand); pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     #tour-pop { position: fixed; width: min(340px, calc(100vw - 20px)); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.1rem; box-shadow: 0 16px 40px rgba(0,0,0,0.35); transition: top 0.3s, left 0.3s; }
     .tour-paso { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
     .tour-titulo { font-size: 0.95rem; font-weight: 800; color: var(--brand); margin: 0.2rem 0 0.3rem; }
@@ -502,6 +502,11 @@
 
     /* Durante el cambio de tema no hay transiciones: todo (fondos, menús y gráficos) cambia en el mismo instante */
     html.sin-transiciones *, html.sin-transiciones *::before, html.sin-transiciones *::after { transition: none !important; }
+
+    .theme-switch .slider::before { transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.45s; }
+    .theme-switch .slider { transition: background-color 0.45s, border-color 0.45s; }
+    html.sin-transiciones .theme-switch .slider, html.sin-transiciones .theme-switch .slider::before { transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.45s, border-color 0.45s !important; }
+    html.sin-transiciones .theme-switch::before, html.sin-transiciones .theme-switch::after { transition: color 0.45s !important; }
 
     /* Aviso breve */
     #toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translate(-50%, 20px); background: var(--brand); color: var(--on-brand); padding: 0.6rem 1.1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,0.25); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 9000; max-width: calc(100vw - 2rem); text-align: center; }
@@ -2230,56 +2235,108 @@ initData();
 const Recorrido = (function () {
   const $ = id => document.getElementById(id);
   const visible = el => el && el.getClientRects().length > 0;
-  let pasos = [], i = 0, opts = {};
+  let pasos = [], i = 0, dir = 1, opts = {}, tabInicial = null;
 
+  // Cada paso: q = selector del elemento a destacar (null = mensaje centrado), antes = acción previa (cambiar de pestaña).
+  // Los textos sobre cómo usar los resultados siguen el Manual de uso DIA 2026 (Agencia de Calidad): usos y no usos, preguntas guía.
   function armar() {
     const pv = document.body.classList.contains('modo-pv');
-    const L = [
+    const tabGen = n => () => { const b = document.querySelector(`#gen-tabs .tab-btn:nth-child(${n})`); if (b && !b.classList.contains('active')) { b.click(); return true; } return false; };
+    const tabPv = n => () => { const b = document.querySelector(`#pv-tabs .pv-tab-btn:nth-child(${n})`); if (b && !b.classList.contains('active')) { b.click(); return true; } return false; };
+    const controles = [
       { q: pv ? '#pv-filtros' : '#gen-filtros', t: 'Filtros', x: pv ? 'Combina período, nivel, curso, ámbito, núcleo, O.A. y establecimiento. Puedes elegir varios valores a la vez.' : 'Combina año, etapa, nivel, curso, comuna y establecimiento. Puedes elegir varios valores a la vez; los resultados se actualizan solos.' },
       { q: pv ? '#vistas-pv' : '#vistas-gen', t: 'Mis vistas', x: 'Guarda tus filtros favoritos con un nombre para volver a ellos con un clic, o copia un enlace a la vista actual.' },
       { q: pv ? '#pv-tabs' : '#gen-tabs', t: 'Pestañas', x: pv ? 'Visión General resume logro, riesgo y distribución; Análisis Detallado muestra el mapa de calor y las rúbricas más débiles.' : 'Cada pestaña muestra un tipo de resultado: académico, por ejes, 1° básico y convivencia/socioemocional.' },
-      { q: '.slep-toggle-wrapper', t: 'Promedio SLEP', x: 'Actívalo para comparar tu selección con el promedio de todo el SLEP.' },
+      { q: '.slep-toggle-wrapper', t: 'Promedio SLEP', x: 'Actívalo para ver, junto a tu selección, la referencia del promedio de todo el SLEP.' },
       { q: '.theme-toggle-wrapper', t: 'Tema claro u oscuro', x: 'Cambia la apariencia del visor según tu comodidad.' },
-      { q: '#modo-selector', t: 'DIA general | DIA Parvularia', x: 'Cambia entre el visor general y el de Parvularia (NT1 y NT2).' },
-      { q: '.help-btn', t: 'Ayuda', x: 'Aquí puedes volver a abrir la ayuda y repetir este recorrido cuando quieras.' }
+      { q: '#modo-selector', t: 'DIA general | DIA Parvularia', x: 'Cambia entre el visor general y el de Parvularia (NT1 y NT2).' }
     ];
-    return L.map(p => Object.assign(p, { nodo: document.querySelector(p.q) })).filter(p => visible(p.nodo));
+    const graficosGen = [
+      { antes: tabGen(1), q: '#tab-general .kpi-grid', t: 'Tarjetas de resumen', x: 'Promedio de logro de la selección en Lectura y Matemática y total de puntajes registrados. Bajo cada promedio aparece la diferencia en puntos porcentuales (pp) frente a 2025, en la última etapa con datos en ambos años. Son generaciones distintas de estudiantes: úsala como referencia, no como juicio.' },
+      { q: '#tab-general .chart-block:nth-child(1) .chart-card', t: 'Evolución por etapa', x: 'Muestra el logro en Diagnóstico, Intermedio y Cierre (arriba Lectura, al lado Matemática). Línea continua = 2026; punteada = 2025. Sirve para ver cómo avanza el año y qué focos reforzar.' },
+      { q: '#var-leng-evo .var-table-wrapper', t: 'Tabla de variación', x: 'Diferencia en pp entre 2026 y 2025 en cada etapa. "—" significa sin datos; con pocos registros conviene interpretarla con cautela.' },
+      { q: '#tab-general .chart-block.full-width .chart-card', t: 'Análisis por curso', x: 'Al elegir un establecimiento aparece el logro de cada curso, para identificar cuáles necesitan más apoyo. El Manual de uso del DIA recuerda que no se deben comparar cursos entre sí: las condiciones de aplicación son distintas.' },
+      { antes: tabGen(2), q: '#tab-ejes .chart-card', t: 'Académico por ejes', x: 'El mismo resultado, desglosado por eje o habilidad. Las etiquetas de colores permiten mostrar u ocultar ejes. Ayuda a identificar temáticas que requieren trabajo.' },
+      { antes: tabGen(3), q: '#tab-1basico .chart-card', t: '1° Básico', x: 'Resultados de Lectura inicial por habilidad (conciencia fonológica, sílabas, vocales, consonantes…). Orienta qué habilidades fortalecer.' },
+      { antes: tabGen(4), q: '#tab-convivencia-socio .chart-card', t: 'Convivencia y Socioemocional', x: 'Cuestionarios de convivencia y bienestar. Son instrumentos distintos y no se comparan entre sí. Orientan qué temáticas trabajar con el curso; no son un diagnóstico psicológico ni evalúan al docente.' },
+      { q: null, t: 'Uso responsable de los resultados', x: 'Según el Manual de uso DIA 2026, SÍ se puede identificar estudiantes que necesitan apoyo, temáticas por trabajar y orientar decisiones de los equipos. NO se puede comparar cursos o establecimientos, evaluar al cuerpo docente, predecir desempeño ni calificar.' }
+    ];
+    const graficosPv = [
+      { antes: tabPv(1), q: '#pv-tab-general .kpi-grid', t: 'Tarjetas de resumen', x: '% de logro (Consolidando + Profundizando), % de riesgo (Comenzando) y % sin registro. "Sin registro" = No Evaluado: falta el dato, no indica un nivel bajo. La variación (pp) compara con el mismo período del año anterior, solo sobre lo que tiene datos en ambos.' },
+      { q: '#pv-tab-general .chart-block:nth-child(1) .chart-card', t: 'Logro por núcleo', x: 'Muestra qué núcleos de aprendizaje tienen más o menos estudiantes en logro, del más débil al más fuerte. Útil para priorizar dónde focalizar la planificación.' },
+      { q: '#pv-tab-general .chart-block:nth-child(2) .chart-card', t: 'Distribución por categoría', x: 'Proporción de estudiantes en cada categoría (No Evaluado a Profundizando). Con "Promedio SLEP" ves la referencia del territorio.' },
+      { antes: tabPv(2), q: IS_ADMIN ? '#pv-card-colegios' : null, si: IS_ADMIN, t: 'Establecimientos (solo administrador)', x: 'Resumen por establecimiento, ordenable por columna. Es información de apoyo para acompañar; no un ranking.' },
+      { q: '#pv-box-heat', t: 'Mapa de calor', x: 'Porcentaje de estudiantes en "Comenzando" por núcleo y curso (rojo = mayor proporción). Ayuda a ubicar dónde conversar y apoyar primero.' },
+      { q: '#pv-box-stacked', t: 'Rúbricas más débiles', x: 'Composición por categoría de las rúbricas con más estudiantes en "Comenzando" (hay enlace a la rúbrica oficial). Pregunta guía: ¿qué habilidades demuestra este grupo en este nivel y cómo las potenciamos?' },
+      { q: null, t: 'Uso responsable de los resultados', x: 'El DIA Parvularia es voluntario, de uso interno y formativo (Manual de Implementación 2026). Sus resultados no son comparables ni generalizables, no califican a los niños ni evalúan a docentes, y se analizan de forma cualitativa, guiada por preguntas.' }
+    ].filter(p => p.si !== false);
+    return [].concat(controles, pv ? graficosPv : graficosGen, [{ q: '.help-btn', t: 'Ayuda', x: 'Aquí puedes volver a abrir la ayuda y repetir este recorrido cuando quieras.' }]);
   }
 
-  function mostrar() {
-    const p = pasos[i], r = p.nodo.getBoundingClientRect(), pad = 6, spot = $('tour-spot'), pop = $('tour-pop');
-    Object.assign(spot.style, { top: (r.top - pad) + 'px', left: (r.left - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' });
+  async function resolver(k) {   // devuelve el nodo del paso k (ejecutando su acción previa) o false si no se ve
+    const p = pasos[k];
+    if (p.antes && p.antes()) await new Promise(r => setTimeout(r, 300));   // al cambiar de pestaña se deja que termine de dibujarse
+    if (!p.q) return null;
+    const n = document.querySelector(p.q);
+    return visible(n) ? n : false;
+  }
+
+  async function mostrar() {
+    let nodo = await resolver(i);
+    while (nodo === false) {          // si el elemento no se ve (p. ej. ese filtro no existe para este usuario), se salta
+      i += dir; if (i < 0 || i >= pasos.length) { cerrar(false); return; }
+      nodo = await resolver(i);
+    }
+    const p = pasos[i], spot = $('tour-spot'), pop = $('tour-pop');
+    let r = null;
+    if (nodo) {
+      if (nodo.closest('#navbar')) window.scrollTo(0, 0); else nodo.scrollIntoView({ block: 'center', behavior: 'instant' });
+      const b = nodo.getBoundingClientRect();
+      r = { top: Math.max(b.top, 4), bottom: Math.min(b.bottom, innerHeight - 4), left: b.left, right: b.right };
+      r.width = r.right - r.left; r.height = r.bottom - r.top;
+    }
+    const pad = 6;
+    if (r) { spot.style.display = 'block'; Object.assign(spot.style, { top: (r.top - pad) + 'px', left: (r.left - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' }); }
+    else { spot.style.display = 'block'; Object.assign(spot.style, { top: (innerHeight / 2) + 'px', left: (innerWidth / 2) + 'px', width: '0px', height: '0px' }); }
     pop.innerHTML = `<div class="tour-paso">Paso ${i + 1} de ${pasos.length}</div><div class="tour-titulo">${p.t}</div><div class="tour-texto">${p.x}</div>
       <div class="tour-pie"><div class="tour-puntos">${pasos.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>
       <button class="tour-omitir" type="button" data-a="omitir">Omitir</button>
       ${i > 0 ? '<button class="tour-btn" type="button" data-a="ant">Anterior</button>' : ''}
       <button class="tour-btn primario" type="button" data-a="sig">${i === pasos.length - 1 ? 'Finalizar' : 'Siguiente'}</button></div>`;
     const w = pop.offsetWidth, h = pop.offsetHeight;
-    let top = r.bottom + pad + 12; if (top + h > innerHeight - 10) top = Math.max(10, r.top - pad - 12 - h);
-    pop.style.top = top + 'px'; pop.style.left = Math.min(Math.max(10, r.left + r.width / 2 - w / 2), innerWidth - w - 10) + 'px';
-    pop.querySelectorAll('[data-a]').forEach(b => b.onclick = () => ({ omitir: () => cerrar(true), ant: () => { i--; mostrar(); }, sig: () => { if (i === pasos.length - 1) cerrar(false); else { i++; mostrar(); } } })[b.dataset.a]());
+    let top, left;
+    if (r) {
+      top = r.bottom + pad + 12;
+      if (top + h > innerHeight - 10) top = r.top - pad - 12 - h;
+      if (top < 10) top = innerHeight - h - 12;                      // elemento muy alto: el mensaje va abajo
+      left = Math.min(Math.max(10, r.left + r.width / 2 - w / 2), innerWidth - w - 10);
+    } else { top = Math.max(10, innerHeight / 2 - h / 2); left = Math.max(10, innerWidth / 2 - w / 2); }
+    pop.style.top = top + 'px'; pop.style.left = left + 'px';
+    pop.querySelectorAll('[data-a]').forEach(bt => bt.onclick = () => ({ omitir: () => cerrar(true), ant: () => { dir = -1; i--; mostrar(); }, sig: () => { if (i === pasos.length - 1) cerrar(false); else { dir = 1; i++; mostrar(); } } })[bt.dataset.a]());
     const sig = pop.querySelector('[data-a="sig"]'); if (sig) sig.focus();
   }
 
   function cerrar(omitido) {
     $('tour-overlay').classList.remove('activo');
-    document.removeEventListener('keydown', teclas); window.removeEventListener('resize', reubicar);
+    document.removeEventListener('keydown', teclas, true); window.removeEventListener('resize', reubicar);
+    if (tabInicial && document.body.contains(tabInicial) && !tabInicial.classList.contains('active')) tabInicial.click();   // vuelve a la pestaña donde estaba
     if (omitido && opts.omitirAbreAyuda) $('help-overlay').classList.add('open');
   }
   const reubicar = () => { if ($('tour-overlay').classList.contains('activo') && pasos[i]) mostrar(); };
   function teclas(e) {
     if (e.key === 'Escape') { e.stopImmediatePropagation(); cerrar(true); }
-    else if (e.key === 'ArrowRight') { if (i < pasos.length - 1) { i++; mostrar(); } }
-    else if (e.key === 'ArrowLeft') { if (i > 0) { i--; mostrar(); } }
+    else if (e.key === 'ArrowRight') { if (i < pasos.length - 1) { dir = 1; i++; mostrar(); } }
+    else if (e.key === 'ArrowLeft') { if (i > 0) { dir = -1; i--; mostrar(); } }
   }
 
   function iniciar(o) {
     opts = o || {};
     try { localStorage.setItem('dia_tour_visto_v1', '1'); } catch (e) {}
     const cc = $('coach'); if (cc) cc.classList.remove('visible');
+    const pv = document.body.classList.contains('modo-pv');
+    tabInicial = [...document.querySelectorAll(pv ? '#pv-tabs .pv-tab-btn' : '#gen-tabs .tab-btn')].find(b => b.classList.contains('active')) || null;
     window.scrollTo(0, 0);
-    pasos = armar(); i = 0;
-    if (!pasos.length) { if (opts.omitirAbreAyuda) $('help-overlay').classList.add('open'); return; }
+    pasos = armar(); i = 0; dir = 1;
     $('tour-overlay').classList.add('activo');
     document.addEventListener('keydown', teclas, true); window.addEventListener('resize', reubicar);
     mostrar();
