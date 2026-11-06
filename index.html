@@ -508,6 +508,20 @@
     html.sin-transiciones .theme-switch .slider, html.sin-transiciones .theme-switch .slider::before { transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.45s, border-color 0.45s !important; }
     html.sin-transiciones .theme-switch::before, html.sin-transiciones .theme-switch::after { transition: color 0.45s !important; }
 
+    /* Informe PDF */
+    .btn-informe svg { width: 15px; height: 15px; flex: none; }
+    .btn-informe + .btn-clear-text { margin-left: 0; }
+    #informe-overlay { position: fixed; inset: 0; background: rgba(15,18,33,0.5); z-index: 6000; display: none; align-items: center; justify-content: center; padding: 2rem; }
+    #informe-overlay.open { display: flex; }
+    .inf-op { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.85rem; color: var(--text); margin-bottom: 0.5rem; cursor: pointer; line-height: 1.4; }
+    .inf-op input { accent-color: var(--brand); width: 16px; height: 16px; margin-top: 2px; flex: none; }
+    .inf-pie { display: flex; align-items: center; gap: 0.8rem; margin-top: 1rem; }
+    .inf-estado { flex: 1; font-size: 0.78rem; color: var(--text-muted); min-width: 0; }
+    .inf-generar { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--brand); color: var(--on-brand); border: none; border-radius: 8px; padding: 0.6rem 1.1rem; font-family: var(--font); font-size: 0.82rem; font-weight: 800; cursor: pointer; }
+    .inf-generar:disabled { opacity: 0.8; cursor: progress; }
+    .inf-generar .spinner { display: none; } .inf-generar.ocupado .spinner { display: inline-block; }
+    @media (max-width: 640px) { .btn-informe { flex: 1 1 100%; justify-content: center; } }
+
     /* Aviso breve */
     #toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translate(-50%, 20px); background: var(--brand); color: var(--on-brand); padding: 0.6rem 1.1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,0.25); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 9000; max-width: calc(100vw - 2rem); text-align: center; }
     #toast.visible { opacity: 1; transform: translate(-50%, 0); }
@@ -595,6 +609,7 @@
     </div>
     
     <div class="vistas-wrap" id="vistas-gen"></div>
+    <button class="btn-vistas btn-informe" type="button" onclick="Informe.abrir()" title="Descargar un informe en PDF con la selección actual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6"/><path d="M9.5 14.5L12 17l2.5-2.5"/></svg><span>Informe PDF</span></button>
     <button class="btn-clear-text" id="btn-clear">Limpiar Filtros</button>
   </div>
 
@@ -615,6 +630,7 @@
       </div>
     </div>
     <div class="vistas-wrap" id="vistas-pv"></div>
+    <button class="btn-vistas btn-informe" type="button" onclick="Informe.abrir()" title="Descargar un informe en PDF con la selección actual"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6"/><path d="M9.5 14.5L12 17l2.5-2.5"/></svg><span>Informe PDF</span></button>
     <button class="btn-clear-text" id="pv-btn-clear">Limpiar Filtros</button>
   </div>
   <div id="pv-active-filters-tray" class="active-filters-tray"></div>
@@ -2226,6 +2242,18 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarAyuda(
 initData();
 </script>
 
+<div id="informe-overlay" onclick="if (event.target === this) Informe.cerrar()">
+  <div class="help-card" style="max-width: 520px;">
+    <div class="help-card-header"><h2>Descargar informe (PDF)</h2><button class="help-close" onclick="Informe.cerrar()" aria-label="Cerrar">&times;</button></div>
+    <div class="help-section"><p>Genera un informe ordenado, listo para compartir en reuniones de análisis, con los resultados de la selección actual (establecimiento, comuna, nivel y curso). Incluye siempre 2025 y 2026 y todas las etapas disponibles.</p><p id="inf-alcance" style="color: var(--text); font-weight: 700;"></p></div>
+    <div class="help-section">
+      <label class="inf-op"><input type="checkbox" id="inf-gen" checked><span><b>DIA general</b>: Lectura, Matemática, ejes, 1° básico y convivencia/socioemocional.</span></label>
+      <label class="inf-op" id="inf-pv-op"><input type="checkbox" id="inf-pv" checked><span><b>DIA Parvularia</b> (NT1 y NT2), como sección aparte.</span></label>
+    </div>
+    <div class="inf-pie"><div class="inf-estado" id="inf-estado"></div><button class="inf-generar" id="inf-generar" type="button" onclick="Informe.generar()"><span class="spinner"></span><span id="inf-generar-texto">Generar PDF</span></button></div>
+  </div>
+</div>
+
 <div id="tour-overlay" role="dialog" aria-modal="true" aria-label="Recorrido de bienvenida"><div id="tour-spot"></div><div id="tour-pop"></div></div>
 
 <script>
@@ -2249,6 +2277,7 @@ const Recorrido = (function () {
       { q: pv ? '#pv-tabs' : '#gen-tabs', t: 'Pestañas', x: pv ? 'Visión General resume logro, riesgo y distribución; Análisis Detallado muestra el mapa de calor y las rúbricas más débiles.' : 'Cada pestaña muestra un tipo de resultado: académico, por ejes, 1° básico y convivencia/socioemocional.' },
       { q: '.slep-toggle-wrapper', t: 'Promedio SLEP', x: 'Actívalo para ver, junto a tu selección, la referencia del promedio de todo el SLEP.' },
       { q: '.theme-toggle-wrapper', t: 'Tema claro u oscuro', x: 'Cambia la apariencia del visor según tu comodidad.' },
+      { q: pv ? '#pv-filtros .btn-informe' : '#gen-filtros .btn-informe', t: 'Informe PDF', x: 'Descarga un informe ordenado con los resultados de la selección actual (y, si corresponde, una sección aparte de Parvularia), listo para compartir en reuniones de análisis.' },
       { q: '#modo-selector', t: 'DIA general | DIA Parvularia', x: 'Cambia entre el visor general y el de Parvularia (NT1 y NT2).' }
     ];
     const graficosGen = [
@@ -2342,6 +2371,385 @@ const Recorrido = (function () {
     mostrar();
   }
   return { iniciar };
+})();
+</script>
+
+<script>
+/* ===== INFORME PDF =====
+   Genera en el navegador (jsPDF + autoTable, cargados solo al pedir el informe) un PDF con la estructura de los informes por RBD:
+   ficha, resumen, trayectoria, resultados por nivel/curso/eje, convivencia, análisis, preguntas guía y cómo leer el informe;
+   DIA Parvularia va como sección aparte. Respeta establecimiento, comuna, nivel y curso del visor; siempre incluye todos los años y etapas.
+   Los lineamientos de uso siguen el Manual de uso DIA 2026 (Agencia de Calidad de la Educación). */
+const Informe = (function () {
+  const $ = id => document.getElementById(id);
+  const NAVY = [37, 48, 107], CLARO = [232, 234, 244], GRIS = [90, 96, 120], TXT = [40, 40, 40];
+  const MG = 56.7, PW = 595.28, PH = 841.89, W = PW - 2 * MG, TOP = 92, BOT = PH - 66, POCOS = 30;
+  const FRANJA = [[146, 193, 64], [233, 66, 82], [60, 191, 240], [247, 215, 62], [57, 123, 190], [238, 121, 139]];
+  const C = { leng: '#0284c7', lengC: '#7dd3fc', mate: '#ea580c', mateC: '#fdba74', gris: '#5a6078' };
+  const CATS = ['No Evaluado', 'Comenzando', 'Desarrollando', 'Consolidando', 'Profundizando'];
+  const CATC = ['#9ca3af', '#ef4444', '#f59e0b', '#84cc16', '#22c55e'];
+  const PIE = 'Herramienta de uso interno y formativo (Agencia de Calidad de la Educación): los resultados orientan las decisiones pedagógicas del equipo. No corresponden a una calificación de los estudiantes ni a una evaluación de docentes, y las comparaciones entre años corresponden a generaciones distintas de estudiantes.';
+  let libs = null, logo = null;
+  const tick = () => new Promise(r => setTimeout(r, 30));
+
+  // ---------- formato ----------
+  const pc = v => v == null ? 'Sin datos' : (v * 100).toFixed(1).replace('.', ',') + '%';
+  const pp100 = v => v == null ? 'Sin datos' : v.toFixed(1).replace('.', ',') + '%';
+  const dif = d => d == null ? 'Sin datos' : (d > 0.05 ? '+' : d < -0.05 ? '-' : '') + (Math.abs(d) < 0.05 ? '0,0' : Math.abs(d).toFixed(1).replace('.', ',')) + ' pp';
+  const fecha = () => { const d = new Date(); return String(d.getDate()).padStart(2, '0') + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + d.getFullYear(); };
+  const num = n => n.toLocaleString('es-CL');
+
+  function cargarLibs() {
+    if (libs) return libs;
+    libs = new Promise((ok, mal) => {
+      const add = (src, cb) => { const el = document.createElement('script'); el.src = src; el.onload = cb; el.onerror = () => { libs = null; mal(new Error('No se pudo cargar ' + src.split('/').pop())); }; document.head.appendChild(el); };
+      if (window.jspdf && window.jspdf.jsPDF && window.jspdf.jsPDF.API.autoTable) return ok();
+      add('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => add('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js', ok));
+    });
+    return libs;
+  }
+  async function cargarLogo() {
+    if (logo) return logo;
+    const blob = await (await fetch('logo3.png')).blob();
+    const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+    const dim = await new Promise(r => { const im = new Image(); im.onload = () => r([im.naturalWidth, im.naturalHeight]); im.src = url; });
+    return (logo = { url, w: dim[0], h: dim[1] });
+  }
+
+  // ---------- gráficos fuera de pantalla (tema claro, fondo blanco) ----------
+  function imagen(cfg, w, h) {
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cfg.options = Object.assign({ responsive: false, animation: false, devicePixelRatio: 2, layout: { padding: 6 } }, cfg.options || {});
+    cfg.plugins = [{ id: 'fondoBlanco', beforeDraw: c => { c.ctx.save(); c.ctx.globalCompositeOperation = 'destination-over'; c.ctx.fillStyle = '#fff'; c.ctx.fillRect(0, 0, c.width, c.height); c.ctx.restore(); } }];
+    const ch = new Chart(cv, cfg), url = cv.toDataURL('image/png'); ch.destroy();
+    return url;
+  }
+  const FONT = "'gobCL', 'Segoe UI', sans-serif";
+  const ejes = (extra) => ({ grid: { color: '#e5e7eb' }, border: { display: false }, ticks: { color: C.gris, font: { family: FONT, size: 11 } }, ...(extra || {}) });
+  function alinear(ctx) {   // la serie más alta escribe arriba y las demás abajo
+    const v = ctx.dataset.data[ctx.dataIndex], ds = ctx.chart.data.datasets;
+    return ds.filter(d => d !== ctx.dataset && d.data[ctx.dataIndex] != null).every(d => v >= d.data[ctx.dataIndex]) ? 'top' : 'bottom';
+  }
+  function graficoEvolucion(nodo, color) {
+    const dsDe = (agno, punteada) => ({ label: agno, data: STAGES.map((_, k) => { const x = nodo[agno] && nodo[agno][k]; return x && x[1] > 0 ? +(x[0] / x[1] * 100).toFixed(1) : null; }),
+      borderColor: color, backgroundColor: color, borderDash: punteada ? [6, 5] : [], borderWidth: punteada ? 2.5 : 3.5, pointStyle: punteada ? 'triangle' : 'circle', pointRadius: punteada ? 6 : 5, tension: 0.25 });
+    const ds = ['2025', '2026'].filter(a => nodo[a]).map(a => dsDe(a, a === '2025'));
+    return imagen({ type: 'line', data: { labels: STAGES, datasets: ds }, options: {
+      layout: { padding: { top: 20, right: 16, left: 6, bottom: 4 } },
+      scales: { x: ejes({ grid: { display: false } }), y: ejes({ grace: '12%', ticks: { color: C.gris, font: { family: FONT, size: 11 }, callback: v => v + '%' } }) },
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, color: C.gris, font: { family: FONT, size: 12 } } },
+        datalabels: { display: c => c.dataset.data[c.dataIndex] != null ? 'auto' : false, align: alinear, anchor: 'center', offset: 7, clamp: true, color: '#333', font: { weight: 'bold', size: 11, family: FONT }, formatter: v => v.toFixed(1).replace('.', ',') + '%' } } } }, 760, 240);
+  }
+  function graficoBarras(labels, datasets, horizontal, w, h, max100) {
+    return imagen({ type: 'bar', data: { labels, datasets }, options: { indexAxis: horizontal ? 'y' : 'x',
+      scales: { x: horizontal ? ejes({ min: 0, max: max100 ? 100 : undefined, ticks: { color: C.gris, font: { family: FONT, size: 11 }, callback: v => v + '%' } }) : ejes({ grid: { display: false } }),
+                y: horizontal ? ejes({ grid: { display: false }, ticks: { color: C.gris, autoSkip: false, font: { family: FONT, size: 11 } } }) : ejes({ min: 0, suggestedMax: 100, ticks: { color: C.gris, font: { family: FONT, size: 11 }, callback: v => v + '%' } }) },
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, color: C.gris, font: { family: FONT, size: 12 } } },
+        datalabels: { display: c => c.dataset.data[c.dataIndex] != null && !/2025/.test(c.dataset.label), anchor: 'end', align: horizontal ? 'right' : 'top', color: '#333', clamp: true, font: { weight: 'bold', size: 10, family: FONT }, formatter: v => v.toFixed(1).replace('.', ',') + '%' } } } }, w, h);
+  }
+  function graficoDistribucion(dist) {
+    const ds = CATS.map((c, i) => ({ label: c, data: [+dist[i].toFixed(1)], backgroundColor: CATC[i], borderColor: '#fff', borderWidth: 1 }));
+    return imagen({ type: 'bar', data: { labels: ['Esta selección'], datasets: ds }, options: { indexAxis: 'y',
+      scales: { x: ejes({ stacked: true, min: 0, max: 100, ticks: { color: C.gris, font: { family: FONT, size: 11 }, callback: v => v + '%' } }), y: ejes({ stacked: true, grid: { display: false } }) },
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, color: C.gris, font: { family: FONT, size: 12 } } },
+        datalabels: { display: c => c.dataset.data[c.dataIndex] >= 4, color: c => c.datasetIndex === 1 || c.datasetIndex === 4 ? '#fff' : '#1b1f33', font: { weight: 'bold', size: 12, family: FONT }, formatter: v => v.toFixed(1).replace('.', ',') + '%' } } } }, 760, 150);
+  }
+
+  // ---------- cálculo del visor general (todos los años y etapas; respeta establecimiento, comuna, nivel y curso) ----------
+  function filtrosInforme() { return { agno: [], etapa: [], nivel: ts.nivel.getValue(), curso: ts.curso.getValue(), comuna: ts.comuna.getValue(), rbd: ts.rbd.getValue() }; }
+  const textos = k => ts[k].getValue().map(v => ts[k].options[v].text);
+  const rbdNums = () => textos('rbd').map(t => t.split(' ')[0]);
+  function alcanceTexto() {
+    const r = textos('rbd');
+    if (r.length === 1) return r[0];
+    if (r.length > 1) return r.length + ' establecimientos seleccionados';
+    const c = textos('comuna');
+    return 'SLEP Del Pino' + (c.length ? ' · comuna de ' + c.join(', ') : ' · todos los establecimientos');
+  }
+  function detalle(f) {   // una pasada: Lectura y Matemática por nivel (selección y SLEP) y por curso
+    const m = DATA_RAW.maps, rows = DATA_RAW.rows, nA = m[I.AGNO].length;
+    if (!IDX) prepararIndices();
+    const aL = m[I.ASIG].indexOf('Lenguaje'), aM = m[I.ASIG].indexOf('Matemática');
+    const conj = k => f[k].length ? new Set(f[k].map(Number)) : null;
+    const fN = conj('nivel'), fC = conj('curso'), fCo = conj('comuna'), fR = conj('rbd');
+    const mk = n => ({ s: new Float64Array(n * 2 * nA * 3), c: new Float64Array(n * 2 * nA * 3) });
+    const Nsel = mk(m[I.NIVEL].length), Nsl = mk(m[I.NIVEL].length), Csel = mk(m[I.CURSO].length);
+    for (let i = 0, n = rows.length; i < n; i++) {
+      const r = rows[i], asig = r[I.ASIG];
+      if (asig !== aL && asig !== aM) continue;
+      if (fN && !fN.has(r[I.NIVEL])) continue; if (fC && !fC.has(r[I.CURSO])) continue; if (fCo && !fCo.has(r[I.COMUNA])) continue;
+      const st = IDX.st[r[I.ETAPA]]; if (st === -1) continue;
+      const a = asig === aL ? 0 : 1, p = r[I.PUNTAJE], ag = r[I.AGNO];
+      let j = (((r[I.NIVEL] * 2 + a) * nA + ag) * 3 + st); Nsl.s[j] += p; Nsl.c[j]++;
+      if (fR && !fR.has(r[I.RBD])) continue;
+      Nsel.s[j] += p; Nsel.c[j]++;
+      j = (((r[I.CURSO] * 2 + a) * nA + ag) * 3 + st); Csel.s[j] += p; Csel.c[j]++;
+    }
+    return { nA, Nsel, Nsl, Csel, ag25: m[I.AGNO].indexOf('2025'), ag26: m[I.AGNO].indexOf('2026') };
+  }
+  const celda = (X, idx, a, ag, st, nA) => { const j = (((idx * 2 + a) * nA + ag) * 3 + st); return X.c[j] > 0 ? [X.s[j] / X.c[j], X.c[j]] : null; };
+  const ult26 = nodo => { for (let k = 2; k >= 0; k--) if (nodo && nodo['2026'] && nodo['2026'][k][1] > 0) return k; return -1; };
+  const val = x => x && x[1] > 0 ? x[0] / x[1] : null;
+  const marca = (...ns) => ns.some(n => n != null && n < POCOS) ? '*' : '';
+
+  // ---------- dibujo ----------
+  async function construir(doc, opts) {
+    const y0 = { y: TOP };
+    const L = y0;
+    const asegurar = h => { if (L.y + h > BOT) { doc.addPage(); L.y = TOP; } };
+    const titulo = t => { if (L.y > TOP + 2) L.y += 8; asegurar(40); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(...NAVY); doc.text(t, MG, L.y + 4); L.y += 16; };
+    const parrafo = (t, o = {}) => {
+      doc.setFont('helvetica', o.bold ? 'bold' : 'normal'); doc.setFontSize(o.size || 9.5); doc.setTextColor(...(o.color || TXT));
+      const lin = doc.splitTextToSize(t, o.ancho || W), alto = (o.size || 9.5) * 1.35;
+      lin.forEach(l => { asegurar(alto); doc.text(l, o.x || MG, L.y + (o.size || 9.5)); L.y += alto; });
+      L.y += o.gap == null ? 5 : o.gap;
+    };
+    const tabla = (cfg) => {
+      doc.autoTable(Object.assign({ startY: L.y, margin: { left: MG, right: MG, top: TOP, bottom: 66 }, theme: 'plain',
+        styles: { font: 'helvetica', fontSize: 8.5, cellPadding: { top: 3, bottom: 3, left: 4, right: 4 }, textColor: TXT, valign: 'middle', lineColor: [200, 205, 224], lineWidth: { bottom: 0.4 } },
+        headStyles: { fillColor: CLARO, textColor: NAVY, fontStyle: 'bold', fontSize: 8, halign: 'center' } }, cfg));
+      L.y = doc.lastAutoTable.finalY + 10;
+    };
+    const img = (url, w, h) => { asegurar(h + 6); doc.addImage(url, 'PNG', MG + (W - w) / 2, L.y, w, h); L.y += h + 8; };
+    const caja = (htmlTxt) => tabla({ body: [[htmlTxt]], styles: { font: 'helvetica', fontSize: 8.5, cellPadding: 7, textColor: TXT, fillColor: CLARO, lineWidth: 0 }, didDrawCell: d => { doc.setFillColor(146, 193, 64); doc.rect(d.cell.x, d.cell.y, 3, d.cell.height, 'F'); } });
+
+    // ===== DIA general =====
+    if (opts.general) {
+      const f = filtrosInforme(), cur = filtrosInforme();
+      const { res, slep } = agregarGeneral(f);
+      const det = detalle(f);
+      const hayRbd = f.rbd.length > 0;
+      const evo = res.evo;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(...NAVY);
+      doc.text('Informe de resultados DIA', PW / 2, L.y + 8, { align: 'center' }); L.y += 22;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...GRIS);
+      doc.text('SLEP Del Pino · emitido el ' + fecha(), PW / 2, L.y + 4, { align: 'center' }); L.y += 20;
+      const fi = [['Alcance', alcanceTexto()]];
+      if (textos('nivel').length) fi.push(['Niveles', textos('nivel').join(', ')]);
+      if (textos('curso').length) fi.push(['Cursos', textos('curso').join(', ')]);
+      if (textos('comuna').length && !hayRbd) fi.push(['Comuna', textos('comuna').join(', ')]);
+      fi.push(['Años y etapas', 'Todos los disponibles (2025 y 2026; Diagnóstico, Intermedio y Cierre)']);
+      tabla({ body: fi, columnStyles: { 0: { fillColor: CLARO, fontStyle: 'bold', cellWidth: 110 } }, styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 4, textColor: TXT, lineWidth: 0 } });
+      parrafo('El siguiente informe muestra los resultados del DIA de la selección indicada, a partir de los archivos que los establecimientos compartieron con el SLEP y de los mismos datos que alimentan el Visor de datos DIA, donde se puede filtrar por nivel y curso y revisar todas las dimensiones.');
+
+      // --- Resumen
+      titulo('Resumen de resultados');
+      const ASIG = [['Lenguaje', 'Lectura'], ['Matemática', 'Matemática'], ['Lectura Inicial', 'Lectura inicial (1° básico)']];
+      const filasRes = []; let hayPocos = false;
+      ASIG.forEach(([a, nom]) => {
+        const nodo = evo[a]; if (!nodo || !Object.keys(nodo).length) return;
+        const k = ult26(nodo);
+        if (k < 0) { filasRes.push([nom, '-', 'Sin datos', 'Sin datos', 'Sin datos', '-']); return; }
+        const x26 = nodo['2026'][k], x25 = nodo['2025'] ? nodo['2025'][k] : null, v25 = val(x25), v26 = val(x26);
+        const mk = marca(x26[1], x25 && x25[1] > 0 ? x25[1] : null); if (mk) hayPocos = true;
+        const d = v25 != null ? (v26 - v25) * 100 : null;
+        let slepTxt = '-';
+        if (hayRbd && slep.evo[a] && slep.evo[a]['2026']) slepTxt = pc(val(slep.evo[a]['2026'][k]));
+        filasRes.push([nom, STAGES[k], pc(v25), pc(v26) + mk, dif(d) + (d != null && mk ? '*' : ''), hayRbd ? slepTxt : num(x26[1])]);
+      });
+      tabla({ head: [['Asignatura', 'Etapa', '2025', '2026', 'Diferencia', hayRbd ? 'Promedio SLEP 2026' : 'Registros 2026']], body: filasRes, columnStyles: { 0: { cellWidth: 150 }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' }, 5: { halign: 'center' } } });
+      parrafo('El logro es el promedio de los puntajes de cada evaluación; pp = puntos porcentuales (2026 menos 2025 en la misma etapa, la última con resultados 2026). «Sin datos»: no hay resultados de esa ronda en la selección. Cada registro es el puntaje de un estudiante en un eje.' + (hayPocos ? ' * Basado en pocas evaluaciones (menos de 30 registros): interprételo con cautela.' : ''), { size: 8, color: GRIS });
+
+      // --- Trayectoria
+      const tray = [['Lenguaje', 'Lectura', C.leng], ['Matemática', 'Matemática', C.mate]].filter(([a]) => evo[a] && Object.keys(evo[a]).length);
+      if (tray.length) {
+        titulo('Trayectoria 2025 y 2026');
+        for (const [a, nom, col] of tray) { asegurar(18 + W * 240 / 760 + 8); parrafo(nom, { bold: true, size: 9.5, gap: 2 }); img(graficoEvolucion(evo[a], col), W, W * 240 / 760); }
+        const fv = [];
+        tray.forEach(([a, nom]) => STAGES.forEach((e, k) => {
+          const x25 = evo[a]['2025'] ? evo[a]['2025'][k] : null, x26 = evo[a]['2026'] ? evo[a]['2026'][k] : null;
+          if (!(x25 && x25[1] > 0) && !(x26 && x26[1] > 0)) return;
+          const v25 = val(x25), v26 = val(x26), mk = marca(x26 && x26[1] > 0 ? x26[1] : null, x25 && x25[1] > 0 ? x25[1] : null);
+          fv.push([nom, e, pc(v25), pc(v26) + (v26 != null ? mk : ''), v25 != null && v26 != null ? dif((v26 - v25) * 100) + mk : 'Sin datos']);
+        }));
+        titulo('Variación entre años por etapa');
+        tabla({ head: [['Asignatura', 'Etapa', '2025', '2026', 'Diferencia']], body: fv, columnStyles: { 0: { cellWidth: 130 }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' } } });
+      }
+
+      // --- Por nivel
+      const nivIdx = DATA_RAW.maps[I.NIVEL].map((t, k) => [t, k]).filter(([, k]) => { for (let a = 0; a < 2; a++) for (const ag of [det.ag25, det.ag26]) for (let st = 0; st < 3; st++) { if (celda(det.Nsel, k, a, ag, st, det.nA)) return true; } return false; })
+        .sort((p, q) => { const x = parseInt(p[0], 10), y = parseInt(q[0], 10); return (isNaN(x) ? 999 : x) - (isNaN(y) ? 999 : y) || p[0].localeCompare(q[0], 'es'); });
+      if (nivIdx.length) {
+        let eRef = -1;
+        nivIdx.forEach(([, k]) => [0, 1].forEach(a => { for (let st = 2; st >= 0; st--) if (celda(det.Nsel, k, a, det.ag26, st, det.nA)) { eRef = Math.max(eRef, st); break; } }));
+        if (eRef >= 0) {
+          titulo('Resultados por nivel · ' + STAGES[eRef] + ' 2026');
+          const labels = nivIdx.map(([t]) => t), g = (a, ag) => nivIdx.map(([, k]) => { const c = celda(det.Nsel, k, a, ag, eRef, det.nA); return c ? +(c[0] * 100).toFixed(1) : null; });
+          const ds = [{ label: 'Lectura 2025', data: g(0, det.ag25), backgroundColor: C.lengC }, { label: 'Lectura 2026', data: g(0, det.ag26), backgroundColor: C.leng }, { label: 'Matemática 2025', data: g(1, det.ag25), backgroundColor: C.mateC }, { label: 'Matemática 2026', data: g(1, det.ag26), backgroundColor: C.mate }];
+          img(graficoBarras(labels, ds, false, 760, 300, true), W, W * 300 / 760);
+          const fn = [];
+          nivIdx.forEach(([t, k]) => [[0, 'Lectura'], [1, 'Matemática']].forEach(([a, nom]) => {
+            const c25 = celda(det.Nsel, k, a, det.ag25, eRef, det.nA), c26 = celda(det.Nsel, k, a, det.ag26, eRef, det.nA), cs = celda(det.Nsl, k, a, det.ag26, eRef, det.nA);
+            if (!c25 && !c26) return;
+            const mk = marca(c26 ? c26[1] : null, c25 ? c25[1] : null);
+            fn.push([t, nom, pc(c25 && c25[0]), pc(c26 && c26[0]) + (c26 ? mk : ''), c25 && c26 ? dif((c26[0] - c25[0]) * 100) + mk : 'Sin datos', hayRbd ? pc(cs && cs[0]) : num(c26 ? c26[1] : 0)]);
+          }));
+          tabla({ head: [['Nivel', 'Asignatura', '2025', '2026', 'Diferencia', hayRbd ? 'Promedio SLEP 2026' : 'Registros 2026']], body: fn, columnStyles: { 0: { cellWidth: 100 }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' }, 5: { halign: 'center' } } });
+        }
+      }
+
+      // --- Por curso (1 a 3 establecimientos)
+      if (hayRbd && f.rbd.length <= 3) {
+        const cuIdx = DATA_RAW.maps[I.CURSO].map((t, k) => [t, k]).filter(([t, k]) => t !== 'Socioemocional' && t !== 'Convivencia' && [0, 1].some(a => [det.ag25, det.ag26].some(ag => [0, 1, 2].some(st => celda(det.Csel, k, a, ag, st, det.nA)))))
+          .sort((p, q) => p[0].localeCompare(q[0], 'es', { numeric: true }));
+        if (cuIdx.length) {
+          const fc = [];
+          cuIdx.forEach(([t, k]) => [[0, 'Lectura'], [1, 'Matemática']].forEach(([a, nom]) => {
+            let st = -1; for (let e = 2; e >= 0; e--) if (celda(det.Csel, k, a, det.ag26, e, det.nA)) { st = e; break; }
+            if (st < 0) return;
+            const c25 = celda(det.Csel, k, a, det.ag25, st, det.nA), c26 = celda(det.Csel, k, a, det.ag26, st, det.nA), mk = marca(c26[1], c25 ? c25[1] : null);
+            fc.push([t, nom, STAGES[st], pc(c25 && c25[0]), pc(c26[0]) + mk, c25 ? dif((c26[0] - c25[0]) * 100) + mk : 'Sin datos']);
+          }));
+          if (fc.length) { titulo('Resultados por curso'); tabla({ head: [['Curso', 'Asignatura', 'Etapa', '2025', '2026', 'Diferencia']], body: fc, columnStyles: { 0: { cellWidth: 120 }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' }, 5: { halign: 'center' } } }); }
+        }
+      }
+
+      // --- Por eje
+      let primeroEje = true;
+      for (const [a, nom] of [['Lenguaje', 'Lectura'], ['Matemática', 'Matemática'], ['Lectura Inicial', 'Lectura inicial (1° básico)']]) {
+        const E = res.ejes[a]; if (!E) continue;
+        const fe = [];
+        Object.keys(E).sort((p, q) => p.localeCompare(q, 'es')).forEach(e => {
+          const k = ult26(E[e]); if (k < 0) return;
+          const x26 = E[e]['2026'][k], x25 = E[e]['2025'] ? E[e]['2025'][k] : null, v25 = val(x25), v26 = val(x26), mk = marca(x26[1], x25 && x25[1] > 0 ? x25[1] : null);
+          fe.push([e, STAGES[k], pc(v25), pc(v26) + mk, v25 != null ? dif((v26 - v25) * 100) + mk : 'Sin datos', num(x26[1])]);
+        });
+        if (!fe.length) continue;
+        if (primeroEje) { titulo('Resultados por eje o habilidad'); primeroEje = false; }
+        parrafo(nom, { bold: true, gap: 2 });
+        tabla({ head: [['Eje', 'Etapa', '2025', '2026', 'Diferencia', 'Registros 2026']], body: fe, columnStyles: { 0: { cellWidth: 170 }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' }, 5: { halign: 'center' } } });
+      }
+
+      // --- Convivencia y socioemocional
+      const DIM = [['Desarrollo', 'Socioemocional · Desarrollo'], ['Gestión', 'Socioemocional · Gestión'], ['Promoción universal', 'Convivencia · Promoción universal'], ['Apoyos focalizados', 'Convivencia · Apoyos focalizados'], ['Intervenciones de mayor intensidad', 'Convivencia · Intervenciones de mayor intensidad'],
+        ['Bienestar', 'Bienestar'], ['Ansiedad ante evaluaciones', 'Sin ansiedad ante evaluaciones (% que NO la experimenta)'], ['Convivencia digital', 'Convivencia digital'], ['Valoración de la educación', 'Valoración de la educación']];
+      const fs = [];
+      DIM.forEach(([a, nom]) => { const nodo = evo[a]; if (!nodo) return; const k = ult26(nodo); if (k < 0) return; const x26 = nodo['2026'][k], x25 = nodo['2025'] ? nodo['2025'][k] : null; fs.push([nom, STAGES[k], pc(val(x25)), pc(val(x26))]); });
+      if (fs.length) {
+        titulo('Convivencia y socioemocional');
+        tabla({ head: [['Dimensión', 'Etapa', '2025', '2026']], body: fs, columnStyles: { 0: { cellWidth: 250 }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' } } });
+        parrafo('Son instrumentos distintos: no se comparan entre sí ni sirven para evaluar a docentes o hacer un diagnóstico psicológico; orientan qué temáticas trabajar con los cursos.', { size: 8, color: GRIS });
+      }
+
+      // --- Análisis (solo cifras, sin juicio)
+      titulo('Análisis de resultados');
+      let alguno = false;
+      ASIG.forEach(([a, nom]) => {
+        const nodo = evo[a]; if (!nodo) return; const k = ult26(nodo); if (k < 0) return; alguno = true;
+        const x26 = nodo['2026'][k], x25 = nodo['2025'] ? nodo['2025'][k] : null, mk = marca(x26[1], x25 && x25[1] > 0 ? x25[1] : null);
+        const partes = []; if (x25 && x25[1] > 0) partes.push(`${STAGES[k]} 2025: ${pc(val(x25))}`);
+        for (let e = k - 1; e >= 0; e--) if (nodo['2026'][e][1] > 0) { partes.push(`${STAGES[e]} 2026: ${pc(val(nodo['2026'][e]))}`); break; }
+        if (hayRbd && slep.evo[a] && slep.evo[a]['2026'] && slep.evo[a]['2026'][k][1] > 0) partes.push(`promedio SLEP: ${pc(val(slep.evo[a]['2026'][k]))}`);
+        parrafo('- En ' + nom + ' el logro de la ' + STAGES[k] + ' 2026 fue de ' + pc(val(x26)) + mk + (partes.length ? ' (' + partes.join('; ') + ')' : '') + '.', { gap: 3 });
+      });
+      if (!alguno) parrafo('No se registran resultados 2026 para esta selección.');
+      titulo('Invitación al análisis');
+      parrafo('Para orientar la reflexión, el Manual de uso DIA 2026 sugiere mirar primero hacia atrás (qué puede estar influyendo en los resultados) y luego hacia adelante (qué decisiones tomar). Algunas preguntas:', { gap: 4 });
+      parrafo('1. ¿Qué lectura hacemos de estos resultados a la luz de nuestro contexto y de la trayectoria 2025? ¿Qué factores propios, posibles de abordar desde la práctica pedagógica o la gestión, podrían estar incidiendo?', { gap: 3 });
+      parrafo('2. ¿Dónde se concentran las mayores fortalezas y los principales desafíos por nivel, curso y eje? ¿Qué estudiantes y qué temáticas requieren apoyo?', { gap: 3 });
+      parrafo('3. ¿Qué acciones concretas podemos impulsar de cara a la siguiente etapa, y qué información complementaria del establecimiento nos ayuda a interpretar estos datos?', { gap: 8 });
+      titulo('Cómo leer este informe');
+      caja('Con el DIA SÍ se puede: identificar estudiantes que necesitan ayuda en el área académica; identificar temáticas socioemocionales y de aprendizaje que requieren ser trabajadas; orientar la toma de decisiones de los equipos directivos, docentes e interdisciplinarios.\nCon el DIA NO se puede: hacer comparaciones de cursos o de establecimientos (las condiciones de aplicación son distintas); evaluar el desempeño del cuerpo docente; predecir el desempeño o comportamiento de los estudiantes; calificar o asignar una nota.\n(Manual de uso DIA 2026, Agencia de Calidad de la Educación, sección 1.10.)\nLas diferencias entre 2025 y 2026 comparan generaciones distintas de estudiantes. Un * indica menos de 30 registros.');
+    }
+
+    // ===== DIA Parvularia (sección aparte) =====
+    if (opts.parvularia) {
+      const d = PV.datosInforme(rbdNums().length ? rbdNums() : (IS_ADMIN ? null : [String(SESSION_RBD)]));
+      if (d) {
+        if (opts.general) { doc.addPage(); L.y = TOP; }
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(...NAVY);
+        doc.text('DIA Parvularia (NT1 y NT2)', PW / 2, L.y + 8, { align: 'center' }); L.y += 22;
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...GRIS);
+        doc.text('Período ' + d.periodo + ' · emitido el ' + fecha(), PW / 2, L.y + 4, { align: 'center' }); L.y += 20;
+        const alc = d.nombres.length === 1 ? d.nombres[0] : d.nombres.length + ' establecimientos con datos de Parvularia';
+        tabla({ body: [['Alcance', alc], ['Período', d.periodo + (d.prev ? ' (comparado con ' + d.prev.nombre + ')' : '')]], columnStyles: { 0: { fillColor: CLARO, fontStyle: 'bold', cellWidth: 110 } }, styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 4, textColor: TXT, lineWidth: 0 } });
+        parrafo('El DIA Parvularia es una evaluación voluntaria, de uso interno y formativo. Sus resultados orientan la planificación pedagógica y se analizan de forma cualitativa, guiada por preguntas; no son comparables ni generalizables a toda la población.');
+        titulo('Resumen de resultados');
+        const pv = d.prev && d.prev.comparable;
+        const conVar = !!d.prev, f4 = (a, b, c) => conVar ? [a, b, c] : [a, b];
+        tabla({ head: [f4('Indicador', 'Resultado', pv ? 'Variación vs ' + d.prev.nombre : 'Comparación')], body: [
+          f4('Estudiantes evaluados', num(d.total), conVar ? 'vs ' + num(d.prev.total) + ' en ' + d.prev.nombre : ''),
+          f4('% Logro esperado (Consolidando + Profundizando)', pp100(d.logro), pv ? dif(d.prev.dLogro) : 'Sin datos comparables'),
+          f4('% Nivel de riesgo (Comenzando)', pp100(d.riesgo), pv ? dif(d.prev.dRiesgo) : 'Sin datos comparables'),
+          f4('% Sin registro (No Evaluado: falta el dato, no es un nivel bajo)', pp100(d.sinReg), pv ? dif(d.prev.dSinReg) : 'Sin datos comparables')],
+          columnStyles: { 0: { cellWidth: 250 }, 1: { halign: 'center' }, 2: { halign: 'center' } } });
+        if (d.prev && !d.prev.comparable) parrafo('No hay datos suficientes para comparar con ' + d.prev.nombre + '.', { size: 8, color: GRIS });
+        if (pv) parrafo('Variaciones en puntos porcentuales calculadas solo sobre los establecimientos, niveles y rúbricas con datos en ambos períodos; comparan generaciones distintas de niños.', { size: 8, color: GRIS });
+        titulo('Distribución por categoría');
+        img(graficoDistribucion(d.dist), W, W * 150 / 760);
+        titulo('Logro por núcleo');
+        const ds = [{ label: d.prev && d.prev.comparable ? 'Esta selección (comparable)' : 'Esta selección', data: d.nucleos.map(n => +n.logro.toFixed(1)), backgroundColor: C.leng }];
+        if (d.prev && d.prev.comparable) ds.push({ label: d.prev.nombre + ' (comparable)', data: d.nucleos.map(n => n.logroPrev == null ? null : +n.logroPrev.toFixed(1)), backgroundColor: '#8b93ad' });
+        const hg = 70 + d.nucleos.length * (ds.length * 17 + 14);
+        img(graficoBarras(d.nucleos.map(n => n.nombre), ds, true, 760, hg, true), W, W * hg / 760);
+        titulo('Mapa de calor: % en "Comenzando" por núcleo y curso');
+        tabla({ head: [['Núcleo'].concat(d.heat.cursos)], body: d.heat.nucleos.map((n, i) => [n].concat(d.heat.v[i].map(v => v == null ? '-' : v + '%'))),
+          columnStyles: Object.assign({ 0: { cellWidth: 190 } }, Object.fromEntries(d.heat.cursos.map((_, i) => [i + 1, { halign: 'center' }]))),
+          didParseCell: h => { if (h.section === 'body' && h.column.index > 0) { const v = parseInt(h.cell.raw, 10); if (!isNaN(v)) { h.cell.styles.fillColor = v <= 20 ? [240, 241, 246] : v <= 40 ? [252, 165, 165] : [220, 38, 38]; if (v > 40) h.cell.styles.textColor = [255, 255, 255]; } } } });
+        parrafo('Rojo = mayor proporción de estudiantes en "Comenzando" (>40%); rosado = 21-40%; gris = hasta 20%.', { size: 8, color: GRIS });
+        titulo('Rúbricas con más estudiantes en "Comenzando"');
+        tabla({ head: [['Rúbrica', '% Comenzando', '% Logro', '% Sin registro']], body: d.rubricas.map(r => [r.nombre, pp100(r.riesgo), pp100(r.logro), pp100(r.sinReg)]), columnStyles: { 0: { cellWidth: 240 }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' } } });
+        titulo('Invitación al análisis');
+        parrafo('1. ¿Qué habilidades demuestra este grupo en este nivel? ¿Qué núcleos y rúbricas concentran más estudiantes en "Comenzando" y cómo los abordamos en la planificación?', { gap: 3 });
+        parrafo('2. ¿Qué información cualitativa (observaciones, registros, trabajo con las familias) nos ayuda a interpretar estos resultados y a decidir apoyos para cada grupo?', { gap: 3 });
+        parrafo('3. ¿Qué cambios en las experiencias de aprendizaje podemos implementar de aquí al Cierre, y cómo planificamos la transición a 1° básico?', { gap: 8 });
+        titulo('Cómo leer esta sección');
+        caja('"No Evaluado" significa que no hay registros para valorar al niño o niña: es un dato faltante y no un nivel bajo de aprendizaje. Los resultados son de uso interno y formativo, no son comparables ni generalizables, no se recomienda compartir informes de grupo o individuales con las familias ni comparar niños entre sí, y no califican a los niños ni evalúan a docentes. (Manual de Implementación DIA Parvularia 2026, Agencia de Calidad de la Educación.)');
+      }
+    }
+  }
+
+  // Encabezado y pie en todas las páginas
+  function marcos(doc, lg) {
+    const n = doc.getNumberOfPages();
+    for (let p = 1; p <= n; p++) {
+      doc.setPage(p);
+      const fw = PW / FRANJA.length; FRANJA.forEach((c, i) => { doc.setFillColor(...c); doc.rect(i * fw, 0, fw + 0.5, 5, 'F'); });
+      const lw = 104; doc.addImage(lg.url, 'PNG', MG, 18, lw, lw * lg.h / lg.w);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...GRIS);
+      doc.text('Visor de datos DIA · SLEP Del Pino', PW - MG, 36, { align: 'right' });
+      doc.setDrawColor(200, 205, 224); doc.setLineWidth(0.5); doc.line(MG, PH - 58, PW - MG, PH - 58);
+      doc.setFontSize(6.8); doc.setTextColor(...GRIS);
+      doc.text(doc.splitTextToSize(PIE, W - 60), MG, PH - 49);
+      doc.setFontSize(8); doc.text('Página ' + p + ' de ' + n, PW - MG, PH - 49, { align: 'right' });
+    }
+  }
+
+  // ---------- interfaz ----------
+  const estado = t => { const e = $('inf-estado'); if (e) e.textContent = t || ''; };
+  function ocupado(si) { const b = $('inf-generar'); b.disabled = si; b.classList.toggle('ocupado', si); $('inf-generar-texto').textContent = si ? 'Generando…' : 'Generar PDF'; }
+  function abrir() {
+    const pvOk = typeof PV !== 'undefined' && PV.disponible();
+    $('inf-pv-op').style.display = pvOk ? 'flex' : 'none';
+    $('inf-gen').checked = true; $('inf-pv').checked = pvOk;
+    $('inf-alcance').textContent = 'Alcance: ' + alcanceTexto();
+    estado(''); ocupado(false);
+    $('informe-overlay').classList.add('open');
+  }
+  const cerrar = () => $('informe-overlay').classList.remove('open');
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); });
+
+  async function generar() {
+    const general = $('inf-gen').checked, parvularia = $('inf-pv').checked && typeof PV !== 'undefined' && PV.disponible();
+    if (!general && !parvularia) { estado('Elige al menos una sección.'); return; }
+    ocupado(true);
+    try {
+      estado('Cargando herramientas de PDF…'); await cargarLibs(); const lg = await cargarLogo();
+      estado('Calculando resultados y gráficos…'); await tick();
+      const doc = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4' });
+      doc.setProperties({ title: 'Informe DIA - ' + alcanceTexto(), author: 'SLEP Del Pino - SATP' });
+      await construir(doc, { general, parvularia });
+      estado('Armando el documento…'); await tick();
+      marcos(doc, lg);
+      const nombre = 'Informe DIA - ' + alcanceTexto().replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ').slice(0, 60) + ' - ' + fecha() + '.pdf';
+      doc.save(nombre);
+      estado('Listo: se descargó «' + nombre + '».');
+      toast('Informe descargado');
+    } catch (e) {
+      console.error(e); estado('No se pudo generar el informe (' + (e && e.message ? e.message : 'error') + '). Revisa tu conexión e inténtalo de nuevo.');
+    } finally { ocupado(false); }
+  }
+  return { abrir, cerrar, generar };
 })();
 </script>
 
@@ -2655,25 +3063,62 @@ window.PV = (function () {
     $('pv-nota-periodos').style.display = f.periodo.length === 1 ? 'none' : 'block';
     const loc = agregar(f), sl = agregar(f, { sinRbd: true });
     if (tabActual === 'pv-tab-general') {
-      // Comparación con el mismo período del año anterior, solo sobre establecimiento-nivel-rúbrica con datos en ambos
-      let prev = null;
-      const pi = periodoAnterior(f);
-      if (pi !== null) {
-        const full = agregar(f, { periodo: pi });
-        if (full.total > 0) {
-          prev = { nombre: D.maps[I.PERIODO][pi], total: full.total, comparable: false };
-          const kPrev = clavesDe(f, pi), comunes = new Set([...clavesDe(f)].filter(k => kPrev.has(k)));
-          if (comunes.size) {
-            const a1 = agregar(f, { claves: comunes }), a0 = agregar(f, { periodo: pi, claves: comunes });
-            if (sumArr(a1.sums) >= 20 && sumArr(a0.sums) >= 20) Object.assign(prev, { comparable: true, loc: a1, ant: a0 });
-          }
-        }
-      }
+      const prev = calcularPrev(f);
       kpis(loc, sl, prev); graficoNucleo(loc, sl, prev); graficoDistrib(loc, sl);
     } else {
       rubData = loc.rubrica;
       graficoRubricas(); mapaCalor(loc, sl); tablaColegios(f);
     }
+  }
+
+  // Comparación con el mismo período del año anterior, solo sobre establecimiento-nivel-rúbrica con datos en ambos
+  function calcularPrev(f) {
+    let prev = null;
+    const pi = periodoAnterior(f);
+    if (pi !== null) {
+      const full = agregar(f, { periodo: pi });
+      if (full.total > 0) {
+        prev = { nombre: D.maps[I.PERIODO][pi], total: full.total, comparable: false };
+        const kPrev = clavesDe(f, pi), comunes = new Set([...clavesDe(f)].filter(k => kPrev.has(k)));
+        if (comunes.size) {
+          const a1 = agregar(f, { claves: comunes }), a0 = agregar(f, { periodo: pi, claves: comunes });
+          if (sumArr(a1.sums) >= 20 && sumArr(a0.sums) >= 20) Object.assign(prev, { comparable: true, loc: a1, ant: a0 });
+        }
+      }
+    }
+    return prev;
+  }
+
+  // Datos ya calculados para el informe PDF (período más reciente con datos para esa selección). rbdNums: lista de RBD (texto) o null = todos.
+  function datosInforme(rbdNums) {
+    if (!D) return null;
+    const f = { periodo: [], nivel: [], curso: [], ambito: [], nucleo: [], oa: [], rbd: [] };
+    if (rbdNums && rbdNums.length) {
+      f.rbd = D.maps[I.RBD].map((t, k) => [t.split(' ')[0], k]).filter(([n]) => rbdNums.includes(n)).map(([, k]) => String(k));
+      if (!f.rbd.length) return null;
+    }
+    let ult = -1; const ids = new Set();
+    D.rows.forEach(r => { if (!f.rbd.length || f.rbd.includes(String(r[I.RBD]))) { if (r[I.PERIODO] > ult) { ult = r[I.PERIODO]; ids.clear(); } if (r[I.PERIODO] === ult) ids.add(r[I.RBD]); } });
+    if (ult < 0) return null;
+    f.periodo = [String(ult)];
+    const loc = agregar(f), prev = calcularPrev(f), m = metricas(loc.sums);
+    const out = {
+      periodo: D.maps[I.PERIODO][ult], nombres: [...ids].map(k => D.maps[I.RBD][k]).sort((a, b) => a.localeCompare(b, 'es')),
+      total: loc.total, logro: m.logro, riesgo: m.riesgo, sinReg: m.sinReg, dist: loc.sums.map(v => pct(v, sumArr(loc.sums))), prev: null
+    };
+    if (prev) {
+      out.prev = { nombre: prev.nombre, total: prev.total, comparable: prev.comparable };
+      if (prev.comparable) { const a = metricas(prev.loc.sums), b = metricas(prev.ant.sums); Object.assign(out.prev, { dLogro: a.logro - b.logro, dRiesgo: a.riesgo - b.riesgo, dSinReg: a.sinReg - b.sinReg }); }
+    }
+    const lg = (A, n) => A && A.nucleo[n] ? pct(A.nucleo[n][3] + A.nucleo[n][4], sumArr(A.nucleo[n])) : null;
+    const base = prev && prev.comparable ? prev.loc : loc;
+    out.nucleos = Object.keys(base.nucleo).map(n => ({ nombre: n, logro: lg(base, n), logroPrev: prev && prev.comparable ? lg(prev.ant, n) : null })).sort((a, b) => a.logro - b.logro || a.nombre.localeCompare(b.nombre));
+    out.rubricas = Object.keys(loc.rubrica).map(r => { const v = loc.rubrica[r], t = sumArr(v); return { nombre: r, riesgo: pct(v[1], t), logro: pct(v[3] + v[4], t), sinReg: pct(v[0], t) }; })
+      .sort((a, b) => b.riesgo - a.riesgo || a.nombre.localeCompare(b.nombre)).slice(0, 5);
+    const cur = new Set(); Object.values(loc.nucCurso).forEach(mm => Object.keys(mm).forEach(c => cur.add(c)));
+    const cursos = [...cur].sort(), nucleos = Object.keys(loc.nucCurso).sort();
+    out.heat = { cursos, nucleos, v: nucleos.map(n => cursos.map(c => { const x = loc.nucCurso[n][c]; return x && sumArr(x) > 0 ? Math.round(pct(x[1], sumArr(x))) : null; })) };
+    return out;
   }
 
   function kpis(loc, sl, prev) {
@@ -2946,7 +3391,7 @@ window.PV = (function () {
   }
 
   return {
-    init, ir, showTab, descargar, cerrarCoach, disponible: () => disponible,
+    init, ir, showTab, descargar, datosInforme, cerrarCoach, disponible: () => disponible,
     repintar: () => { if (!D) return; sinAnimar = true; try { if (activo) renderInterno(); } finally { sinAnimar = false; } },
     setSlep: on => { slep = on; render(); },
     toggleRubricas: () => { verTodas = !verTodas; graficoRubricas(); },
@@ -2965,7 +3410,7 @@ window.PV = (function () {
     </div>
     <div class="help-section">
       <h3>Selector de visor, Mis vistas y enlace</h3>
-      <p>Si tu establecimiento tiene resultados de Parvularia, arriba aparece el selector <b>DIA general | DIA Parvularia</b>. El interruptor ☀/☾ (arriba a la izquierda) cambia entre tema claro y oscuro, y "Ver recorrido" (arriba, en esta ventana) repasa los controles principales. En "Mis vistas" (junto a "Limpiar Filtros") puedes guardar tus filtros favoritos con un nombre y volver a ellos con un clic; se guardan en este navegador. "Copiar enlace" genera un enlace a la vista actual: quien lo abra debe ingresar igualmente con su usuario y contraseña.</p>
+      <p>Si tu establecimiento tiene resultados de Parvularia, arriba aparece el selector <b>DIA general | DIA Parvularia</b>. El interruptor ☀/☾ (arriba a la izquierda) cambia entre tema claro y oscuro, y "Ver recorrido" (arriba, en esta ventana) repasa los controles principales. En "Mis vistas" (junto a "Limpiar Filtros") puedes guardar tus filtros favoritos con un nombre y volver a ellos con un clic; se guardan en este navegador. "Copiar enlace" genera un enlace a la vista actual: quien lo abra debe ingresar igualmente con su usuario y contraseña. "Informe PDF" descarga un informe ordenado con la selección actual (establecimiento, comuna, nivel y curso), con una sección aparte para Parvularia cuando corresponde.</p>
     </div>
     <div id="help-pv" class="pv-help">
       <div class="help-section">
