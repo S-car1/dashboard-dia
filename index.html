@@ -330,10 +330,6 @@
     :root { --c-noev: #9ca3af; --c-com: #ef4444; --c-des: #f59e0b; --c-con: #84cc16; --c-pro: #22c55e; }
 
     /* Botón de giro (encabezado) */
-    .btn-flip { float: right; margin-right: 0.8rem; display: none; align-items: center; gap: 0.45rem; height: 28px; padding: 0 0.85rem; border-radius: 999px; border: 1.5px solid var(--brand); background: var(--brand-soft); color: var(--brand); font-family: var(--font); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.03em; cursor: pointer; transition: 0.2s; }
-    .btn-flip.visible { display: inline-flex; }
-    .btn-flip:hover { background: var(--brand); color: var(--on-brand); }
-    .btn-flip svg { width: 15px; height: 15px; flex: none; }
 
     /* Qué se ve en cada modo */
     #pv-filtros, #pv-active-filters-tray, #pv-tabs, #pv-dashboard, .pv-only { display: none; }
@@ -387,12 +383,128 @@
     .pv-heat-leyenda { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: 0.72rem; color: var(--text-muted); margin-top: 0.8rem; }
     .pv-heat-leyenda i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 0.35rem; vertical-align: -1px; }
 
-    @media (max-width: 640px) { .btn-flip span { display: none; } .btn-flip { padding: 0 0.55rem; } #pv-filtros .filter-group { flex: 1 1 calc(50% - 0.4rem) !important; min-width: 0; } #pv-group-rbd, #pv-static-rbd { flex-basis: 100% !important; } .pv-nota-uso { padding: 0 1rem; } }
+    @media (max-width: 640px) { #pv-filtros .filter-group { flex: 1 1 calc(50% - 0.4rem) !important; min-width: 0; } #pv-group-rbd, #pv-static-rbd { flex-basis: 100% !important; } .pv-nota-uso { padding: 0 1rem; } }
     @media (max-width: 1180px) { .tabs-scroll .pv-tab-btn:first-child { margin-left: auto; } .tabs-scroll .pv-tab-btn:last-child { margin-right: auto; } }
     #pv-box-nucleo, #pv-box-distrib, #pv-box-stacked { flex: none; width: 100%; }
     body:not(.modo-pv) #help-pv, body.modo-pv #help-gen { display: none; }
     body:not(.modo-pv) #pv-nota-periodos, body:not(.modo-pv) #pv-active-filters-tray { display: none !important; }
-    @media (prefers-reduced-motion: reduce) { .btn-flip { transition: none; } }
+
+    /* ===== CARGA, FEEDBACK Y DETALLES ===== */
+    :root { --pv: #c2620a; --on-pv: #ffffff; }
+    body.dark-theme { --pv: #fbbf24; --on-pv: #1b1f33; }
+
+    /* Ruedita de carga y botón de ingreso */
+    .spinner { width: 1em; height: 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; display: inline-block; vertical-align: -0.15em; animation: girar 0.7s linear infinite; flex: none; }
+    @keyframes girar { to { transform: rotate(360deg); } }
+    .btn-login { display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+    .btn-login:disabled { opacity: 0.8; cursor: progress; transform: none; filter: none; }
+    .btn-login .spinner { display: none; }
+    .btn-login.ocupado .spinner { display: inline-block; }
+    .login-progreso { margin-top: 1.2rem; display: none; text-align: left; }
+    .login-progreso.visible { display: block; }
+    .login-progreso-texto { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .barra { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--border); position: relative; }
+    .barra > i { display: block; height: 100%; width: 0; background: var(--brand); border-radius: 999px; transition: width 0.25s; }
+    .barra.indeterminada > i { position: absolute; width: 35%; animation: barrido 1.2s ease-in-out infinite; }
+    @keyframes barrido { 0% { left: -35%; } 100% { left: 100%; } }
+
+    /* Barra fina superior mientras se recalcula */
+    #top-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 7000; pointer-events: none; opacity: 0; transition: opacity 0.2s; overflow: hidden; }
+    #top-progress.activo { opacity: 1; }
+    #top-progress::before { content: ''; position: absolute; top: 0; bottom: 0; width: 40%; background: linear-gradient(90deg, transparent, var(--brand), transparent); animation: barrido2 1s ease-in-out infinite; }
+    @keyframes barrido2 { 0% { left: -40%; } 100% { left: 100%; } }
+
+    /* Skeleton loaders (esqueleto con brillo) */
+    @keyframes brillo { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .cargando .kpi-val, .cargando .kpi-delta, .cargando .kpi-compare { color: transparent !important; border-radius: 6px; background-image: linear-gradient(90deg, var(--surface-2) 0%, var(--border) 50%, var(--surface-2) 100%); background-size: 200% 100%; animation: brillo 1.3s ease-in-out infinite; user-select: none; }
+    .cargando .kpi-val { width: 55%; }
+    .cargando .kpi-delta *, .cargando .kpi-compare * { visibility: hidden; }
+    .cargando .chart-wrap, .cargando .pv-heat-wrap { position: relative; min-height: 220px; }
+    .cargando .chart-wrap > *, .cargando .pv-heat-wrap > *, .cargando .pv-tabla-wrap > *, .cargando .var-table-wrapper { visibility: hidden; }
+    .cargando .chart-wrap::after, .cargando .pv-heat-wrap::after { content: ''; position: absolute; inset: 0; border-radius: 8px; background-image: linear-gradient(90deg, var(--surface-2) 0%, var(--border) 50%, var(--surface-2) 100%); background-size: 200% 100%; animation: brillo 1.3s ease-in-out infinite; opacity: 0.85; }
+
+    /* Selector DIA general | DIA Parvularia */
+    .modo-selector { float: right; margin-right: 0.8rem; display: none; position: relative; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); }
+    .modo-selector.visible { display: grid; }
+    .modo-pill { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 999px; background: var(--brand); box-shadow: 0 2px 8px rgba(37,48,107,0.25); transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), background 0.45s, box-shadow 0.45s; }
+    body.modo-pv .modo-pill { transform: translateX(100%); background: var(--pv); box-shadow: 0 2px 8px rgba(194,98,10,0.3); }
+    .modo-btn { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; height: 30px; padding: 0 1rem; border: none; background: transparent; font-family: var(--font); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.02em; color: var(--text-muted); cursor: pointer; border-radius: 999px; white-space: nowrap; transition: color 0.3s; }
+    .modo-btn svg { width: 18px; height: 18px; flex: none; }
+    .modo-btn:hover { color: var(--text); }
+    body:not(.modo-pv) .modo-btn[data-modo="gen"] { color: var(--on-brand); }
+    body.modo-pv .modo-btn[data-modo="pv"] { color: var(--on-pv); }
+    .modo-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+    .badge-nuevo { position: absolute; top: -9px; right: -4px; z-index: 2; display: none; background: var(--pv); color: var(--on-pv); font-size: 0.58rem; font-weight: 800; letter-spacing: 0.06em; padding: 1px 7px; border-radius: 999px; }
+    .modo-selector.llamar .badge-nuevo { display: block; }
+    .modo-selector.llamar .modo-btn[data-modo="pv"]::after { content: ''; position: absolute; inset: -3px; border-radius: 999px; border: 2px solid var(--pv); animation: pulso 1.8s ease-out infinite; pointer-events: none; }
+    body.modo-pv .modo-selector.llamar .modo-btn[data-modo="pv"]::after { display: none; }
+    @keyframes pulso { 0% { transform: scale(0.96); opacity: 0.9; } 100% { transform: scale(1.18); opacity: 0; } }
+
+    /* Burbuja de bienvenida (una sola vez) */
+    .coach { position: absolute; z-index: 3000; top: 66px; right: 2rem; width: min(320px, calc(100vw - 2rem)); background: var(--surface); border: 1px solid var(--pv); border-radius: var(--r); padding: 0.9rem 1rem; box-shadow: 0 12px 30px rgba(20,25,60,0.2); display: none; }
+    .coach.visible { display: block; animation: aparece 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
+    .coach::before { content: ''; position: absolute; top: -7px; right: 70px; width: 12px; height: 12px; background: var(--surface); border-left: 1px solid var(--pv); border-top: 1px solid var(--pv); transform: rotate(45deg); }
+    .coach b { display: block; font-size: 0.85rem; color: var(--pv); margin-bottom: 0.2rem; }
+    .coach span { display: block; font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.6rem; }
+    .coach button { background: var(--pv); color: var(--on-pv); border: none; border-radius: 8px; padding: 0.35rem 0.9rem; font-family: var(--font); font-size: 0.75rem; font-weight: 800; cursor: pointer; }
+
+    /* El cambio de módulo se nota: acento cálido en Parvularia */
+    body.modo-pv .sticky-top-section { background: color-mix(in srgb, var(--surface) 94%, var(--pv)); }
+    body.modo-pv .sticky-top-section::before { background: linear-gradient(90deg, var(--pv), #f59e0b, #fbbf24, #f59e0b, var(--pv)); }
+    body.modo-pv .tabs-nav { background: transparent; }
+    body.modo-pv .header-title { color: var(--pv); }
+
+    /* Mis vistas (filtros favoritos) */
+    .vistas-wrap { position: relative; margin-left: auto; }
+    .vistas-wrap + .btn-clear-text { margin-left: 0; }
+    .btn-vistas { display: inline-flex; align-items: center; gap: 0.45rem; background: transparent; border: 1px solid var(--border); border-radius: 8px; height: 38px; padding: 0 0.85rem; font-family: var(--font); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+    .btn-vistas:hover, .btn-vistas.abierto { color: var(--brand); border-color: var(--brand); background: var(--brand-soft); }
+    .btn-vistas svg { width: 15px; height: 15px; flex: none; }
+    .vistas-panel { position: absolute; right: 0; top: 44px; z-index: 2500; width: 310px; max-width: calc(100vw - 2rem); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: 0 12px 30px rgba(20,25,60,0.18); padding: 0.9rem; display: none; }
+    .vistas-panel.abierto { display: block; animation: aparece 0.18s ease-out; }
+    .vistas-titulo { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .vista-item { display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.55rem; border-radius: 8px; cursor: pointer; font-size: 0.82rem; color: var(--text); }
+    .vista-item:hover { background: var(--brand-soft); }
+    .vista-item .nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .vista-item .borrar { border: none; background: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 0 0.2rem; }
+    .vista-item .borrar:hover { color: var(--red); }
+    .vistas-vacio { font-size: 0.8rem; color: var(--text-muted); padding: 0.3rem 0.2rem 0.6rem; line-height: 1.45; }
+    .vistas-guardar { display: flex; gap: 0.4rem; margin-top: 0.6rem; padding-top: 0.7rem; border-top: 1px solid var(--border); }
+    .vistas-guardar input { flex: 1; min-width: 0; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.6rem; font-family: var(--font); font-size: 0.8rem; color: var(--text); outline: none; }
+    .vistas-guardar input:focus { border-color: var(--brand); }
+    .vistas-guardar button { background: var(--brand); color: var(--on-brand); border: none; border-radius: 8px; padding: 0.45rem 0.8rem; font-family: var(--font); font-size: 0.78rem; font-weight: 800; cursor: pointer; }
+    .vistas-enlace { width: 100%; margin-top: 0.6rem; background: transparent; color: var(--brand); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.8rem; font-family: var(--font); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+    .vistas-enlace:hover { background: var(--brand-soft); border-color: var(--brand); }
+    .vistas-nota { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.4; }
+
+    /* Aviso breve */
+    #toast { position: fixed; left: 50%; bottom: 1.5rem; transform: translate(-50%, 20px); background: var(--brand); color: var(--on-brand); padding: 0.6rem 1.1rem; border-radius: 999px; font-size: 0.82rem; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,0.25); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 9000; max-width: calc(100vw - 2rem); text-align: center; }
+    #toast.visible { opacity: 1; transform: translate(-50%, 0); }
+
+    /* Entrada escalonada de tarjetas y deslizamiento entre pestañas */
+    @keyframes aparece { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes desliza-der { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+    @keyframes desliza-izq { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
+    .kpi, .chart-block { animation: aparece 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+    .kpi:nth-child(2) { animation-delay: 0.06s; } .kpi:nth-child(3) { animation-delay: 0.12s; } .kpi:nth-child(4) { animation-delay: 0.18s; }
+    .chart-block:nth-child(2) { animation-delay: 0.1s; } .chart-block:nth-child(3) { animation-delay: 0.2s; } .chart-block:nth-child(4) { animation-delay: 0.3s; }
+    .tab-content.desde-der, .pv-tab-content.desde-der { animation: desliza-der 0.38s cubic-bezier(0.2, 0.7, 0.2, 1); }
+    .tab-content.desde-izq, .pv-tab-content.desde-izq { animation: desliza-izq 0.38s cubic-bezier(0.2, 0.7, 0.2, 1); }
+    .kpi { transition: transform 0.2s, box-shadow 0.2s, background 0.3s, border-color 0.3s; }
+    .kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(37,48,107,0.10); }
+
+    @media (max-width: 640px) {
+      .modo-selector { float: none; clear: both; width: 100%; margin: 0.5rem 0 0.2rem; }
+      .modo-btn { padding: 0 0.4rem; }
+      .coach { top: 150px; right: 1rem; }
+      .coach::before { right: 40px; }
+      .vistas-wrap { margin-left: 0; flex: 1 1 100%; } .vistas-wrap .btn-vistas { width: 100%; justify-content: center; }
+      .vistas-panel { left: 0; right: 0; width: auto; max-width: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
+      .spinner, .barra.indeterminada > i, #top-progress::before { animation-duration: 1.2s !important; animation-iteration-count: infinite !important; }
+    }
   </style>
 </head>
 <body>
@@ -413,12 +525,17 @@
       <input type="password" id="login-pass" placeholder="••••••••">
     </div>
     
-    <button class="btn-login" onclick="handleLogin()">Ingresar al Sistema</button>
+    <button class="btn-login ocupado" id="btn-login" onclick="handleLogin()" disabled><span class="spinner"></span><span id="btn-login-texto">Cargando datos…</span></button>
+    <div class="login-progreso visible" id="login-progreso"><div class="login-progreso-texto" id="login-progreso-texto">Descargando datos del SLEP…</div><div class="barra indeterminada" id="login-barra"><i></i></div></div>
     <div id="login-error">Credenciales incorrectas</div>
   </div>
 </div>
 
+<div id="top-progress"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
 <div class="sticky-top-section" id="navbar" style="display:none;">
+  <div class="coach" id="coach" role="status"><b>Nuevo: DIA Parvularia</b><span>Ahora puedes ver aquí los resultados de NT1 y NT2. Usa este selector para cambiar entre el DIA general y el DIA Parvularia.</span><button type="button" onclick="PV.cerrarCoach()">Entendido</button></div>
   <header class="header">
     <div class="header-info">
       <img class="header-logo logo-light" src="logo3.png" alt="Logo SLEP Del Pino"><img class="header-logo logo-dark" src="logo-blanco.png" alt="Logo SLEP Del Pino">    
@@ -428,7 +545,7 @@
       </div>
     </div>
     <button class="help-btn" onclick="abrirAyuda()" title="Ayuda" style="float: right;">?</button>
-    <button class="btn-flip" id="btn-flip" onclick="PV.flip()" title="Cambiar entre el DIA general y el DIA Parvularia (NT1 y NT2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span id="btn-flip-text">Parvularia</span></button>
+    <div class="modo-selector" id="modo-selector" role="tablist" aria-label="Elegir visor"><span class="modo-pill"></span><span class="badge-nuevo">NUEVO</span><button type="button" class="modo-btn" data-modo="gen" role="tab" aria-selected="true" onclick="PV.ir('gen')" title="Visor DIA general"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h3v18H6a2 2 0 0 1-2-1.5z"/><path d="M9 3h4v18H9"/><path d="M13.5 6.5l3.8-1 3.2 14-3.8 1z"/></svg><span>DIA general</span></button><button type="button" class="modo-btn" data-modo="pv" role="tab" aria-selected="false" onclick="PV.ir('pv')" title="Visor DIA Parvularia (NT1 y NT2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13.5" r="6.5"/><circle cx="6.3" cy="7.3" r="2.3"/><circle cx="17.7" cy="7.3" r="2.3"/><ellipse cx="12" cy="15.8" rx="2.6" ry="2"/><path d="M12 14.6v.5"/><path d="M9.4 11.6h.01M14.6 11.6h.01" stroke-width="2.6"/></svg><span>DIA Parvularia</span></button></div>
   </header>
 
   <div class="filter-bar" id="gen-filtros">
@@ -446,6 +563,7 @@
       </div>
     </div>
     
+    <div class="vistas-wrap" id="vistas-gen"></div>
     <button class="btn-clear-text" id="btn-clear">Limpiar Filtros</button>
   </div>
 
@@ -465,6 +583,7 @@
         <span id="pv-static-rbd-text" style="font-size: 0.85rem; font-weight: 700; color: var(--brand); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
       </div>
     </div>
+    <div class="vistas-wrap" id="vistas-pv"></div>
     <button class="btn-clear-text" id="pv-btn-clear">Limpiar Filtros</button>
   </div>
   <div id="pv-active-filters-tray" class="active-filters-tray"></div>
@@ -828,14 +947,116 @@ function claveNSocio(r) {
   return rbdNum + '|' + DATA_RAW.maps[I.NIVEL][r[I.NIVEL]];
 }
 
+// Descarga un JSON mostrando el avance (si el servidor entrega el tamaño; si va comprimido, barra indeterminada)
+async function cargarJSON(url, onProgreso) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  if (!res.body || !res.body.getReader) return res.json();
+  const total = parseInt(res.headers.get('content-length') || '0', 10);
+  const comprimido = !!res.headers.get('content-encoding');
+  const reader = res.body.getReader(), partes = [];
+  let recibido = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    partes.push(value); recibido += value.length;
+    onProgreso(recibido, (total && !comprimido) ? total : 0);
+  }
+  const buf = new Uint8Array(recibido); let o = 0;
+  partes.forEach(p => { buf.set(p, o); o += p.length; });
+  return JSON.parse(new TextDecoder('utf-8').decode(buf));
+}
+
+function estadoBotonLogin(estado) {
+  const b = document.getElementById('btn-login'), t = document.getElementById('btn-login-texto');
+  b.disabled = estado !== 'listo';
+  b.classList.toggle('ocupado', estado !== 'listo' && estado !== 'error');
+  t.textContent = { cargando: 'Cargando datos…', validando: 'Validando…', listo: 'Ingresar al Sistema', error: 'Reintentar' }[estado];
+  if (estado === 'error') { b.disabled = false; b.onclick = () => location.reload(); }
+}
+
 async function initData() {
+  const barra = document.getElementById('login-barra'), txt = document.getElementById('login-progreso-texto'), prog = document.getElementById('login-progreso');
   try {
-    const res = await fetch('datos.json');
-    DATA_RAW = await res.json();
+    DATA_RAW = await cargarJSON('datos.json', (rec, total) => {
+      if (total) {
+        barra.classList.remove('indeterminada');
+        barra.firstElementChild.style.width = Math.min(99, rec / total * 100).toFixed(0) + '%';
+        txt.textContent = 'Descargando datos del SLEP… ' + Math.min(99, rec / total * 100).toFixed(0) + ' %';
+      } else txt.textContent = 'Descargando datos del SLEP… ' + (rec / 1048576).toFixed(1).replace('.', ',') + ' MB';
+    });
+    txt.textContent = 'Preparando el visor…';
     await cargarNSocio();
     setupFiltersStable();
     initCharts();
-  } catch (e) { console.error(e); }
+    prog.classList.remove('visible');
+    estadoBotonLogin('listo');
+  } catch (e) {
+    console.error(e);
+    txt.textContent = 'No se pudieron cargar los datos. Revisa tu conexión e inténtalo de nuevo.';
+    barra.classList.remove('indeterminada'); barra.firstElementChild.style.width = '0';
+    estadoBotonLogin('error');
+  }
+}
+
+let loginEnCurso = false;
+async function handleLogin() {
+  if (loginEnCurso || !DATA_RAW) return;       // evita clics repetidos y entrar antes de que bajen los datos
+  loginEnCurso = true; estadoBotonLogin('validando');
+  try { await handleLoginInterno(); }
+  finally { loginEnCurso = false; if (document.getElementById('login-overlay').style.display !== 'none') estadoBotonLogin('listo'); }
+}
+['login-user', 'login-pass'].forEach(id => document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); }));
+
+// Aviso breve abajo de la pantalla
+let _toastT;
+function toast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('visible');
+  clearTimeout(_toastT); _toastT = setTimeout(() => t.classList.remove('visible'), 2600);
+}
+
+// Muestra carga mientras se recalcula: barra fina arriba siempre; esqueleto (skeleton) en la primera vez
+// o si el último cálculo fue lento. Se cede el control al navegador para que alcance a pintarlo antes del cálculo pesado.
+let ultimaDuracion = 0;
+function conCarga(mainId, fn, forzar) {
+  const main = document.getElementById(mainId), barra = document.getElementById('top-progress');
+  barra.classList.add('activo');
+  if (forzar || ultimaDuracion > 120) main.classList.add('cargando');
+  requestAnimationFrame(() => setTimeout(() => {
+    const t0 = performance.now();
+    try { fn(); }
+    finally { ultimaDuracion = performance.now() - t0; main.classList.remove('cargando'); barra.classList.remove('activo'); animarKPIs(main); }
+  }, 30));
+}
+
+// Los números de las tarjetas "cuentan" hasta su valor
+function animarKPIs(raiz) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  raiz.querySelectorAll('.kpi-val').forEach(el => {
+    const txt = el.textContent.trim(), m = txt.match(/^(-?[\d.,]+)(\D*)$/);
+    if (!m) { delete el.dataset.v; return; }
+    const miles = /^\d{1,3}(\.\d{3})+$/.test(m[1]);
+    const dec = miles ? 0 : (m[1].split('.')[1] || '').length;
+    const fin = miles ? parseInt(m[1].replace(/\./g, ''), 10) : parseFloat(m[1].replace(',', '.'));
+    if (isNaN(fin)) return;
+    const ini = el.dataset.v !== undefined ? parseFloat(el.dataset.v) : 0;
+    el.dataset.v = fin;
+    if (ini === fin) return;
+    const tok = el._tok = {}, t0 = performance.now(), dur = 650;
+    const fmt = v => (miles ? Math.round(v).toLocaleString('es-CL') : v.toFixed(dec)) + m[2];
+    (function paso(t) {
+      if (el._tok !== tok) return;
+      const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = k < 1 ? fmt(ini + (fin - ini) * e) : txt;
+      if (k < 1) requestAnimationFrame(paso);
+    })(t0);
+  });
+}
+
+// Deslizamiento al cambiar de pestaña (dir > 0: viene desde la derecha)
+function deslizar(el, dir) {
+  el.classList.remove('desde-der', 'desde-izq'); void el.offsetWidth;
+  if (dir) el.classList.add(dir > 0 ? 'desde-der' : 'desde-izq');
 }
 
 // Carga n_socio_intermedio.json y valida que cubra TODAS las filas del Socioemocional
@@ -865,7 +1086,7 @@ async function cargarNSocio() {
   }
 }
 
-async function handleLogin() {
+async function handleLoginInterno() {
   const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value.trim();
   const errorEl = document.getElementById('login-error');
@@ -984,8 +1205,11 @@ function startDashboard() {
       document.getElementById('static-rbd-text').title = DATA_RAW.maps[I.RBD][rbdId];
     }
   }
+  document.getElementById('dashboard').classList.add('cargando');
+  Vistas.montar('gen', { root: 'vistas-gen', getTs: () => ts, refrescar: () => update() });
   update();
-  if (window.PV) PV.init();  // prepara el módulo Parvularia (decide si este usuario ve el botón)
+  // Prepara el módulo Parvularia (decide si este usuario ve el selector) y luego abre un enlace con filtros, si lo hay
+  (window.PV ? PV.init() : Promise.resolve()).then(() => Vistas.aplicarHash());
 }
 
 // Pestañas donde el filtro de Curso no aplica (no tienen desglose por curso).
@@ -995,9 +1219,12 @@ const TABS_SIN_CURSO = ['tab-1basico', 'tab-convivencia-socio'];
 const TABS_SIN_ETAPA = ['tab-convivencia-socio'];
 
 function showTab(tabId, e) {
+  const btns = [...document.querySelectorAll('#gen-tabs .tab-btn')];
+  const prevIdx = btns.findIndex(b => b.classList.contains('active')), nextIdx = e ? btns.indexOf(e.currentTarget) : prevIdx;
   document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById(tabId).style.display = 'block';
+  deslizar(document.getElementById(tabId), nextIdx - prevIdx);
   if (e) e.currentTarget.classList.add('active');
 
   const cursoGroup = document.getElementById('filter-group-curso');
@@ -1271,7 +1498,8 @@ function debounce(fn, wait) {
   let t;
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
 }
-const update = debounce(updateImmediate, 150);
+let primeraCarga = true;
+const update = debounce(() => { conCarga('dashboard', updateImmediate, primeraCarga); primeraCarga = false; }, 150);
 
 function filterEjes(dataObj, asig) {
   if (activeEjes[asig].size === 0) return dataObj;
@@ -1912,6 +2140,120 @@ initData();
 </script>
 
 <script>
+/* ===== MIS VISTAS (filtros favoritos) y ENLACE con filtros =====
+   Sirve a los dos visores. Guarda en localStorage (por usuario y por visor) los TEXTOS de los filtros elegidos
+   (no los índices, que cambian cuando se actualizan los datos). El enlace lleva la misma información en el #hash. */
+const Vistas = (function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const cfgs = {};
+  const usuario = () => IS_ADMIN ? 'admin' : (SESSION_RBD || 'anon');
+  const clave = modo => 'dia_vistas_v1_' + usuario() + '_' + modo;
+  const leer = modo => { try { return JSON.parse(localStorage.getItem(clave(modo)) || '[]'); } catch (e) { return []; } };
+  const guardar = (modo, a) => { try { localStorage.setItem(clave(modo), JSON.stringify(a)); return true; } catch (e) { return false; } };
+  const STAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.1 8.6 22 9.5 17 14.4 18.2 21.5 12 18.1 5.8 21.5 7 14.4 2 9.5 8.9 8.6"/></svg>';
+
+  function filtrosActuales(modo) {
+    const ts = cfgs[modo].getTs(), f = {};
+    Object.keys(ts).forEach(k => {
+      if (!IS_ADMIN && k === 'rbd') return;           // el colegio ya está fijo por el usuario
+      const v = ts[k].getValue();
+      if (v.length) f[k] = v.map(x => ts[k].options[x].text);
+    });
+    return f;
+  }
+  function aplicar(modo, f) {
+    const ts = cfgs[modo].getTs();
+    Object.keys(ts).forEach(k => {
+      if (!IS_ADMIN && k === 'rbd') return;
+      ts[k].clear(true);
+      const textos = f[k] || [];
+      const vals = Object.values(ts[k].options).filter(o => textos.includes(o.text)).map(o => String(o.value));
+      if (vals.length) ts[k].setValue(vals, true);
+    });
+    cfgs[modo].refrescar();
+  }
+  const tabsSel = modo => modo === 'pv' ? '.pv-tab-btn' : '#gen-tabs .tab-btn';
+  function tabActual(modo) {
+    const b = [...document.querySelectorAll(tabsSel(modo))].find(x => x.classList.contains('active'));
+    const m = b && (b.getAttribute('onclick') || '').match(/'((?:pv-)?tab-[\w-]+)'/);
+    return m ? m[1] : null;
+  }
+  function irATab(modo, id) {
+    if (!id) return;
+    const b = [...document.querySelectorAll(tabsSel(modo))].find(x => (x.getAttribute('onclick') || '').includes("'" + id + "'"));
+    if (b) b.click();
+  }
+  function enlace(modo) {
+    const p = { m: modo, f: filtrosActuales(modo), t: tabActual(modo) };
+    return location.href.split('#')[0] + '#v=' + encodeURIComponent(JSON.stringify(p));
+  }
+  function copiar(texto) {
+    const ok = () => toast('Enlace copiado');
+    const alt = () => { const t = document.createElement('textarea'); t.value = texto; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); ok(); } catch (e) { toast('No se pudo copiar el enlace'); } t.remove(); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, alt); else alt();
+  }
+
+  function dibujar(modo) {
+    const c = cfgs[modo], root = $(c.root), lista = leer(modo);
+    const abierto = root.querySelector('.vistas-panel.abierto') !== null;
+    root.innerHTML = `<button class="btn-vistas${abierto ? ' abierto' : ''}" type="button" aria-haspopup="true" aria-expanded="${abierto}">${STAR}<span>Mis vistas</span></button>
+      <div class="vistas-panel${abierto ? ' abierto' : ''}" role="dialog" aria-label="Mis filtros favoritos">
+        <div class="vistas-titulo">Mis filtros favoritos</div>
+        ${lista.length ? lista.map((v, i) => `<div class="vista-item" data-i="${i}"><span class="nombre" title="${esc(v.nombre)}">${esc(v.nombre)}</span><button class="borrar" type="button" data-i="${i}" title="Eliminar" aria-label="Eliminar ${esc(v.nombre)}">×</button></div>`).join('')
+          : '<div class="vistas-vacio">Aún no guardas ninguna. Elige tus filtros y guárdalos con un nombre para volver a ellos con un clic.</div>'}
+        <div class="vistas-guardar"><input type="text" maxlength="40" placeholder="Nombre de la vista" aria-label="Nombre de la vista"><button type="button">Guardar</button></div>
+        <button class="vistas-enlace" type="button">Copiar enlace a esta vista</button>
+        <div class="vistas-nota">Las vistas se guardan en este navegador. El enlace pide ingresar con usuario y contraseña y luego abre esta misma vista.</div>
+      </div>`;
+    const panel = root.querySelector('.vistas-panel'), btn = root.querySelector('.btn-vistas'), inp = root.querySelector('input');
+    const cerrar = () => { panel.classList.remove('abierto'); btn.classList.remove('abierto'); btn.setAttribute('aria-expanded', 'false'); };
+    btn.onclick = e => { e.stopPropagation(); const a = panel.classList.toggle('abierto'); btn.classList.toggle('abierto', a); btn.setAttribute('aria-expanded', String(a)); if (a) inp.focus(); };
+    panel.onclick = e => e.stopPropagation();
+    root.querySelectorAll('.vista-item').forEach(it => it.onclick = e => {
+      if (e.target.closest('.borrar')) return;
+      const v = lista[+it.dataset.i]; aplicar(modo, v.f || {}); cerrar(); toast('Vista aplicada: ' + v.nombre);
+    });
+    root.querySelectorAll('.borrar').forEach(b => b.onclick = e => { e.stopPropagation(); lista.splice(+b.dataset.i, 1); guardar(modo, lista); dibujar(modo); });
+    const guardarActual = () => {
+      const nombre = inp.value.trim();
+      if (!nombre) { inp.focus(); return; }
+      const f = filtrosActuales(modo);
+      if (!Object.keys(f).length) { toast('Primero elige algún filtro para guardar'); return; }
+      const i = lista.findIndex(v => v.nombre.toLowerCase() === nombre.toLowerCase());
+      if (i >= 0) lista[i] = { nombre, f }; else lista.push({ nombre, f });
+      if (guardar(modo, lista)) { toast('Vista guardada: ' + nombre); dibujar(modo); } else toast('No se pudo guardar en este navegador');
+    };
+    root.querySelector('.vistas-guardar button').onclick = guardarActual;
+    inp.onkeydown = e => { if (e.key === 'Enter') guardarActual(); };
+    root.querySelector('.vistas-enlace').onclick = () => { copiar(enlace(modo)); };
+    c.cerrar = cerrar;
+  }
+
+  document.addEventListener('click', () => Object.values(cfgs).forEach(c => c.cerrar && c.cerrar()));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') Object.values(cfgs).forEach(c => c.cerrar && c.cerrar()); });
+
+  function montar(modo, cfg) { cfgs[modo] = cfg; dibujar(modo); }
+
+  function aplicarHash() {
+    const m = location.hash.match(/^#v=(.+)$/);
+    if (!m) return;
+    let p; try { p = JSON.parse(decodeURIComponent(m[1])); } catch (e) { return; }
+    history.replaceState(null, '', location.pathname + location.search);
+    if (p.m === 'pv') {
+      if (!window.PV || !PV.disponible()) { toast('Tu usuario no tiene acceso al DIA Parvularia'); return; }
+      PV.ir('pv', { animar: false });
+    }
+    if (!cfgs[p.m]) return;
+    aplicar(p.m, p.f || {}); irATab(p.m, p.t);
+    toast('Vista abierta desde un enlace');
+  }
+
+  return { montar, aplicarHash };
+})();
+</script>
+
+<script>
 /* ===== MÓDULO DIA PARVULARIA (NT1 y NT2) =====
    Todo vive dentro de `PV` para no chocar con los nombres del visor general (I, ts, update, etc.).
    Datos: datos_parvularia.json (generado desde Base_DIA_Parvularia_Global.xlsx con generar_datos_json.py).
@@ -1925,7 +2267,7 @@ window.PV = (function () {
 
   let D = null, ts = {}, pvCharts = {};
   let iniciado = false, disponible = false, activo = false, animando = false;
-  let slep = false, tabActual = 'pv-tab-general', verTodas = false, rubData = {};
+  let slep = false, tabActual = 'pv-tab-general', verTodas = false, rubData = {}, pvPrimera = true;
   let orden = { key: 'nombre', dir: 1 };
 
   const $ = id => document.getElementById(id);
@@ -1965,7 +2307,13 @@ window.PV = (function () {
       $('pv-static-rbd-text').innerText = D.maps[I.RBD][miRbd];
       $('pv-static-rbd-text').title = D.maps[I.RBD][miRbd];
     }
-    $('btn-flip').classList.add('visible');
+    $('modo-selector').classList.add('visible');
+    let visto = false; try { visto = localStorage.getItem('dia_pv_visto') === '1'; } catch (e) {}
+    if (!visto) {                       // primera vez: el selector llama la atención y aparece una burbuja
+      $('modo-selector').classList.add('llamar');
+      setTimeout(() => { if (!activo) $('coach').classList.add('visible'); }, 900);
+    }
+    Vistas.montar('pv', { root: 'vistas-pv', getTs: () => ts, refrescar: () => render() });
   }
 
   // Sin período seleccionado se sumarían todas las rondas, así que se parte en el más reciente
@@ -2089,6 +2437,9 @@ window.PV = (function () {
   // ---------- Dibujo ----------
   function render() {
     if (!activo || !D) return;
+    conCarga('pv-dashboard', renderInterno, pvPrimera); pvPrimera = false;
+  }
+  function renderInterno() {
     const f = filtros();
     bandeja(f);
     $('pv-nota-periodos').style.display = f.periodo.length === 1 ? 'none' : 'block';
@@ -2313,9 +2664,12 @@ window.PV = (function () {
 
   // ---------- Interacción ----------
   function showTab(id, btn) {
+    const btns = [...document.querySelectorAll('.pv-tab-btn')];
+    const prev = btns.findIndex(b => b.classList.contains('active')), next = btn ? btns.indexOf(btn) : prev;
     document.querySelectorAll('.pv-tab-content').forEach(e => e.style.display = 'none');
-    document.querySelectorAll('.pv-tab-btn').forEach(e => e.classList.remove('active'));
-    $(id).style.display = 'block'; if (btn) btn.classList.add('active');
+    btns.forEach(e => e.classList.remove('active'));
+    const el = $(id); el.style.display = 'block'; if (btn) btn.classList.add('active');
+    deslizar(el, next - prev);
     tabActual = id; render();
   }
   function descargar(btn) {
@@ -2332,23 +2686,30 @@ window.PV = (function () {
   // Da vuelta la página: el contenido gira hasta quedar de canto, se cambia de módulo y gira de vuelta.
   const visibles = () => [...document.querySelectorAll('#gen-filtros,#pv-filtros,#active-filters-tray,#pv-active-filters-tray,.tabs-nav,#dashboard,#pv-dashboard')]
     .filter(e => getComputedStyle(e).display !== 'none');
+  function marcarVisto() {
+    try { localStorage.setItem('dia_pv_visto', '1'); } catch (e) {}
+    const sel = $('modo-selector'); if (sel) sel.classList.remove('llamar');
+    const c = $('coach'); if (c) c.classList.remove('visible');
+  }
   function cambiarModo(haciaPV) {
     document.body.classList.toggle('modo-pv', haciaPV);
     activo = haciaPV;
-    $('btn-flip-text').innerText = haciaPV ? 'DIA general' : 'Parvularia';
+    document.querySelectorAll('.modo-btn').forEach(b => b.setAttribute('aria-selected', String((b.dataset.modo === 'pv') === haciaPV)));
     const sw = $('slep-toggle'); sw.checked = haciaPV ? slep : showSlep;
     $('slep-label-text').style.color = sw.checked ? 'var(--leng)' : 'var(--text-muted)';
     window.scrollTo(0, 0);
-    if (haciaPV) render();
+    if (haciaPV) { marcarVisto(); render(); }
     else { try { Object.values(charts_general()).forEach(c => c.resize()); } catch (e) {} }
   }
   const charts_general = () => (typeof charts !== 'undefined' ? charts : {});  // `charts` global de la página general
-  function flip() {
+  // Da vuelta la página: el contenido gira hasta quedar de canto, se cambia de visor y gira de vuelta.
+  function ir(modo, opts = {}) {
     if (!disponible || animando) return;
-    const haciaPV = !document.body.classList.contains('modo-pv');
+    const haciaPV = modo === 'pv';
+    if (haciaPV === document.body.classList.contains('modo-pv')) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const antes = visibles();
-    if (reduce || !antes.length || !antes[0].animate) { cambiarModo(haciaPV); return; }
+    if (opts.animar === false || reduce || !antes.length || !antes[0].animate) { cambiarModo(haciaPV); return; }
     animando = true;
     const rot = a => `perspective(1600px) rotateY(${a}deg)`;
     antes.forEach(e => e.style.transformOrigin = '50% 0');
@@ -2365,7 +2726,7 @@ window.PV = (function () {
   }
 
   return {
-    init, flip, showTab, descargar,
+    init, ir, showTab, descargar, cerrarCoach: marcarVisto, disponible: () => disponible,
     repintar: () => { if (activo) render(); },
     setSlep: on => { slep = on; render(); },
     toggleRubricas: () => { verTodas = !verTodas; graficoRubricas(); },
@@ -2381,10 +2742,14 @@ window.PV = (function () {
       <h2>Cómo usar este visor</h2>
       <button class="help-close" onclick="cerrarAyuda()" aria-label="Cerrar">&times;</button>
     </div>
+    <div class="help-section">
+      <h3>Selector de visor, Mis vistas y enlace</h3>
+      <p>Si tu establecimiento tiene resultados de Parvularia, arriba aparece el selector <b>DIA general | DIA Parvularia</b>. En "Mis vistas" (junto a "Limpiar Filtros") puedes guardar tus filtros favoritos con un nombre y volver a ellos con un clic; se guardan en este navegador. "Copiar enlace" genera un enlace a la vista actual: quien lo abra debe ingresar igualmente con su usuario y contraseña.</p>
+    </div>
     <div id="help-pv" class="pv-help">
       <div class="help-section">
         <h3>DIA Parvularia (NT1 y NT2)</h3>
-        <p>Resultados del DIA de Educación Parvularia. Es una evaluación voluntaria, de uso interno y formativo: orienta las decisiones pedagógicas del equipo y no califica a los niños ni a los docentes. El botón "DIA general" (arriba) vuelve al visor principal.</p>
+        <p>Resultados del DIA de Educación Parvularia. Es una evaluación voluntaria, de uso interno y formativo: orienta las decisiones pedagógicas del equipo y no califica a los niños ni a los docentes. Con el selector de arriba vuelves al visor DIA general.</p>
       </div>
       <div class="help-section">
         <h3>Filtros</h3>
@@ -2410,7 +2775,7 @@ window.PV = (function () {
       </div>
       <div class="help-section">
         <h3>¿Quién ve este módulo?</h3>
-        <p>Administradores y establecimientos con NT1/NT2 que cargaron resultados del DIA Parvularia. Si tu establecimiento no tiene esos datos, el botón no aparece.</p>
+        <p>Administradores y establecimientos con NT1/NT2 que cargaron resultados del DIA Parvularia. Si tu establecimiento no tiene esos datos, el selector no aparece.</p>
       </div>
     </div>
     <div id="help-gen">
