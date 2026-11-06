@@ -2527,7 +2527,7 @@ const Informe = (function () {
       doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...GRIS);
       doc.text('SLEP Del Pino · emitido el ' + fecha(), PW / 2, L.y + 4, { align: 'center' }); L.y += 20;
       const fi = [['Alcance', alcanceTexto()]];
-      if (textos('nivel').length) fi.push(['Niveles', textos('nivel').join(', ')]);
+      if (textos('nivel').length) fi.push(['Niveles', textos('nivel').sort((a, b) => (parseInt(a, 10) || 999) - (parseInt(b, 10) || 999) || a.localeCompare(b, 'es')).join(', ')]);
       if (textos('curso').length) fi.push(['Cursos', textos('curso').join(', ')]);
       if (textos('comuna').length && !hayRbd) fi.push(['Comuna', textos('comuna').join(', ')]);
       fi.push(['Años y etapas', 'Todos los disponibles (2025 y 2026; Diagnóstico, Intermedio y Cierre)']);
