@@ -446,6 +446,9 @@
     .coach::before { content: ''; position: absolute; top: -7px; right: 70px; width: 12px; height: 12px; background: var(--surface); border-left: 1px solid var(--pv); border-top: 1px solid var(--pv); transform: rotate(45deg); }
     .coach b { display: block; font-size: 0.85rem; color: var(--pv); margin-bottom: 0.2rem; }
     .coach span { display: block; font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.6rem; }
+    .coach-check { display: flex !important; align-items: center; gap: 0.45rem; font-size: 0.72rem !important; margin-bottom: 0.6rem !important; cursor: pointer; }
+    .coach-check input { accent-color: var(--pv); width: 15px; height: 15px; }
+    .modo-selector.sin-pulso .modo-btn[data-modo="pv"]::after { display: none !important; }
     .coach button { background: var(--pv); color: var(--on-pv); border: none; border-radius: 8px; padding: 0.35rem 0.9rem; font-family: var(--font); font-size: 0.75rem; font-weight: 800; cursor: pointer; }
 
     /* El cambio de módulo se nota: acento cálido en Parvularia */
@@ -535,7 +538,7 @@
 <div id="toast" role="status" aria-live="polite"></div>
 
 <div class="sticky-top-section" id="navbar" style="display:none;">
-  <div class="coach" id="coach" role="status"><b>Nuevo: DIA Parvularia</b><span>Ahora puedes ver aquí los resultados de NT1 y NT2. Usa este selector para cambiar entre el DIA general y el DIA Parvularia.</span><button type="button" onclick="PV.cerrarCoach()">Entendido</button></div>
+  <div class="coach" id="coach" role="status"><b>Nuevo: DIA Parvularia</b><span>Ahora puedes ver aquí los resultados de NT1 y NT2. Usa este selector para cambiar entre el DIA general y el DIA Parvularia.</span><label class="coach-check"><input type="checkbox" id="coach-nomas"> No volver a mostrar este aviso</label><button type="button" onclick="PV.cerrarCoach()">Entendido</button></div>
   <header class="header">
     <div class="header-info">
       <img class="header-logo logo-light" src="logo3.png" alt="Logo SLEP Del Pino"><img class="header-logo logo-dark" src="logo-blanco.png" alt="Logo SLEP Del Pino">    
@@ -1021,7 +1024,7 @@ let ultimaDuracion = 0;
 function conCarga(mainId, fn, forzar) {
   const main = document.getElementById(mainId), barra = document.getElementById('top-progress');
   barra.classList.add('activo');
-  if (forzar || ultimaDuracion > 120) main.classList.add('cargando');
+  if (forzar === true || (forzar !== 'no' && ultimaDuracion > 120)) main.classList.add('cargando');
   requestAnimationFrame(() => setTimeout(() => {
     const t0 = performance.now();
     try { fn(); }
@@ -1152,9 +1155,14 @@ function toggleTheme() {
     labelText.innerText = 'Tema Claro';
     labelText.style.color = 'var(--text-muted)';
   }
-  applyThemeToCharts();
-  updateImmediate(); // las series de evolucion toman su color de --leng/--mate segun el tema
-  if (window.PV) PV.repintar();
+  // El tema cambia al instante (CSS); el repintado de gráficos va después, con la barra superior,
+  // para que la pantalla no parezca congelada (recalcular el visor general toma ~1 s).
+  const enPV = document.body.classList.contains('modo-pv');
+  if (enPV) window.__temaGeneralPendiente = true;   // se repinta el general al volver a él
+  requestAnimationFrame(() => setTimeout(() => {
+    if (!enPV) { applyThemeToCharts(); conCarga('dashboard', updateImmediate, 'no'); }  // las series de evolución toman su color según el tema
+    else if (window.PV) PV.repintar();
+  }, 0));
 }
 
 function applyThemeToCharts() {
@@ -2263,6 +2271,9 @@ window.PV = (function () {
   const CATS = ['No Evaluado', 'Comenzando', 'Desarrollando', 'Consolidando', 'Profundizando'];
   const KEYS = ['periodo', 'nivel', 'curso', 'ambito', 'nucleo', 'oa', 'rbd'];
   const FONT = "'gobCL', sans-serif";
+  // Aviso de novedad (insignia NUEVO + pulso + burbuja): se muestra en cada ingreso hasta esta fecha o hasta que
+  // la persona marque "No volver a mostrar". Pasada la fecha se puede borrar todo lo relacionado (buscar "coach", "llamar", "badge-nuevo").
+  const AVISO_NUEVO_HASTA = '2026-11-20';
   const RUBRICAS_URL = 'https://diagnosticointegral.agenciaeducacion.cl/documentosep/rubricas/';
 
   let D = null, ts = {}, pvCharts = {};
@@ -2308,8 +2319,8 @@ window.PV = (function () {
       $('pv-static-rbd-text').title = D.maps[I.RBD][miRbd];
     }
     $('modo-selector').classList.add('visible');
-    let visto = false; try { visto = localStorage.getItem('dia_pv_visto') === '1'; } catch (e) {}
-    if (!visto) {                       // primera vez: el selector llama la atención y aparece una burbuja
+    let apagado = false; try { apagado = localStorage.getItem('dia_pv_aviso_off') === '1'; } catch (e) {}
+    if (!apagado && new Date() <= new Date(AVISO_NUEVO_HASTA + 'T23:59:59')) {   // en cada ingreso, hasta que lo apaguen o venza
       $('modo-selector').classList.add('llamar');
       setTimeout(() => { if (!activo) $('coach').classList.add('visible'); }, 900);
     }
@@ -2686,10 +2697,17 @@ window.PV = (function () {
   // Da vuelta la página: el contenido gira hasta quedar de canto, se cambia de módulo y gira de vuelta.
   const visibles = () => [...document.querySelectorAll('#gen-filtros,#pv-filtros,#active-filters-tray,#pv-active-filters-tray,.tabs-nav,#dashboard,#pv-dashboard')]
     .filter(e => getComputedStyle(e).display !== 'none');
+  // Cierra la burbuja (solo por esta visita). Con la casilla marcada, apaga el aviso para siempre en este navegador.
+  function cerrarCoach() {
+    const c = $('coach'), sel = $('modo-selector'), nomas = $('coach-nomas');
+    if (c) c.classList.remove('visible');
+    if (nomas && nomas.checked) { try { localStorage.setItem('dia_pv_aviso_off', '1'); } catch (e) {} if (sel) sel.classList.remove('llamar'); }
+  }
+  // Al entrar a Parvularia: se oculta la burbuja y el pulso (la insignia NUEVO sigue hasta que venza o la apaguen)
   function marcarVisto() {
-    try { localStorage.setItem('dia_pv_visto', '1'); } catch (e) {}
-    const sel = $('modo-selector'); if (sel) sel.classList.remove('llamar');
-    const c = $('coach'); if (c) c.classList.remove('visible');
+    const c = $('coach'), sel = $('modo-selector');
+    if (c) c.classList.remove('visible');
+    if (sel) sel.classList.add('sin-pulso');
   }
   function cambiarModo(haciaPV) {
     document.body.classList.toggle('modo-pv', haciaPV);
@@ -2699,7 +2717,10 @@ window.PV = (function () {
     $('slep-label-text').style.color = sw.checked ? 'var(--leng)' : 'var(--text-muted)';
     window.scrollTo(0, 0);
     if (haciaPV) { marcarVisto(); render(); }
-    else { try { Object.values(charts_general()).forEach(c => c.resize()); } catch (e) {} }
+    else {
+      try { Object.values(charts_general()).forEach(c => c.resize()); } catch (e) {}
+      if (window.__temaGeneralPendiente) { window.__temaGeneralPendiente = false; applyThemeToCharts(); conCarga('dashboard', updateImmediate, 'no'); }
+    }
   }
   const charts_general = () => (typeof charts !== 'undefined' ? charts : {});  // `charts` global de la página general
   // Da vuelta la página: el contenido gira hasta quedar de canto, se cambia de visor y gira de vuelta.
@@ -2726,8 +2747,8 @@ window.PV = (function () {
   }
 
   return {
-    init, ir, showTab, descargar, cerrarCoach: marcarVisto, disponible: () => disponible,
-    repintar: () => { if (activo) render(); },
+    init, ir, showTab, descargar, cerrarCoach, disponible: () => disponible,
+    repintar: () => { if (activo) conCarga('pv-dashboard', renderInterno, 'no'); },
     setSlep: on => { slep = on; render(); },
     toggleRubricas: () => { verTodas = !verTodas; graficoRubricas(); },
     ordenar: k => { orden = { key: k, dir: orden.key === k ? -orden.dir : (k === 'nombre' || k === 'debil' ? 1 : -1) }; render(); },
