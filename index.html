@@ -1338,80 +1338,109 @@ function renderActiveFiltersTray() {
 
 let lecturaInicialCache = null;
 
+// ===== Agregación del visor general =====
+// Recorre las ~700 mil filas UNA vez. Usa índices precalculados, Sets y arreglos numéricos en vez de buscar
+// texto en cada fila: mismos resultados (mismas sumas, en el mismo orden) que la versión anterior, mucho más rápido.
+const ASIGNATURAS_ESPECIALES = ['Lectura Inicial', 'Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad', 'Bienestar', 'Ansiedad ante evaluaciones', 'Convivencia digital', 'Valoración de la educación'];
+let IDX = null;
+function prepararIndices() {
+  const m = DATA_RAW.maps;
+  IDX = {
+    st: m[I.ETAPA].map(e => STAGES.indexOf(e)),
+    especial: m[I.ASIG].map(a => ASIGNATURAS_ESPECIALES.includes(a)),
+    pond: m[I.ASIG].map(a => ASIGNATURAS_SOCIO_PONDERADAS.includes(a)),
+    ejeOk: m[I.EJE].map(e => !!e),
+    nAgno: m[I.AGNO].length, nAsig: m[I.ASIG].length, nEje: m[I.EJE].length,
+    leng: m[I.ASIG].indexOf('Lenguaje'), mate: m[I.ASIG].indexOf('Matemática')
+  };
+}
+
+function agregarGeneral(filters) {
+  if (!IDX) prepararIndices();
+  const m = DATA_RAW.maps, rows = DATA_RAW.rows;
+  const conj = k => filters[k].length ? new Set(filters[k].map(Number)) : null;
+  const fAgno = conj('agno'), fEtapa = conj('etapa'), fNivel = conj('nivel'), fCurso = conj('curso'), fComuna = conj('comuna'), fRbd = conj('rbd');
+  const nA = IDX.nAgno, nS = IDX.nAsig, nE = IDX.nEje, ST = IDX.st, ESP = IDX.especial, POND = IDX.pond, EJEOK = IDX.ejeOk;
+  const usaN = !!N_SOCIO, asigActual = m[I.ASIG].indexOf(currentAsigFilter);
+  // Un acumulador por "grupo": B = SLEP (sin filtro de colegio), A = selección (con filtro de colegio)
+  const nuevo = () => ({ s: new Float64Array(nS * nA * 3), c: new Float64Array(nS * nA * 3), t: new Uint8Array(nS * nA), o: [],
+                         es: new Float64Array(nS * nE * nA * 3), ec: new Float64Array(nS * nE * nA * 3), et: new Uint8Array(nS * nE * nA), eo: [] });
+  const A = nuevo(), B = nuevo();
+  const acum = (X, asig, agno, eje, st, v, w) => {
+    const k = asig * nA + agno;
+    if (!X.t[k]) { X.t[k] = 1; X.o.push(k); }
+    const j = k * 3 + st; X.s[j] += v * w; X.c[j] += w;
+    if (EJEOK[eje]) {
+      const ke = (asig * nE + eje) * nA + agno;
+      if (!X.et[ke]) { X.et[ke] = 1; X.eo.push(ke); }
+      const je = ke * 3 + st; X.es[je] += v * w; X.ec[je] += w;
+    }
+  };
+  const kpi = { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() };
+  const nSocioClaves = new Set(), cursos = {}, niveles = {};
+
+  for (let i = 0, n = rows.length; i < n; i++) {
+    const r = rows[i];
+    if (fAgno && !fAgno.has(r[I.AGNO])) continue;
+    if (fEtapa && !fEtapa.has(r[I.ETAPA])) continue;
+    if (fNivel && !fNivel.has(r[I.NIVEL])) continue;
+    if (fCurso && !fCurso.has(r[I.CURSO])) continue;
+    if (fComuna && !fComuna.has(r[I.COMUNA])) continue;   // Comuna se aplica antes del bloque SLEP (para comparar contra la comuna filtrada)
+    const st = ST[r[I.ETAPA]]; if (st === -1) continue;
+    const asig = r[I.ASIG], agno = r[I.AGNO], eje = r[I.EJE], p = r[I.PUNTAJE];
+    // Ponderación por N de cuestionarios (solo Socioemocional Intermedio, solo si N_SOCIO cargó y cubre todo)
+    const w = (usaN && POND[asig]) ? N_SOCIO.n[claveNSocio(r)] : 1;
+
+    acum(B, asig, agno, eje, st, p, w);
+    if (asig === asigActual) {
+      const nV = m[I.NIVEL][r[I.NIVEL]], aV = m[I.AGNO][agno];
+      const x = (niveles[nV] = niveles[nV] || {});
+      const y = (x[aV] = x[aV] || Array.from({ length: 3 }, () => [0, 0]));
+      y[st][0] += p; y[st][1]++;
+    }
+
+    if (fRbd && !fRbd.has(r[I.RBD])) continue;
+
+    if (!ESP[asig]) { kpi.sum += p; kpi.count++; }
+    kpi.rbds.add(r[I.RBD]);
+    if (asig === IDX.leng) { kpi.lSum += p; kpi.lC++; } else if (asig === IDX.mate) { kpi.mSum += p; kpi.mC++; }
+    acum(A, asig, agno, eje, st, p, w);
+    if (POND[asig]) nSocioClaves.add(claveNSocio(r));
+    if (fRbd && asig === asigActual) {
+      const cV = m[I.CURSO][r[I.CURSO]], aV = m[I.AGNO][agno];
+      const x = (cursos[cV] = cursos[cV] || {});
+      const y = (x[aV] = x[aV] || Array.from({ length: 3 }, () => [0, 0]));
+      y[st][0] += p; y[st][1]++;
+    }
+  }
+
+  // Se reconstruyen los mismos objetos de siempre (mismo orden de claves = orden de primera aparición)
+  const construir = X => {
+    const evo = Object.fromEntries(SUBJECTS.map(s => [s, {}])), ejes = Object.fromEntries(SUBJECTS.map(s => [s, {}]));
+    const trio = (S, C, j) => [[S[j], C[j]], [S[j + 1], C[j + 1]], [S[j + 2], C[j + 2]]];
+    X.o.forEach(k => {
+      const nombre = m[I.ASIG][Math.floor(k / nA)];
+      (evo[nombre] = evo[nombre] || {})[m[I.AGNO][k % nA]] = trio(X.s, X.c, k * 3);
+    });
+    X.eo.forEach(ke => {
+      const agno = ke % nA, t = Math.floor(ke / nA), e = m[I.EJE][t % nE], nombre = m[I.ASIG][Math.floor(t / nE)];
+      const a = (ejes[nombre] = ejes[nombre] || {});
+      (a[e] = a[e] || {})[m[I.AGNO][agno]] = trio(X.es, X.ec, ke * 3);
+    });
+    return { evo, ejes };
+  };
+  const ra = construir(A), rb = construir(B);
+  return {
+    res: { kpi, evo: ra.evo, ejes: ra.ejes, cursos, nSocioClaves },
+    slep: { evo: rb.evo, ejes: rb.ejes, niveles }
+  };
+}
+
 function updateImmediate() {
   const filters = {}; Object.keys(ts).forEach(k => filters[k] = ts[k].getValue());
   renderActiveFiltersTray();
   
-  const res = {
-    kpi: { sum: 0, count: 0, lSum: 0, lC: 0, mSum: 0, mC: 0, rbds: new Set() },
-    evo: Object.fromEntries(SUBJECTS.map(s => [s, {}])),
-    ejes: Object.fromEntries(SUBJECTS.map(s => [s, {}])),
-    cursos: {},
-    nSocioClaves: new Set()  // RBD|grado únicos del Socioemocional Intermedio, para el subtítulo
-  };
-  const slep = {
-    evo: Object.fromEntries(SUBJECTS.map(s => [s, {}])),
-    ejes: Object.fromEntries(SUBJECTS.map(s => [s, {}])), 
-    niveles: {} 
-  };
-
-  DATA_RAW.rows.forEach(r => {
-    if (filters.agno.length && !filters.agno.includes(String(r[I.AGNO]))) return;
-    if (filters.etapa.length && !filters.etapa.includes(String(r[I.ETAPA]))) return;
-    if (filters.nivel.length && !filters.nivel.includes(String(r[I.NIVEL]))) return;
-    if (filters.curso.length && !filters.curso.includes(String(r[I.CURSO]))) return;
-    // Comuna se aplica antes del bloque SLEP (a diferencia de RBD) para que "Promedio SLEP"
-    // compare contra la comuna filtrada y no siempre contra el total de las 4 comunas.
-    if (filters.comuna.length && !filters.comuna.includes(String(r[I.COMUNA]))) return;
-
-    const agnoV = DATA_RAW.maps[I.AGNO][r[I.AGNO]], etapaV = DATA_RAW.maps[I.ETAPA][r[I.ETAPA]], asigV = DATA_RAW.maps[I.ASIG][r[I.ASIG]], p = r[I.PUNTAJE], stIdx = STAGES.indexOf(etapaV);
-    if (stIdx === -1) return;
-
-    // Ponderación por N de cuestionarios (solo Socioemocional Intermedio, solo si N_SOCIO
-    // cargó y cubre todo -- ver cargarNSocio()). w=1 en cualquier otro caso deja el
-    // promedio simple de siempre, sin tocar el resto de asignaturas.
-    const wSocio = (N_SOCIO && ASIGNATURAS_SOCIO_PONDERADAS.includes(asigV)) ? N_SOCIO.n[claveNSocio(r)] : 1;
-
-    if (!slep.evo[asigV][agnoV]) slep.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-    slep.evo[asigV][agnoV][stIdx][0] += p * wSocio; slep.evo[asigV][agnoV][stIdx][1] += wSocio;
-    const ejeV = DATA_RAW.maps[I.EJE][r[I.EJE]];
-    if (ejeV) {
-      if (!slep.ejes[asigV][ejeV]) slep.ejes[asigV][ejeV] = {};
-      if (!slep.ejes[asigV][ejeV][agnoV]) slep.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      slep.ejes[asigV][ejeV][agnoV][stIdx][0] += p * wSocio; slep.ejes[asigV][ejeV][agnoV][stIdx][1] += wSocio;
-    }
-    if (asigV === currentAsigFilter) {
-      const nV = DATA_RAW.maps[I.NIVEL][r[I.NIVEL]];
-      if (!slep.niveles[nV]) slep.niveles[nV] = {};
-      if (!slep.niveles[nV][agnoV]) slep.niveles[nV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      slep.niveles[nV][agnoV][stIdx][0] += p; slep.niveles[nV][agnoV][stIdx][1]++;
-    }
-
-    if (filters.rbd.length && !filters.rbd.includes(String(r[I.RBD]))) return;
-
-    const asignaturasEspeciales = ['Lectura Inicial', 'Desarrollo', 'Gestión', 'Promoción universal', 'Apoyos focalizados', 'Intervenciones de mayor intensidad', 'Bienestar', 'Ansiedad ante evaluaciones', 'Convivencia digital', 'Valoración de la educación'];
-    if (!asignaturasEspeciales.includes(asigV)) {
-      res.kpi.sum += p; res.kpi.count++; 
-    }
-    res.kpi.rbds.add(r[I.RBD]);
-
-    if (asigV === 'Lenguaje') { res.kpi.lSum += p; res.kpi.lC++; } else if (asigV === 'Matemática') { res.kpi.mSum += p; res.kpi.mC++; }
-
-    if (!res.evo[asigV][agnoV]) res.evo[asigV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-    res.evo[asigV][agnoV][stIdx][0] += p * wSocio; res.evo[asigV][agnoV][stIdx][1] += wSocio;
-    if (ejeV) {
-      if (!res.ejes[asigV][ejeV]) res.ejes[asigV][ejeV] = {};
-      if (!res.ejes[asigV][ejeV][agnoV]) res.ejes[asigV][ejeV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      res.ejes[asigV][ejeV][agnoV][stIdx][0] += p * wSocio; res.ejes[asigV][ejeV][agnoV][stIdx][1] += wSocio;
-    }
-    if (ASIGNATURAS_SOCIO_PONDERADAS.includes(asigV)) res.nSocioClaves.add(claveNSocio(r));
-    if (filters.rbd.length && asigV === currentAsigFilter) {
-      const cV = DATA_RAW.maps[I.CURSO][r[I.CURSO]];
-      if (!res.cursos[cV]) res.cursos[cV] = {};
-      if (!res.cursos[cV][agnoV]) res.cursos[cV][agnoV] = Array.from({length: 3}, () => [0, 0]);
-      res.cursos[cV][agnoV][stIdx][0] += p; res.cursos[cV][agnoV][stIdx][1]++;
-    }
-  });
+  const { res, slep } = agregarGeneral(filters);
 
   const f = (s, c) => c > 0 ? (s / c * 100).toFixed(1) + '%' : '—';
   document.getElementById('kpi-global').innerText = f(res.kpi.sum, res.kpi.count);
