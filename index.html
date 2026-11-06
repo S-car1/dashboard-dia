@@ -2412,8 +2412,10 @@ const Informe = (function () {
     if (logo) return logo;
     const blob = await (await fetch('logo3.png')).blob();
     const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
-    const dim = await new Promise(r => { const im = new Image(); im.onload = () => r([im.naturalWidth, im.naturalHeight]); im.src = url; });
-    return (logo = { url, w: dim[0], h: dim[1] });
+    const im = await new Promise(r => { const el = new Image(); el.onload = () => r(el); el.src = url; });
+    const w = 480, h = Math.round(480 * im.naturalHeight / im.naturalWidth), cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(im, 0, 0, w, h);
+    return (logo = { url: cv.toDataURL('image/png'), w, h });
   }
 
   // ---------- gráficos fuera de pantalla (tema claro, fondo blanco) ----------
@@ -2736,7 +2738,7 @@ const Informe = (function () {
     try {
       estado('Cargando herramientas de PDF…'); await cargarLibs(); const lg = await cargarLogo();
       estado('Calculando resultados y gráficos…'); await tick();
-      const doc = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4' });
+      const doc = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4', compress: true });
       doc.setProperties({ title: 'Informe DIA - ' + alcanceTexto(), author: 'SLEP Del Pino - SATP' });
       await construir(doc, { general, parvularia });
       estado('Armando el documento…'); await tick();
