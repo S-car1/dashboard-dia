@@ -1180,11 +1180,90 @@ async function handleLoginInterno() {
   errorEl.style.display = 'block';
 }
 
-function registrarAcceso(usuario) {
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxEybK4ERWVNT8uQgLzZ9UwCLmY2wYlMte55huNGwytKpckNs1K7WW9q7GqapWELCPS/exec';
-  fetch(`${scriptURL}?usuario=${usuario}`, { mode: 'no-cors' })
-    .catch(e => console.log('Error de registro silencioso:', e));
-}
+function registrarAcceso(usuario) { Uso.iniciar(usuario); }
+
+/* ===== REGISTRO DE USO (hoja "Accesos Dashboard DIA (logs)") =====
+   Manda eventos sueltos (pestañas, filtros, descargas, informe PDF, vistas, módulo, tema, ayuda) y el tiempo ACTIVO
+   de la visita (solo cuenta con la pestaña visible y actividad en el último minuto). Todo en silencio:
+   si falla el envío, el visor sigue igual. Se engancha por eventos del documento, sin tocar el resto del código. */
+const Uso = (function () {
+  const URL_LOG = 'https://script.google.com/macros/s/AKfycbxEybK4ERWVNT8uQgLzZ9UwCLmY2wYlMte55huNGwytKpckNs1K7WW9q7GqapWELCPS/exec';
+  let usuario = null, sesion = null, seg = 0, segEnviado = -1, ultAct = Date.now(), ultTick = Date.now();
+  const deb = {};
+
+  const qs = o => Object.keys(o).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(o[k])).join('&');
+  function enviar(tipo, detalle, extra) {
+    if (!usuario) return;
+    const o = Object.assign({ usuario, sesion, tipo, detalle: detalle || '' }, extra || {});
+    try { fetch(URL_LOG + '?' + qs(o), { mode: 'no-cors', keepalive: true }).catch(() => {}); } catch (e) {}
+  }
+  function fin() {
+    if (!usuario || seg === segEnviado) return;
+    segEnviado = seg;
+    const url = URL_LOG + '?' + qs({ usuario, sesion, tipo: 'fin', seg });
+    try { if (!(navigator.sendBeacon && navigator.sendBeacon(url))) fetch(url, { mode: 'no-cors', keepalive: true }).catch(() => {}); } catch (e) {}
+  }
+  const texto = el => (el && (el.innerText || el.textContent) || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  // Un mismo tipo+clave se registra una sola vez cada 'ms' (evita ráfagas al elegir varias opciones de un filtro)
+  function evento(tipo, detalle, clave, ms) {
+    const k = tipo + '|' + (clave || detalle), ahora = Date.now();
+    if (deb[k] && ahora - deb[k] < (ms || 0)) return;
+    deb[k] = ahora; enviar(tipo, detalle);
+  }
+
+  function iniciar(u) {
+    usuario = String(u || 'Sin dato'); sesion = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    enviar('login', window.innerWidth < 768 ? 'movil' : 'escritorio');
+
+    ['click', 'keydown', 'scroll', 'touchstart', 'mousemove'].forEach(t =>
+      document.addEventListener(t, () => { ultAct = Date.now(); }, { passive: true, capture: true }));
+    setInterval(() => {
+      const ahora = Date.now(), d = Math.min((ahora - ultTick) / 1000, 10); ultTick = ahora;
+      if (document.visibilityState === 'visible' && ahora - ultAct < 60000) seg += d;
+      seg = Math.round(seg * 10) / 10;
+    }, 5000);
+    setInterval(() => {   // latido cada 30 s solo si hubo tiempo nuevo
+      if (seg !== segEnviado) { segEnviado = seg; enviar('latido', '', { seg: Math.round(seg) }); }
+    }, 30000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') fin(); });
+    window.addEventListener('pagehide', fin);
+
+    // Clics: pestañas, descargas, informe, vistas, módulo, ayuda
+    document.addEventListener('click', e => {
+      const t = e.target; if (!t || !t.closest) return;
+      let el;
+      if ((el = t.closest('.tab-btn, .pv-tab-btn'))) return evento('pestana', texto(el), null, 800);
+      if ((el = t.closest('.btn-download'))) { const c = el.closest('.chart-card'); return evento('descarga_grafico', texto(c && c.querySelector('.chart-title')) || 'gráfico', null, 800); }
+      if ((el = t.closest('.modo-btn'))) return evento('modulo', el.dataset.modo === 'pv' ? 'Parvularia' : 'DIA general', null, 800);
+      if ((el = t.closest('.vista-item'))) return evento('vista_aplicada', texto(el.querySelector('.nombre')), null, 800);
+      if (t.closest('.vistas-guardar button')) return evento('vista_guardada', '', null, 800);
+      if (t.closest('.vistas-enlace')) return evento('enlace_copiado', '', null, 800);
+      if (t.closest('#inf-generar')) return evento('informe_pdf', filtrosTxt(), null, 3000);
+      if ((el = t.closest('[onclick]'))) {
+        const oc = el.getAttribute('onclick') || '';
+        if (oc.includes('Informe.abrir')) return evento('informe_abrir', '', null, 800);
+        if (oc.includes('abrirAyuda')) return evento('ayuda', '', null, 800);
+        if (oc.includes('iniciar')) return evento('recorrido', '', null, 800);
+      }
+    }, true);
+    // Cambios de filtros (los select de TomSelect disparan 'change'; en captura llega aunque no burbujee)
+    document.addEventListener('change', e => {
+      const t = e.target; if (!t) return;
+      if (t.tagName === 'SELECT' && /^(pv-)?f-/.test(t.id)) {
+        const v = [...t.selectedOptions].map(o => o.text).slice(0, 6).join(' | ');
+        clearTimeout(deb['f_' + t.id]);   // registra la selección FINAL, 1,5 s después del último cambio
+        deb['f_' + t.id] = setTimeout(() => enviar('filtro', t.id.replace(/^pv-f-/, 'pv-').replace(/^f-/, '') + '=' + v), 1500);
+      } else if (t.id === 'theme-toggle') evento('tema', t.checked ? 'oscuro' : 'claro', null, 800);
+      else if (t.id === 'slep-toggle') evento('comparar_slep', t.checked ? 'on' : 'off', null, 800);
+    }, true);
+  }
+  function filtrosTxt() {
+    try {
+      return Object.keys(ts).filter(k => IS_ADMIN || k !== 'rbd').map(k => ts[k].getValue().length ? k + '=' + ts[k].getValue().length : '').filter(Boolean).join(', ').slice(0, 150);
+    } catch (e) { return ''; }
+  }
+  return { iniciar };
+})();
 
 function toggleTheme() {
   document.documentElement.classList.add('sin-transiciones');
@@ -2525,7 +2604,7 @@ const Informe = (function () {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(...NAVY);
       doc.text('Informe de resultados DIA', PW / 2, L.y + 8, { align: 'center' }); L.y += 22;
       doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...GRIS);
-      doc.text('SLEP Del Pino · emitido el ' + fecha(), PW / 2, L.y + 4, { align: 'center' }); L.y += 20;
+      doc.text('SLEP Del Pino', PW / 2, L.y + 4, { align: 'center' }); L.y += 20;
       const fi = [['Alcance', alcanceTexto()]];
       if (textos('nivel').length) fi.push(['Niveles', textos('nivel').sort((a, b) => (parseInt(a, 10) || 999) - (parseInt(b, 10) || 999) || a.localeCompare(b, 'es')).join(', ')]);
       if (textos('curso').length) fi.push(['Cursos', textos('curso').join(', ')]);
@@ -2550,6 +2629,18 @@ const Informe = (function () {
         filasRes.push([nom, STAGES[k], pc(v25), pc(v26) + mk, dif(d) + (d != null && mk ? '*' : ''), hayRbd ? slepTxt : num(x26[1])]);
       });
       tabla({ head: [['Asignatura', 'Etapa', '2025', '2026', 'Diferencia', hayRbd ? 'Promedio SLEP 2026' : 'Registros 2026']], body: filasRes, columnStyles: { 0: { cellWidth: 150 }, 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' }, 5: { halign: 'center' } } });
+      // Rondas ANTERIORES de 2026 (Diagnóstico e Intermedio) sin resultados de Lectura o Matemática por establecimiento. El Cierre sigue abierto: no cuenta como faltante.
+      if (hayRbd) {
+        const m = DATA_RAW.maps, aL = m[I.ASIG].indexOf('Lenguaje'), aM = m[I.ASIG].indexOf('Matemática'), ag26 = m[I.AGNO].indexOf('2026'), fR = new Set(f.rbd.map(Number)), con = {};
+        DATA_RAW.rows.forEach(r => { if (fR.has(r[I.RBD]) && r[I.AGNO] === ag26 && (r[I.ASIG] === aL || r[I.ASIG] === aM)) { const st = IDX.st[r[I.ETAPA]]; if (st === 0 || st === 1) (con[r[I.RBD]] = con[r[I.RBD]] || new Set()).add(st); } });
+        const sin = [];
+        f.rbd.forEach(v => { const fal = [0, 1].filter(st => !(con[v] && con[v].has(st))).map(st => STAGES[st]); if (fal.length) sin.push(ts.rbd.options[v].text + ' (' + fal.join(' e ') + ')'); });
+        const pvSin = (window.PV_SIN_DATOS || []).filter(r => rbdNums().includes(r));
+        const partes = [];
+        if (sin.length) partes.push('de Lectura y Matemática 2026 en rondas anteriores' + (f.rbd.length > 1 ? ': ' + sin.join('; ') : ' (' + sin[0].replace(/^.*\(/, '').replace(/\)$/, '') + ')'));
+        if (pvSin.length) partes.push('de DIA Parvularia (NT1 y NT2) 2026');
+        if (partes.length) caja('* Faltan datos ' + partes.join(', y ') + '. Si ya cuenta con esos archivos, le pedimos subirlos a su carpeta de Drive; se incorporarán al visor y a este informe.');
+      }
       parrafo('El logro es el promedio de los puntajes de cada evaluación; pp = puntos porcentuales (2026 menos 2025 en la misma etapa, la última con resultados 2026). «Sin datos»: no hay resultados de esa ronda en la selección. Cada registro es el puntaje de un estudiante en un eje.' + (hayPocos ? ' * Basado en pocas evaluaciones (menos de 30 registros): interprételo con cautela.' : ''), { size: 8, color: GRIS });
 
       // --- Trayectoria
@@ -2662,7 +2753,7 @@ const Informe = (function () {
         doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(...NAVY);
         doc.text('DIA Parvularia (NT1 y NT2)', PW / 2, L.y + 8, { align: 'center' }); L.y += 22;
         doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...GRIS);
-        doc.text('Período ' + d.periodo + ' · emitido el ' + fecha(), PW / 2, L.y + 4, { align: 'center' }); L.y += 20;
+        doc.text('Período ' + d.periodo, PW / 2, L.y + 4, { align: 'center' }); L.y += 20;
         const alc = d.nombres.length === 1 ? d.nombres[0] : d.nombres.length + ' establecimientos con datos de Parvularia';
         tabla({ body: [['Alcance', alc], ['Período', d.periodo + (d.prev ? ' (comparado con ' + d.prev.nombre + ')' : '')]], columnStyles: { 0: { fillColor: CLARO, fontStyle: 'bold', cellWidth: 110 } }, styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 4, textColor: TXT, lineWidth: 0 } });
         parrafo('El DIA Parvularia es una evaluación voluntaria, de uso interno y formativo. Sus resultados orientan la planificación pedagógica y se analizan de forma cualitativa, guiada por preguntas; no son comparables ni generalizables a toda la población.');
@@ -2675,6 +2766,7 @@ const Informe = (function () {
           f4('% Nivel de riesgo (Comenzando)', pp100(d.riesgo), pv ? dif(d.prev.dRiesgo) : 'Sin datos comparables'),
           f4('% Sin registro (No Evaluado: falta el dato, no es un nivel bajo)', pp100(d.sinReg), pv ? dif(d.prev.dSinReg) : 'Sin datos comparables')],
           columnStyles: { 0: { cellWidth: 250 }, 1: { halign: 'center' }, 2: { halign: 'center' } } });
+        if (!/2026/.test(d.periodo)) caja('* Faltan datos de DIA Parvularia (NT1 y NT2) 2026 de rondas anteriores (Inicio). Si ya cuenta con esos archivos, le pedimos subirlos a su carpeta de Drive; se incorporarán al visor y a este informe.');
         if (d.prev && !d.prev.comparable) parrafo('No hay datos suficientes para comparar con ' + d.prev.nombre + '.', { size: 8, color: GRIS });
         if (pv) parrafo('Variaciones en puntos porcentuales calculadas solo sobre los establecimientos, niveles y rúbricas con datos en ambos períodos; comparan generaciones distintas de niños.', { size: 8, color: GRIS });
         titulo('Distribución por categoría');

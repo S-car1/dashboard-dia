@@ -252,7 +252,7 @@ merge) — no se repite aquí para no duplicar.
 ## Pendientes
 - [x] Push/merge de `feature/n-socio` a `main` — hecho (2026-09-23), merge commit `1c21703`,
   en producción.
-- [ ] Borrar el repo `dashboard-dia-revision` (local + GitHub) — pendiente, ver nota arriba.
+- [ ] (29-oct: Sebastián dio el OK; falta borrar en GitHub) Borrar el repo `dashboard-dia-revision` (local + GitHub) — pendiente, ver nota arriba.
 - [x] Decidir si se sube a producción — sí, mergeado a `main` (`3562541`).
 - [ ] Probar en un teléfono/tablet físico y con Safari/Firefox (pruebas hechas solo en Edge).
 - [ ] La rama `isEjes = true` de `renderVariationsTable` (tabla con múltiples
@@ -274,3 +274,14 @@ merge) — no se repite aquí para no duplicar.
       Convención usada ahí en adelante: solo rama local, sin repo `-revision` aparte
       (ese repo fue solo para la primera vez, este mismo `dashboard-dia`).
 - [ ] La jefatura necesita usuario/clave válidos para el login (mismo Apps Script).
+
+- 2026-10-23: ícono de pestaña cambiado al SVG propio del set de íconos del SATP (generado con `Petorcaisores_del_pino\iconos\iconos.py`, función `favicon_link()`); push hecho y verificado en producción.
+
+## Parvularia integrada + mejoras (6-nov-2026, en `main` desde 7644de4)
+Contexto completo del proceso en `Proyectos\01 DIA\CONTEXTO.md` (sección «Cierre 2026 + DIA Parvularia»). Notas técnicas de `index.html` (archivo único):
+- **Módulo `PV`** (script aparte, IIFE `window.PV`): visor de Parvularia en Chart.js; datos en `datos_parvularia.json` (formato: cols + maps + rows, columna 7 = Periodo). Selector `#modo-selector`, giro 3D en `PV.ir()`, CSS `body.modo-pv`. Se inicializa en `startDashboard()` (`PV.init()`); el botón solo aparece para admin o RBD con datos.
+- **Otros módulos globales:** `Vistas` (Mis vistas + enlace #hash), `Recorrido` (tour; textos según Manual de uso DIA 2026), `Informe` (PDF con jsPDF/autoTable cargados al pedirlo, `compress: true`), `agregarGeneral()` (agregación rápida con índices; mismos resultados que el cálculo antiguo), `conCarga()` (skeleton + barra superior), `animarKPIs()`, `cargarJSON()` (descarga con progreso).
+- **Tema:** `toggleTheme()` agrega `html.sin-transiciones`, recolorea las series (`recolorSeriesTema`) y repinta sin recalcular.
+- **Aviso NUEVO** hasta 2026-11-20 (`AVISO_NUEVO_HASTA`); quitar entonces.
+- **Datos de Parvularia:** generar con `02 DIA Parvularia\generar_datos_json.py`. **Informes por colegio:** `01 DIA\Envíos masivos\Cierre DIA 2026\generar_informes_por_colegio.py`.
+- Producción = Vercel (`dashboard-dia-slep.vercel.app`, despliega solo desde `main`); GitHub Pages también existe y tarda más.
