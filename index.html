@@ -1214,6 +1214,7 @@ const Uso = (function () {
   function iniciar(u) {
     usuario = String(u || 'Sin dato'); sesion = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     enviar('login', window.innerWidth < 768 ? 'movil' : 'escritorio');
+    ultTick = Date.now(); ultAct = ultTick;   // el reloj parte en el login, no al cargar la página
 
     ['click', 'keydown', 'scroll', 'touchstart', 'mousemove'].forEach(t =>
       document.addEventListener(t, () => { ultAct = Date.now(); }, { passive: true, capture: true }));
@@ -1258,6 +1259,7 @@ const Uso = (function () {
     }, true);
   }
   function filtrosTxt() {
+    if (document.body.classList.contains('modo-pv')) return 'Parvularia';
     try {
       return Object.keys(ts).filter(k => IS_ADMIN || k !== 'rbd').map(k => ts[k].getValue().length ? k + '=' + ts[k].getValue().length : '').filter(Boolean).join(', ').slice(0, 150);
     } catch (e) { return ''; }
